@@ -74,7 +74,20 @@
                 <!-- Auth/Menu -->
                 <div class="hidden lg:flex items-center space-x-4">
                     @guest
-                        <a href="{{ route('login') }}" class="bg-primary-jlm text-white px-5 py-2.5 rounded-lg hover:bg-primary-jlm-dark transition duration-300 shadow-md font-semibold text-sm">Login</a>
+                        <div class="relative group">
+                            <button class="bg-primary-jlm text-white px-5 py-2.5 rounded-lg hover:bg-primary-jlm-dark transition duration-300 shadow-md font-semibold text-sm flex items-center space-x-2">
+                                <span>Sign In</span>
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </button>
+                            <div class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl py-2 z-20 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto transition-all duration-200 border border-gray-100 origin-top-right">
+                                <a href="{{ route('login.student') }}" class="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-primary-jlm/5 hover:text-primary-jlm font-medium">
+                                    <i class="fas fa-user-graduate mr-2.5 text-primary-jlm text-base"></i>Student Sign In
+                                </a>
+                                <a href="{{ route('login.instructor') }}" class="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-secondary-jlm/5 hover:text-secondary-jlm font-medium border-t border-gray-100">
+                                    <i class="fas fa-chalkboard-teacher mr-2.5 text-secondary-jlm text-base"></i>Instructor Portal
+                                </a>
+                            </div>
+                        </div>
                         <a href="{{ route('register') }}" class="border border-primary-jlm text-primary-jlm px-5 py-2.5 rounded-lg hover:bg-primary-jlm/5 transition duration-300 font-semibold text-sm">Register</a>
                     @else
                         <div class="relative group">
@@ -123,9 +136,14 @@
                 <hr class="border-gray-200">
 
                 @guest
-                    <div class="grid grid-cols-2 gap-3 pt-2">
-                        <a href="{{ route('login') }}" class="text-center bg-primary-jlm text-white py-2 rounded-lg font-semibold text-sm">Login</a>
-                        <a href="{{ route('register') }}" class="text-center border border-primary-jlm text-primary-jlm py-2 rounded-lg font-semibold text-sm">Register</a>
+                    <div class="space-y-2 pt-2">
+                        <a href="{{ route('login.student') }}" class="flex items-center justify-center gap-2 bg-primary-jlm text-white py-2.5 rounded-lg font-semibold text-sm shadow">
+                            <i class="fas fa-user-graduate"></i>Student Sign In
+                        </a>
+                        <a href="{{ route('login.instructor') }}" class="flex items-center justify-center gap-2 bg-secondary-jlm text-white py-2.5 rounded-lg font-semibold text-sm shadow">
+                            <i class="fas fa-chalkboard-teacher"></i>Instructor Portal
+                        </a>
+                        <a href="{{ route('register') }}" class="block text-center border border-primary-jlm text-primary-jlm py-2.5 rounded-lg font-semibold text-sm">Register</a>
                     </div>
                 @else
                     <div class="space-y-1">

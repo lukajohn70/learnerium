@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In — Learnerium</title>
+    <title>@if(($role ?? 'student') === 'instructor') Instructor Portal Sign In @else Student Sign In @endif — Learnerium</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="https://cdn.tailwindcss.com"></script>
@@ -31,8 +31,8 @@
             background: #fff;
         }
         .input-field:focus {
-            border-color: #1b2299;
-            box-shadow: 0 0 0 3px rgba(27,34,153,.12);
+            border-color: @if(($role ?? 'student') === 'instructor') #e4306d @else #1b2299 @endif;
+            box-shadow: 0 0 0 3px @if(($role ?? 'student') === 'instructor') rgba(228,48,109,.12) @else rgba(27,34,153,.12) @endif;
         }
         .hero-dot { position: absolute; border-radius: 50%; opacity: .15; }
     </style>
@@ -40,7 +40,7 @@
 <body class="antialiased text-gray-800 min-h-screen flex">
 
     <!-- Left Panel: Branding -->
-    <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary-jlm via-blue-800 to-secondary-jlm relative overflow-hidden flex-col items-center justify-center p-12 text-white">
+    <div class="hidden lg:flex lg:w-1/2 @if(($role ?? 'student') === 'instructor') bg-gradient-to-br from-secondary-jlm via-pink-700 to-primary-jlm @else bg-gradient-to-br from-primary-jlm via-blue-800 to-secondary-jlm @endif relative overflow-hidden flex-col items-center justify-center p-12 text-white">
         <!-- Decorative blobs -->
         <div class="hero-dot w-96 h-96 bg-white top-[-80px] left-[-80px]"></div>
         <div class="hero-dot w-64 h-64 bg-accent-jlm bottom-[-40px] right-[-40px]"></div>
@@ -50,23 +50,43 @@
             <a href="{{ url('/') }}" class="text-5xl font-black tracking-tight block mb-6">
                 Learnerium
             </a>
-            <p class="text-xl font-light text-white/80 mb-10 leading-relaxed">
-                The platform where <span class="text-accent-jlm font-semibold">knowledge meets ambition.</span> Continue your journey today.
-            </p>
-            <div class="grid grid-cols-3 gap-4 text-center">
-                <div class="bg-white/10 backdrop-blur rounded-xl p-4">
-                    <div class="text-2xl font-extrabold">500+</div>
-                    <div class="text-xs text-white/70 mt-0.5">Courses</div>
+            @if(($role ?? 'student') === 'instructor')
+                <p class="text-xl font-light text-white/80 mb-10 leading-relaxed">
+                    Instructor Portal — <span class="text-accent-jlm font-semibold">Inspire, teach, and manage</span> your online courses with ease.
+                </p>
+                <div class="grid grid-cols-3 gap-4 text-center">
+                    <div class="bg-white/10 backdrop-blur rounded-xl p-4">
+                        <div class="text-2xl font-extrabold"><i class="fas fa-book-open"></i></div>
+                        <div class="text-xs text-white/70 mt-1">Course Builder</div>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur rounded-xl p-4">
+                        <div class="text-2xl font-extrabold"><i class="fas fa-users"></i></div>
+                        <div class="text-xs text-white/70 mt-1">Student Roster</div>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur rounded-xl p-4">
+                        <div class="text-2xl font-extrabold"><i class="fas fa-chart-line"></i></div>
+                        <div class="text-xs text-white/70 mt-1">Analytics</div>
+                    </div>
                 </div>
-                <div class="bg-white/10 backdrop-blur rounded-xl p-4">
-                    <div class="text-2xl font-extrabold">10K+</div>
-                    <div class="text-xs text-white/70 mt-0.5">Students</div>
+            @else
+                <p class="text-xl font-light text-white/80 mb-10 leading-relaxed">
+                    Student Portal — <span class="text-accent-jlm font-semibold">Knowledge meets ambition.</span> Continue your learning journey today.
+                </p>
+                <div class="grid grid-cols-3 gap-4 text-center">
+                    <div class="bg-white/10 backdrop-blur rounded-xl p-4">
+                        <div class="text-2xl font-extrabold">500+</div>
+                        <div class="text-xs text-white/70 mt-0.5">Courses</div>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur rounded-xl p-4">
+                        <div class="text-2xl font-extrabold">10K+</div>
+                        <div class="text-xs text-white/70 mt-0.5">Students</div>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur rounded-xl p-4">
+                        <div class="text-2xl font-extrabold">4.9★</div>
+                        <div class="text-xs text-white/70 mt-0.5">Rating</div>
+                    </div>
                 </div>
-                <div class="bg-white/10 backdrop-blur rounded-xl p-4">
-                    <div class="text-2xl font-extrabold">4.9★</div>
-                    <div class="text-xs text-white/70 mt-0.5">Rating</div>
-                </div>
-            </div>
+            @endif
         </div>
     </div>
 
@@ -78,10 +98,26 @@
                 <a href="{{ url('/') }}" class="text-4xl font-black text-primary-jlm">Learnerium</a>
             </div>
 
+            <!-- Role Switcher Tabs -->
+            <div class="flex rounded-xl bg-gray-200 p-1 mb-6">
+                <a href="{{ route('login.student') }}"
+                   class="flex-1 text-center py-2.5 rounded-lg text-sm font-semibold transition {{ ($role ?? 'student') === 'student' ? 'bg-white text-primary-jlm shadow' : 'text-gray-500 hover:text-gray-700' }}">
+                    <i class="fas fa-user-graduate mr-1.5"></i>Student Login
+                </a>
+                <a href="{{ route('login.instructor') }}"
+                   class="flex-1 text-center py-2.5 rounded-lg text-sm font-semibold transition {{ ($role ?? 'student') === 'instructor' ? 'bg-white text-secondary-jlm shadow' : 'text-gray-500 hover:text-gray-700' }}">
+                    <i class="fas fa-chalkboard-teacher mr-1.5"></i>Instructor Login
+                </a>
+            </div>
+
             <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
                 <div class="mb-7">
-                    <h1 class="text-2xl font-extrabold text-gray-900 mb-1">Welcome back!</h1>
-                    <p class="text-gray-500 text-sm">Sign in to continue learning.</p>
+                    <h1 class="text-2xl font-extrabold text-gray-900 mb-1">
+                        @if(($role ?? 'student') === 'instructor') Instructor Portal @else Welcome back! @endif
+                    </h1>
+                    <p class="text-gray-500 text-sm">
+                        @if(($role ?? 'student') === 'instructor') Sign in to access your instructor dashboard. @else Sign in to continue learning. @endif
+                    </p>
                 </div>
 
                 @if(session('status'))
@@ -90,7 +126,7 @@
                     </div>
                 @endif
 
-                <form action="{{ route('login') }}" method="POST" class="space-y-5">
+                <form action="{{ ($role ?? 'student') === 'instructor' ? route('login.instructor.post') : route('login.student.post') }}" method="POST" class="space-y-5">
                     @csrf
 
                     <div>
@@ -127,8 +163,8 @@
                         @endif
                     </div>
 
-                    <button type="submit" class="w-full bg-primary-jlm text-white py-3.5 rounded-xl font-bold text-base hover:bg-primary-jlm-dark transition shadow-md hover:shadow-lg">
-                        <i class="fas fa-sign-in-alt mr-2"></i>Sign In
+                    <button type="submit" class="w-full @if(($role ?? 'student') === 'instructor') bg-secondary-jlm hover:bg-secondary-jlm/90 @else bg-primary-jlm hover:bg-primary-jlm-dark @endif text-white py-3.5 rounded-xl font-bold text-base transition shadow-md hover:shadow-lg">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Sign In as @if(($role ?? 'student') === 'instructor') Instructor @else Student @endif
                     </button>
                 </form>
 
@@ -148,7 +184,11 @@
 
                 <p class="mt-7 text-center text-sm text-gray-500">
                     Don't have an account?
-                    <a href="{{ route('register') }}" class="font-bold text-secondary-jlm hover:text-secondary-jlm/80 transition">Create one free</a>
+                    @if(($role ?? 'student') === 'instructor')
+                        <a href="{{ route('register.instructor') }}" class="font-bold text-secondary-jlm hover:text-secondary-jlm/80 transition">Register as Instructor</a>
+                    @else
+                        <a href="{{ route('register') }}" class="font-bold text-secondary-jlm hover:text-secondary-jlm/80 transition">Create Student account</a>
+                    @endif
                 </p>
             </div>
         </div>

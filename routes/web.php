@@ -29,20 +29,20 @@ Route::get('/instructors', function () { return view('instructors'); })->name('i
 Route::get('/about', function () { return view('about'); })->name('about');
 Route::get('/contact', function () { return view('contact'); })->name('contact');
 
-// Authentication Routes - Use Auth::routes() to include all
-Auth::routes(); // <--- ADD THIS LINE IF NOT PRESENT
+// Authentication Routes
+Auth::routes();
 
-// If you choose to keep manual route definitions for login/register
-// Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-// Route::post('/login', [LoginController::class, 'login']);
-// Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
-// Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-// Route::post('/register', [RegisterController::class, 'register']);
+// Dedicated Student Login Routes
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::get('/login/student', [LoginController::class, 'showLoginForm'])->name('login.student');
+Route::post('/login/student', [LoginController::class, 'loginStudent'])->name('login.student.post');
 
-// NEW: Instructor Registration Routes
-// This will show a dedicated form for instructors
+// Dedicated Instructor Login Routes
+Route::get('/login/instructor', [LoginController::class, 'showInstructorLoginForm'])->name('login.instructor');
+Route::post('/login/instructor', [LoginController::class, 'loginInstructor'])->name('login.instructor.post');
+
+// Instructor Registration Routes
 Route::get('/register/instructor', [RegisterController::class, 'showInstructorRegistrationForm'])->name('register.instructor');
-// This will handle the submission of the instructor registration form
 Route::post('/register/instructor', [RegisterController::class, 'registerInstructor'])->name('register.instructor.post');
 
 

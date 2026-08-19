@@ -74,8 +74,8 @@
                         </div>
                     </div>
                 @else
-                    <a href="{{ url('/login') }}" class="bg-primary-jlm text-white px-4 py-2 rounded-lg hover:bg-primary-jlm-dark transition duration-300 shadow-md">Login</a>
-                    <a href="{{ url('/register') }}" class="border border-primary-jlm text-primary-jlm px-4 py-2 rounded-lg hover:bg-primary-jlm/10 transition duration-300">Register</a>
+                    <a href="{{ route('login.student') }}" class="bg-primary-jlm text-white px-4 py-2 rounded-lg hover:bg-primary-jlm-dark transition duration-300 shadow-md text-sm font-semibold">Student Sign In</a>
+                    <a href="{{ route('login.instructor') }}" class="border border-secondary-jlm text-secondary-jlm px-4 py-2 rounded-lg hover:bg-secondary-jlm/10 transition duration-300 text-sm font-semibold">Instructor Portal</a>
                 @endauth
             </div>
         </div>
