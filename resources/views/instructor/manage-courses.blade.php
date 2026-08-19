@@ -36,6 +36,7 @@
                             <h2 class="text-xl font-bold text-gray-900">{{ $course->title }}</h2>
                             <div class="flex flex-wrap gap-2 mt-1">
                                 <span class="text-xs font-semibold bg-primary-jlm/10 text-primary-jlm px-2.5 py-1 rounded-full capitalize">{{ $course->level }}</span>
+                                <span class="text-xs font-semibold bg-purple-100 text-purple-700 px-2.5 py-1 rounded-full"><i class="fas fa-list-ul mr-1"></i>{{ $course->lessons->count() }} Lessons</span>
                                 @if($course->published_at)
                                     <span class="text-xs font-semibold bg-green-100 text-green-700 px-2.5 py-1 rounded-full"><i class="fas fa-check mr-1"></i>Published</span>
                                 @else
@@ -62,8 +63,8 @@
 
                     <!-- Actions -->
                     <div class="flex flex-wrap gap-2">
-                        <a href="{{ route('instructor.courses.edit', $course) }}" class="bg-secondary-jlm text-white px-4 py-2 rounded-xl font-semibold text-xs hover:bg-secondary-jlm/90 transition">
-                            <i class="fas fa-edit mr-1"></i>Edit
+                        <a href="{{ route('instructor.courses.edit', $course) }}" class="bg-secondary-jlm text-white px-4 py-2 rounded-xl font-semibold text-xs hover:bg-secondary-jlm/90 transition shadow-sm">
+                            <i class="fas fa-edit mr-1"></i>Edit Content & Quizzes
                         </a>
                         <a href="{{ route('instructor.courses.students', $course->id) }}" class="border border-primary-jlm text-primary-jlm px-4 py-2 rounded-xl font-semibold text-xs hover:bg-primary-jlm/5 transition">
                             <i class="fas fa-users mr-1"></i>Students

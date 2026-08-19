@@ -8,10 +8,12 @@ use Illuminate\Http\Request;
 
 class QuizController extends Controller
 {
-    // Instructor analytics for a quiz
-    public function analytics($courseId, $lessonId, $quizId)
+    /**
+     * Instructor analytics for a quiz.
+     */
+    public function analytics($quizId)
     {
-        $quiz = Quiz::with(['questions', 'attempts.user'])->findOrFail($quizId);
+        $quiz = Quiz::with(['questions', 'attempts.user', 'lesson.course'])->findOrFail($quizId);
         $attempts = $quiz->attempts;
         $totalAttempts = $attempts->count();
         $averageScore = $totalAttempts > 0 ? round($attempts->avg('score'), 2) : null;
@@ -42,36 +44,30 @@ class QuizController extends Controller
 
         return view('instructor.quiz-analytics', compact('quiz', 'attempts', 'averageScore', 'passRate', 'questionStats', 'totalAttempts'));
     }
+
     /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
+     * Display a listing of quizzes for a lesson.
      */
-    public function index($courseId, $lessonId)
+    public function index($lessonId)
     {
-        $lesson = Lesson::findOrFail($lessonId);
-        $quizzes = $lesson->quizzes ?? $lesson->hasMany(Quiz::class)->get();
+        $lesson = Lesson::with('course')->findOrFail($lessonId);
+        $quizzes = Quiz::where('lesson_id', $lesson->id)->get();
         return view('instructor.lesson-quizzes', compact('lesson', 'quizzes'));
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
+     * Show the form for creating a new quiz.
      */
-    public function create($courseId, $lessonId)
+    public function create($lessonId)
     {
-        $lesson = Lesson::findOrFail($lessonId);
+        $lesson = Lesson::with('course')->findOrFail($lessonId);
         return view('instructor.quiz-create', compact('lesson'));
     }
 
     /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * Store a newly created quiz in storage.
      */
-    public function store(Request $request, $courseId, $lessonId)
+    public function store(Request $request, $lessonId)
     {
         $lesson = Lesson::findOrFail($lessonId);
         $data = $request->validate([
@@ -81,46 +77,28 @@ class QuizController extends Controller
             'time_limit_minutes' => 'nullable|integer|min:0',
         ]);
         $data['lesson_id'] = $lesson->id;
-        // Convert minutes to seconds for DB
         $data['time_limit_seconds'] = isset($data['time_limit_minutes']) && $data['time_limit_minutes'] !== null && $data['time_limit_minutes'] !== ''
             ? $data['time_limit_minutes'] * 60 : null;
         unset($data['time_limit_minutes']);
         Quiz::create($data);
-        return redirect()->route('lessons.quizzes.index', [$courseId, $lessonId])->with('status', 'Quiz created successfully.');
+
+        return redirect()->route('lessons.quizzes.index', $lesson->id)->with('status', 'Quiz created successfully.');
     }
 
     /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * Show the form for editing the specified quiz.
      */
-    public function show($id)
+    public function edit($lessonId, $quizId)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($courseId, $lessonId, $quizId)
-    {
-        $lesson = Lesson::findOrFail($lessonId);
+        $lesson = Lesson::with('course')->findOrFail($lessonId);
         $quiz = Quiz::findOrFail($quizId);
         return view('instructor.quiz-edit', compact('lesson', 'quiz'));
     }
 
     /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * Update the specified quiz in storage.
      */
-    public function update(Request $request, $courseId, $lessonId, $quizId)
+    public function update(Request $request, $lessonId, $quizId)
     {
         $quiz = Quiz::findOrFail($quizId);
         $data = $request->validate([
@@ -129,24 +107,22 @@ class QuizController extends Controller
             'is_published' => 'boolean',
             'time_limit_minutes' => 'nullable|integer|min:0',
         ]);
-        // Convert minutes to seconds for DB
         $data['time_limit_seconds'] = isset($data['time_limit_minutes']) && $data['time_limit_minutes'] !== null && $data['time_limit_minutes'] !== ''
             ? $data['time_limit_minutes'] * 60 : null;
         unset($data['time_limit_minutes']);
         $quiz->update($data);
-        return redirect()->route('lessons.quizzes.index', [$courseId, $lessonId])->with('status', 'Quiz updated successfully.');
+
+        return redirect()->route('lessons.quizzes.index', $lessonId)->with('status', 'Quiz updated successfully.');
     }
 
     /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * Remove the specified quiz from storage.
      */
-    public function destroy($courseId, $lessonId, $quizId)
+    public function destroy($lessonId, $quizId)
     {
         $quiz = Quiz::findOrFail($quizId);
         $quiz->delete();
-        return redirect()->route('lessons.quizzes.index', [$courseId, $lessonId])->with('status', 'Quiz deleted successfully.');
+
+        return redirect()->route('lessons.quizzes.index', $lessonId)->with('status', 'Quiz deleted successfully.');
     }
 }

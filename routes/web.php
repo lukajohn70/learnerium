@@ -87,10 +87,8 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::middleware(['auth', 'instructor'])->group(function () {
-            // Quiz Question Routes (instructor only)
-            Route::resource('/instructor/quizzes.questions', QuizQuestionController::class);
-        // View students enrolled in a course
-        Route::get('/instructor/courses/{course}/students', [CourseController::class, 'students'])->name('instructor.courses.students');
+    // View students enrolled in a course
+    Route::get('/instructor/courses/{course}/students', [CourseController::class, 'students'])->name('instructor.courses.students');
     Route::get('/instructor/courses/create', [CourseController::class, 'create'])->name('instructor.courses.create');
     Route::post('/instructor/courses', [CourseController::class, 'store'])->name('instructor.courses.store');
     Route::get('/instructor/courses/{course}/edit', [CourseController::class, 'edit'])->name('instructor.courses.edit');
@@ -104,9 +102,10 @@ Route::middleware(['auth', 'instructor'])->group(function () {
 
     // Quiz Routes (instructor only)
     Route::resource('/instructor/lessons.quizzes', QuizController::class);
-        Route::get('/instructor/courses/{course}/lessons/{lesson}/quizzes/{quiz}/analytics', [App\Http\Controllers\QuizController::class, 'analytics'])->name('instructor.quizzes.analytics');
+    Route::get('/instructor/quizzes/{quiz}/analytics', [QuizController::class, 'analytics'])->name('instructor.quizzes.analytics');
+
     // Question Routes (instructor only)
-    Route::resource('/instructor/quizzes.questions', QuestionController::class);
+    Route::resource('/instructor/quizzes.questions', QuizQuestionController::class);
 });
 
 Route::middleware(['auth'])->group(function () {

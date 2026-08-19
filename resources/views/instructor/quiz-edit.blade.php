@@ -3,7 +3,7 @@
 @section('content')
 <div class="container mx-auto px-4 py-12">
     <div class="mb-6">
-        <a href="{{ route('lessons.quizzes.index', [$quiz->lesson->course_id, $quiz->lesson_id]) }}" class="text-primary-jlm hover:text-secondary-jlm font-semibold transition text-sm">
+        <a href="{{ route('lessons.quizzes.index', $quiz->lesson_id) }}" class="text-primary-jlm hover:text-secondary-jlm font-semibold transition text-sm">
             <i class="fas fa-arrow-left mr-2"></i>Back to Quizzes
         </a>
     </div>
@@ -18,7 +18,7 @@
             <div class="bg-gray-50 border-b border-gray-100 px-6 py-4">
                 <h2 class="text-lg font-bold text-gray-800"><i class="fas fa-edit mr-2 text-secondary-jlm"></i>Quiz Details</h2>
             </div>
-            <form action="{{ route('lessons.quizzes.update', [$quiz->lesson->course_id, $quiz->lesson_id, $quiz->id]) }}" method="POST" class="p-6 space-y-5">
+            <form action="{{ route('lessons.quizzes.update', [$quiz->lesson_id, $quiz->id]) }}" method="POST" class="p-6 space-y-5">
                 @csrf
                 @method('PUT')
 
@@ -55,7 +55,7 @@
                     <button type="submit" class="bg-secondary-jlm text-white px-8 py-3 rounded-xl font-bold hover:bg-secondary-jlm/90 transition shadow-md">
                         <i class="fas fa-save mr-2"></i>Update Quiz
                     </button>
-                    <a href="{{ route('lessons.quizzes.index', [$quiz->lesson->course_id, $quiz->lesson_id]) }}"
+                    <a href="{{ route('lessons.quizzes.index', $quiz->lesson_id) }}"
                        class="border border-gray-200 text-gray-600 px-6 py-3 rounded-xl font-semibold hover:bg-gray-50 transition">
                         Cancel
                     </a>

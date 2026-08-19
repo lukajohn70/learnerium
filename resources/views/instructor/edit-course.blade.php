@@ -158,13 +158,17 @@
                     </div>
                     <div class="flex items-center gap-2 flex-shrink-0">
                         @if($lesson->video_url)
-                            <span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full"><i class="fas fa-video mr-1"></i>Video</span>
+                            <span class="text-xs bg-blue-100 text-blue-600 px-2.5 py-1 rounded-full font-medium"><i class="fas fa-video mr-1"></i>Video</span>
                         @endif
+                        <a href="{{ route('lessons.quizzes.index', $lesson->id) }}"
+                           class="inline-flex items-center gap-1.5 bg-purple-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-purple-700 transition shadow-sm">
+                            <i class="fas fa-question-circle"></i> Quizzes
+                        </a>
                         <form action="{{ route('instructor.lessons.destroy', [$course, $lesson]) }}" method="POST" class="inline">
                             @csrf
                             @method('DELETE')
                             <button type="submit" onclick="return confirm('Delete this lesson? This cannot be undone.')"
-                                    class="text-red-400 hover:text-red-600 transition px-2 py-1 rounded-lg hover:bg-red-50 text-sm">
+                                    class="text-red-400 hover:text-red-600 transition px-2 py-1.5 rounded-lg hover:bg-red-50 text-sm">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </form>

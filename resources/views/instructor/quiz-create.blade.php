@@ -3,7 +3,7 @@
 @section('content')
 <div class="container mx-auto px-4 py-12">
     <div class="mb-6">
-        <a href="{{ route('lessons.quizzes.index', [$lesson->course_id, $lesson->id]) }}" class="text-primary-jlm hover:text-secondary-jlm font-semibold transition text-sm">
+        <a href="{{ route('lessons.quizzes.index', $lesson->id) }}" class="text-primary-jlm hover:text-secondary-jlm font-semibold transition text-sm">
             <i class="fas fa-arrow-left mr-2"></i>Back to Quizzes
         </a>
     </div>
@@ -18,7 +18,7 @@
             <div class="bg-gray-50 border-b border-gray-100 px-6 py-4">
                 <h2 class="text-lg font-bold text-gray-800"><i class="fas fa-clipboard-list mr-2 text-green-500"></i>Quiz Details</h2>
             </div>
-            <form action="{{ route('lessons.quizzes.store', [$lesson->course_id, $lesson->id]) }}" method="POST" class="p-6 space-y-5">
+            <form action="{{ route('lessons.quizzes.store', $lesson->id) }}" method="POST" class="p-6 space-y-5">
                 @csrf
 
                 <div>
@@ -56,7 +56,7 @@
                     <button type="submit" class="bg-green-500 text-white px-8 py-3 rounded-xl font-bold hover:bg-green-600 transition shadow-md">
                         <i class="fas fa-plus mr-2"></i>Create Quiz
                     </button>
-                    <a href="{{ route('lessons.quizzes.index', [$lesson->course_id, $lesson->id]) }}" class="border border-gray-200 text-gray-600 px-6 py-3 rounded-xl font-semibold hover:bg-gray-50 transition">
+                    <a href="{{ route('lessons.quizzes.index', $lesson->id) }}" class="border border-gray-200 text-gray-600 px-6 py-3 rounded-xl font-semibold hover:bg-gray-50 transition">
                         Cancel
                     </a>
                 </div>
