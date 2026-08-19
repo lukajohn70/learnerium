@@ -9,6 +9,10 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\EnrollmentController;
+use App\Http\Controllers\QuizController;
+use App\Http\Controllers\QuestionController;
+use App\Http\Controllers\QuizQuestionController;
+use App\Http\Controllers\StudentQuizController;
 use App\Http\Middleware\IsInstructor;
 
 /*

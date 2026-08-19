@@ -1,3 +1,13 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Lesson;
+use App\Models\Quiz;
+use Illuminate\Http\Request;
+
+class QuizController extends Controller
+{
     // Instructor analytics for a quiz
     public function analytics($courseId, $lessonId, $quizId)
     {
@@ -32,17 +42,6 @@
 
         return view('instructor.quiz-analytics', compact('quiz', 'attempts', 'averageScore', 'passRate', 'questionStats', 'totalAttempts'));
     }
-<?php
-
-namespace App\Http\Controllers;
-
-
-use App\Models\Lesson;
-use App\Models\Quiz;
-use Illuminate\Http\Request;
-
-class QuizController extends Controller
-{
     /**
      * Display a listing of the resource.
      *
