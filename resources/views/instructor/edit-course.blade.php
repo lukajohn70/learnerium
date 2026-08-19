@@ -119,10 +119,11 @@
                 </div>
 
                 <div>
-                    <label for="lesson_video_url" class="block text-sm font-semibold text-gray-700 mb-1.5">Video URL</label>
+                    <label for="lesson_video_url" class="block text-sm font-semibold text-gray-700 mb-1.5">Video / Media URL (Google Drive, YouTube, Vimeo, MP4)</label>
                     <input id="lesson_video_url" name="video_url" type="url"
                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400/30 focus:border-green-500 transition text-gray-800"
-                           placeholder="https://youtube.com/watch?v=...">
+                           placeholder="https://drive.google.com/file/d/... or https://youtube.com/watch?v=...">
+                    <p class="text-xs text-gray-400 mt-1">Paste shareable links from Google Drive, YouTube, Vimeo, or direct MP4 files.</p>
                 </div>
 
                 <div>

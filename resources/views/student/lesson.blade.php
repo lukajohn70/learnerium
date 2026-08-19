@@ -25,17 +25,41 @@
         <div class="lg:col-span-3">
             <div class="bg-white rounded-2xl shadow-md overflow-hidden">
 
-                <!-- Video Player -->
+                <!-- Smart Video/Media Player -->
                 @if($lesson->video_url)
+                    @php
+                        $embedUrl = null;
+                        $isIframe = false;
+                        $rawUrl = trim($lesson->video_url);
+
+                        if (preg_match('/drive\.google\.com\/(?:file\/d\/|open\?id=)([^\/\?\&]+)/i', $rawUrl, $matches)) {
+                            $embedUrl = 'https://drive.google.com/file/d/' . $matches[1] . '/preview';
+                            $isIframe = true;
+                        } elseif (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i', $rawUrl, $matches)) {
+                            $embedUrl = 'https://www.youtube.com/embed/' . $matches[1];
+                            $isIframe = true;
+                        } elseif (preg_match('/vimeo\.com\/(\d+)/i', $rawUrl, $matches)) {
+                            $embedUrl = 'https://player.vimeo.com/video/' . $matches[1];
+                            $isIframe = true;
+                        } elseif (strpos($rawUrl, 'youtube.com/embed/') !== false) {
+                            $embedUrl = $rawUrl;
+                            $isIframe = true;
+                        } else {
+                            $embedUrl = $rawUrl;
+                            $isIframe = false;
+                        }
+                    @endphp
+
                     <div class="bg-black">
-                        @if(strpos($lesson->video_url, 'youtube.com') !== false || strpos($lesson->video_url, 'youtu.be') !== false)
-                            <div class="aspect-video">
-                                <iframe class="w-full h-full" src="{{ $lesson->video_url }}" frameborder="0"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        @if($isIframe)
+                            <div class="aspect-video w-full">
+                                <iframe class="w-full h-full border-0" src="{{ $embedUrl }}"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowfullscreen></iframe>
                             </div>
                         @else
                             <video class="w-full max-h-[480px]" controls>
-                                <source src="{{ $lesson->video_url }}" type="video/mp4">
+                                <source src="{{ $embedUrl }}" type="video/mp4">
                                 Your browser does not support the video tag.
                             </video>
                         @endif
