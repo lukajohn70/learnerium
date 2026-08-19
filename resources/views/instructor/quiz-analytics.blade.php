@@ -1,87 +1,107 @@
 @extends('layouts.app')
 
 @section('content')
-<main class="max-w-4xl mx-auto px-6 py-12">
-    <h1 class="text-2xl font-bold mb-6">Quiz Analytics: {{ $quiz->title }}</h1>
+<div class="container mx-auto px-4 py-12">
     <div class="mb-6">
-        <div class="mb-2"><span class="font-semibold">Total Attempts:</span> {{ $totalAttempts }}</div>
-        <div class="mb-2"><span class="font-semibold">Average Score:</span>
-            <span class="inline-block align-middle w-32 bg-gray-200 rounded-full h-3 mx-2">
-                <span class="h-3 rounded-full bg-blue-500 block" style="width: {{ $averageScore ?? 0 }}%"></span>
-            </span>
-            <span class="align-middle">{{ $averageScore !== null ? $averageScore : 'N/A' }}%</span>
+        <a href="{{ route('lessons.quizzes.index', [$quiz->lesson->course_id, $quiz->lesson_id]) }}" class="text-primary-jlm hover:text-secondary-jlm font-semibold transition text-sm">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Quizzes
+        </a>
+    </div>
+
+    <div class="mb-8">
+        <h1 class="text-3xl font-extrabold text-gray-900">Quiz Analytics</h1>
+        <p class="text-gray-500 mt-1">{{ $quiz->title }}</p>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="grid grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
+        <div class="bg-white rounded-2xl shadow-md p-6 text-center border-t-4 border-primary-jlm hover:shadow-lg transition">
+            <div class="text-4xl font-extrabold text-primary-jlm mb-1">{{ $totalAttempts }}</div>
+            <div class="text-sm text-gray-500 font-medium"><i class="fas fa-users mr-1"></i>Total Attempts</div>
         </div>
-        <div class="mb-2"><span class="font-semibold">Pass Rate:</span>
-            <span class="inline-block align-middle w-32 bg-gray-200 rounded-full h-3 mx-2">
-                <span class="h-3 rounded-full bg-green-500 block" style="width: {{ $passRate ?? 0 }}%"></span>
-            </span>
-            <span class="align-middle">{{ $passRate !== null ? $passRate : 'N/A' }}%</span>
+        <div class="bg-white rounded-2xl shadow-md p-6 text-center border-t-4 border-blue-400 hover:shadow-lg transition">
+            <div class="text-4xl font-extrabold text-blue-500 mb-1">{{ $averageScore !== null ? $averageScore . '%' : 'N/A' }}</div>
+            <div class="text-sm text-gray-500 font-medium"><i class="fas fa-chart-line mr-1"></i>Avg. Score</div>
+            @if($averageScore !== null)
+                <div class="mt-2 w-full bg-gray-100 rounded-full h-2">
+                    <div class="bg-blue-400 h-2 rounded-full" style="width: {{ $averageScore }}%"></div>
+                </div>
+            @endif
+        </div>
+        <div class="bg-white rounded-2xl shadow-md p-6 text-center border-t-4 border-green-500 hover:shadow-lg transition col-span-2 lg:col-span-1">
+            <div class="text-4xl font-extrabold text-green-500 mb-1">{{ $passRate !== null ? $passRate . '%' : 'N/A' }}</div>
+            <div class="text-sm text-gray-500 font-medium"><i class="fas fa-check-circle mr-1"></i>Pass Rate</div>
+            @if($passRate !== null)
+                <div class="mt-2 w-full bg-gray-100 rounded-full h-2">
+                    <div class="bg-green-500 h-2 rounded-full" style="width: {{ $passRate }}%"></div>
+                </div>
+            @endif
         </div>
     </div>
-    <h2 class="text-xl font-semibold mt-8 mb-2">Per-Question Statistics</h2>
-    <div class="bg-white rounded shadow overflow-hidden mb-8">
-        <table class="w-full">
-            <thead class="bg-gray-100">
-                <tr>
-                    <th class="text-left px-6 py-3 text-sm font-semibold">Question</th>
-                    <th class="text-left px-6 py-3 text-sm font-semibold">Answered</th>
-                    <th class="text-left px-6 py-3 text-sm font-semibold">Correct</th>
-                    <th class="text-left px-6 py-3 text-sm font-semibold">Accuracy</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($questionStats as $stat)
-                    <tr class="border-t">
-                        <td class="px-6 py-3">{{ $stat['question']->question_text }}</td>
-                        <td class="px-6 py-3">{{ $stat['answered'] }}</td>
-                        <td class="px-6 py-3">{{ $stat['correct'] }}</td>
-                        <td class="px-6 py-3">
-                            <div class="w-24 bg-gray-200 rounded-full h-3 inline-block align-middle">
-                                <div class="h-3 rounded-full bg-blue-500" style="width: {{ $stat['accuracy'] ?? 0 }}%"></div>
+
+    <!-- Per-Question Stats -->
+    @if(!empty($questionStats))
+    <div class="bg-white rounded-2xl shadow-md overflow-hidden mb-8">
+        <div class="bg-gray-50 border-b border-gray-100 px-6 py-4">
+            <h2 class="text-lg font-bold text-gray-800"><i class="fas fa-list-ul mr-2 text-primary-jlm"></i>Per-Question Statistics</h2>
+        </div>
+        <div class="divide-y divide-gray-50">
+            @foreach($questionStats as $stat)
+            <div class="px-6 py-4 hover:bg-gray-50 transition">
+                <p class="font-semibold text-gray-800 mb-2">{{ $stat['question']->question_text }}</p>
+                <div class="flex flex-wrap gap-4 text-sm">
+                    <span class="text-gray-500">Answered: <strong class="text-gray-700">{{ $stat['answered'] }}</strong></span>
+                    <span class="text-gray-500">Correct: <strong class="text-green-600">{{ $stat['correct'] }}</strong></span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-gray-500">Accuracy:</span>
+                        <div class="w-24 bg-gray-100 rounded-full h-2">
+                            <div class="h-2 rounded-full bg-gradient-to-r from-primary-jlm to-secondary-jlm" style="width: {{ $stat['accuracy'] ?? 0 }}%"></div>
+                        </div>
+                        <strong class="text-primary-jlm">{{ $stat['accuracy'] !== null ? $stat['accuracy'] . '%' : 'N/A' }}</strong>
+                    </div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    <!-- Recent Attempts -->
+    <div class="bg-white rounded-2xl shadow-md overflow-hidden">
+        <div class="bg-gray-50 border-b border-gray-100 px-6 py-4">
+            <h2 class="text-lg font-bold text-gray-800"><i class="fas fa-history mr-2 text-secondary-jlm"></i>Recent Attempts</h2>
+        </div>
+        @if($attempts->isEmpty())
+            <div class="p-10 text-center text-gray-400">
+                <div class="text-4xl mb-3"><i class="fas fa-inbox"></i></div>
+                <p>No attempts yet.</p>
+            </div>
+        @else
+            <div class="divide-y divide-gray-50">
+                @foreach($attempts as $attempt)
+                <div class="px-6 py-4 flex flex-wrap items-center gap-4 hover:bg-gray-50 transition">
+                    <div class="flex items-center gap-3 flex-grow">
+                        <div class="w-9 h-9 rounded-full bg-primary-jlm/10 text-primary-jlm font-bold text-sm flex items-center justify-center flex-shrink-0">
+                            {{ strtoupper(substr($attempt->user->name ?? 'U', 0, 1)) }}
+                        </div>
+                        <span class="font-semibold text-gray-800">{{ $attempt->user->name ?? 'Unknown' }}</span>
+                    </div>
+                    <div class="flex items-center gap-4 ml-auto">
+                        <div class="flex items-center gap-2">
+                            <div class="w-20 bg-gray-100 rounded-full h-2">
+                                <div class="h-2 rounded-full {{ $attempt->passed ? 'bg-green-500' : 'bg-red-400' }}" style="width: {{ $attempt->score ?? 0 }}%"></div>
                             </div>
-                            <span class="ml-2 align-middle">{{ $stat['accuracy'] !== null ? $stat['accuracy'] . '%' : 'N/A' }}</span>
-                        </td>
-                    </tr>
+                            <span class="text-sm font-bold text-gray-700">{{ $attempt->score }}%</span>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full text-xs font-bold {{ $attempt->passed ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600' }}">
+                            {{ $attempt->passed ? 'Passed' : 'Failed' }}
+                        </span>
+                        <span class="text-xs text-gray-400">{{ $attempt->completed_at }}</span>
+                    </div>
+                </div>
                 @endforeach
-            </tbody>
-        </table>
+            </div>
+        @endif
     </div>
-    <h2 class="text-xl font-semibold mt-8 mb-2">Recent Attempts</h2>
-    <div class="bg-white rounded shadow overflow-hidden">
-        <table class="w-full">
-            <thead class="bg-gray-100">
-                <tr>
-                    <th class="text-left px-6 py-3 text-sm font-semibold">Student</th>
-                    <th class="text-left px-6 py-3 text-sm font-semibold">Score</th>
-                    <th class="text-left px-6 py-3 text-sm font-semibold">Passed</th>
-                    <th class="text-left px-6 py-3 text-sm font-semibold">Completed At</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($attempts as $attempt)
-                    <tr class="border-t">
-                        <td class="px-6 py-3">{{ $attempt->user->name ?? 'Unknown' }}</td>
-                        <td class="px-6 py-3">
-                            <div class="w-20 bg-gray-200 rounded-full h-3 inline-block align-middle">
-                                <div class="h-3 rounded-full bg-blue-500" style="width: {{ $attempt->score ?? 0 }}%"></div>
-                            </div>
-                            <span class="ml-2 align-middle">{{ $attempt->score }}%</span>
-                        </td>
-                        <td class="px-6 py-3">
-                            <span class="px-2 py-0.5 rounded-full text-white text-xs {{ $attempt->passed ? 'bg-green-600' : 'bg-red-600' }}">
-                                {{ $attempt->passed ? 'Passed' : 'Failed' }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-3">{{ $attempt->completed_at }}</td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="4" class="px-6 py-6 text-gray-600">No attempts yet.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-    <a href="{{ route('lessons.quizzes.index', [$quiz->lesson->course_id, $quiz->lesson_id]) }}" class="text-blue-600 hover:underline mt-6 inline-block">Back to Quizzes</a>
-</main>
+</div>
 @endsection

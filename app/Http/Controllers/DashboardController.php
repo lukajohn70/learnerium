@@ -32,9 +32,8 @@ class DashboardController extends Controller
      */
     public function studentDashboard()
     {
-        // You can fetch student-specific data here, e.g., enrolled courses
         $user = Auth::user();
-        $enrolledCourses = $user->coursesEnrolled; // Using the relationship defined in User model
+        $enrolledCourses = $user->coursesEnrolled()->withPivot('progress_percentage')->get();
 
         return view('student-dashboard', compact('user', 'enrolledCourses'));
     }
@@ -46,11 +45,11 @@ class DashboardController extends Controller
      */
     public function instructorDashboard()
     {
-        // You can fetch instructor-specific data here, e.g., courses taught
         $user = Auth::user();
-        $coursesTaught = $user->coursesTaught; // Using the relationship defined in User model
+        $courses = $user->coursesTaught()->with(['lessons', 'enrollments'])->get();
+        $totalStudents = $courses->sum(fn($c) => $c->enrollments->count());
 
-        return view('instructor-dashboard', compact('user', 'coursesTaught'));
+        return view('instructor-dashboard', compact('user', 'courses', 'totalStudents'));
     }
 
     // You can add other dashboard-related methods here as needed

@@ -49,6 +49,12 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/courses/{course}/lessons/{lesson}/quizzes/{quiz}/submit', [StudentQuizController::class, 'submit'])->name('student.quiz.submit');
         Route::get('/courses/{course}/lessons/{lesson}/quizzes/{quiz}/result', [StudentQuizController::class, 'result'])->name('student.quiz.result');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/profile', function () {
+        return view('profile');
+    })->name('profile');
+    Route::get('/settings', function () {
+        return view('settings');
+    })->name('settings');
     Route::get('/student/dashboard', [DashboardController::class, 'studentDashboard'])
          ->name('student.dashboard');
     Route::get('/dashboard/courses', function() {
@@ -56,13 +62,12 @@ Route::middleware(['auth'])->group(function () {
         return view('student.courses', compact('courses'));
     })->name('student.courses');
     Route::get('/dashboard/progress', function() {
-        return view('student.progress');
+        $courses = auth()->user()->coursesEnrolled()->withPivot('progress_percentage')->with('instructor')->get();
+        return view('student.progress', compact('courses'));
     })->name('student.progress');
     Route::get('/dashboard/certificates', function() {
-        return view('student.certificates');
-    })->name('student.certificates');
-    Route::get('/student/my-certificates', function() {
-        return view('student.certificates');
+        $courses = auth()->user()->coursesEnrolled()->withPivot('progress_percentage')->get();
+        return view('student.certificates', compact('courses'));
     })->name('student.certificates');
 
     Route::get('/instructor/dashboard', [DashboardController::class, 'instructorDashboard'])
