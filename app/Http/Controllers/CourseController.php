@@ -8,13 +8,14 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class CourseController extends Controller
+{
     public function students(Course $course)
     {
         $this->authorizeInstructor($course);
         $students = $course->students()->withPivot('progress_percentage')->get();
         return view('instructor.course-students', compact('course', 'students'));
     }
-{
+
     public function index()
     {
         $courses = Course::whereNotNull('published_at')
