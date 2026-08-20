@@ -1,152 +1,134 @@
 <?php
 /**
- * Learnerium SMTP Mail Diagnostic Tool
- * Upload this file to: /home/gwylvxeo/learnerium.jlm.com.ng/test_mail.php
- * Then visit: https://learnerium.jlm.com.ng/test_mail.php
- * DELETE this file after testing!
+ * Learnerium — Simple Mail Test
+ * Upload to: learnerium.jlm.com.ng/test_mail.php
+ * DELETE after testing!
  */
 
-// ─── CONFIG ────────────────────────────────────────
-$smtp_host     = 'mail.jlm.com.ng';
-$smtp_port     = 465;
-$smtp_user     = 'learnerium@jlm.com.ng';
-$smtp_pass     = '~,nzExgp]*v;uw+%';
-$smtp_from     = 'learnerium@jlm.com.ng';
-$smtp_to       = 'learnerium@jlm.com.ng'; // send test to yourself
-$smtp_name     = 'Learnerium';
-// ────────────────────────────────────────────────────
+$results = array();
+$envVars = array();
 
-$result = [];
-$success = false;
-
-try {
-    // 1. Check socket connection
-    $socket = @fsockopen("ssl://{$smtp_host}", $smtp_port, $errno, $errstr, 10);
-    if (!$socket) {
-        $result[] = "❌ SOCKET CONNECT FAILED (ssl://{$smtp_host}:{$smtp_port}): $errstr ($errno)";
-    } else {
-        fclose($socket);
-        $result[] = "✅ Socket connected to ssl://{$smtp_host}:{$smtp_port}";
-    }
-
-    // 2. Try sending via PHP mail() as fallback
-    $phpmail = @mail($smtp_to, 'Learnerium PHP mail() Test', 'This is a server mail() test.', "From: {$smtp_from}");
-    $result[] = $phpmail ? "✅ PHP mail() send attempt succeeded" : "⚠️ PHP mail() failed (expected if SMTP only)";
-
-    // 3. Try PHPMailer if available via Composer
-    $autoload = dirname(__FILE__) . '/vendor/autoload.php';
-    if (file_exists($autoload)) {
-        require $autoload;
-
-        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-        $mail->isSMTP();
-        $mail->Host       = $smtp_host;
-        $mail->SMTPAuth   = true;
-        $mail->Username   = $smtp_user;
-        $mail->Password   = $smtp_pass;
-        $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
-        $mail->Port       = $smtp_port;
-        $mail->setFrom($smtp_from, $smtp_name);
-        $mail->addAddress($smtp_to);
-        $mail->Subject = '✅ Learnerium SMTP Test';
-        $mail->Body    = 'This is a test email from the Learnerium SMTP diagnostic tool. If you receive this, your mail configuration is working correctly!';
-        $mail->send();
-        $result[] = "✅ PHPMailer SMTP test email sent successfully to {$smtp_to}!";
-        $success = true;
-    } else {
-        $result[] = "⚠️ vendor/autoload.php not found — PHPMailer test skipped";
-    }
-} catch (Exception $e) {
-    $result[] = "❌ PHPMailer Error: " . $e->getMessage();
-}
-
-// 4. Check .env settings
+// Read .env file
 $envFile = dirname(__FILE__) . '/.env';
-$envSettings = [];
 if (file_exists($envFile)) {
     $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($lines as $line) {
         if (strpos($line, 'MAIL_') === 0) {
             $parts = explode('=', $line, 2);
-            $key = $parts[0];
-            $val = isset($parts[1]) ? ($key === 'MAIL_PASSWORD' ? str_repeat('*', strlen($parts[1])) : $parts[1]) : '(not set)';
-            $envSettings[$key] = $val;
+            if (isset($parts[1])) {
+                $key = trim($parts[0]);
+                $val = trim($parts[1]);
+                $envVars[$key] = $val;
+            }
         }
     }
-    $result[] = "✅ .env file found";
+    $results[] = array('s' => 'ok', 'm' => '.env file found and read successfully');
 } else {
-    $result[] = "❌ .env file NOT found! This is the root cause.";
+    $results[] = array('s' => 'err', 'm' => '.env file NOT FOUND — please create it in the root folder');
+}
+
+// Check PHP version
+$results[] = array('s' => 'ok', 'm' => 'PHP Version: ' . PHP_VERSION);
+
+// Test SMTP socket connection
+$host = 'mail.jlm.com.ng';
+$port = 465;
+$socket = @fsockopen('ssl://' . $host, $port, $errno, $errstr, 10);
+if ($socket) {
+    fclose($socket);
+    $results[] = array('s' => 'ok', 'm' => 'SMTP Socket connected: ssl://' . $host . ':' . $port);
+} else {
+    $results[] = array('s' => 'err', 'm' => 'SMTP Socket FAILED on ssl://' . $host . ':' . $port . ' — ' . $errstr . ' (' . $errno . ')');
+
+    // Try port 587 as fallback
+    $socket2 = @fsockopen('tls://' . $host, 587, $errno2, $errstr2, 10);
+    if ($socket2) {
+        fclose($socket2);
+        $results[] = array('s' => 'warn', 'm' => 'Port 587 (TLS) works instead — consider changing MAIL_PORT=587 and MAIL_ENCRYPTION=tls in .env');
+    } else {
+        $results[] = array('s' => 'err', 'm' => 'Port 587 also failed: ' . $errstr2);
+    }
+}
+
+// Try PHP mail() function
+$sent = @mail('learnerium@jlm.com.ng', 'Learnerium Test Email', 'This is a test from test_mail.php', 'From: learnerium@jlm.com.ng');
+if ($sent) {
+    $results[] = array('s' => 'ok', 'm' => 'PHP mail() function sent successfully!');
+} else {
+    $results[] = array('s' => 'warn', 'm' => 'PHP mail() returned false (normal if server uses SMTP-only)');
 }
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Learnerium Mail Diagnostic</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mail Test — Learnerium</title>
 <style>
-  body { font-family: sans-serif; background: #f8fafc; padding: 2rem; color: #1e293b; }
-  h1 { color: #1b2299; }
-  .card { background: white; border-radius: 1rem; padding: 1.5rem; margin: 1rem 0; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
-  .ok { color: #16a34a; font-weight: bold; }
-  .err { color: #dc2626; font-weight: bold; }
-  .warn { color: #d97706; font-weight: bold; }
-  pre { background: #f1f5f9; padding: 1rem; border-radius: 0.5rem; font-size: 0.8rem; overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; }
-  td, th { padding: 0.5rem 1rem; border-bottom: 1px solid #e2e8f0; font-size: 0.85rem; text-align: left; }
-  th { background: #f1f5f9; font-weight: bold; }
-  .banner { padding: 1rem 1.5rem; border-radius: 0.75rem; font-weight: bold; margin-bottom: 1rem; }
-  .banner.success { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
-  .banner.failure { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+body { font-family: Arial, sans-serif; background: #f4f6f9; padding: 30px; margin: 0; }
+.wrap { max-width: 700px; margin: 0 auto; }
+h1 { color: #1b2299; }
+.card { background: #fff; border-radius: 10px; padding: 20px 25px; margin: 15px 0; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+.ok { color: #16a34a; font-weight: bold; }
+.err { color: #dc2626; font-weight: bold; }
+.warn { color: #d97706; font-weight: bold; }
+p { margin: 8px 0; font-size: 14px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+td, th { padding: 8px 12px; border-bottom: 1px solid #e5e7eb; text-align: left; }
+th { background: #f8fafc; font-weight: bold; color: #374151; }
+.del { background: #fef9c3; border: 1px solid #fde047; border-radius: 8px; padding: 12px 18px; color: #713f12; font-size: 13px; font-weight: bold; margin-top: 15px; }
+pre { background: #f1f5f9; padding: 12px; border-radius: 6px; font-size: 12px; white-space: pre-wrap; }
 </style>
 </head>
 <body>
-<h1>📧 Learnerium SMTP Diagnostic Tool</h1>
+<div class="wrap">
+    <h1>📧 Learnerium Mail Diagnostic</h1>
 
-<div class="banner <?= $success ? 'success' : 'failure' ?>">
-    <?= $success ? '🎉 SMTP is working! Test email sent to ' . htmlspecialchars($smtp_to) : '⚠️ SMTP test did not complete successfully. See details below.' ?>
-</div>
-
-<div class="card">
-    <h2>🔍 Test Results</h2>
-    <?php foreach ($result as $line): ?>
-        <?php
-            if (strpos($line, '✅') !== false) $cls = 'ok';
-            elseif (strpos($line, '❌') !== false) $cls = 'err';
-            else $cls = 'warn';
-        ?>
-        <p class="<?= $cls ?>"><?= htmlspecialchars($line) ?></p>
-    <?php endforeach; ?>
-</div>
-
-<?php if ($envSettings): ?>
-<div class="card">
-    <h2>📋 Live .env MAIL_* Settings</h2>
-    <table>
-        <tr><th>Key</th><th>Value</th></tr>
-        <?php foreach ($envSettings as $k => $v): ?>
-        <tr>
-            <td><?= htmlspecialchars($k) ?></td>
-            <td><?= htmlspecialchars($v) ?: '<span style="color:#dc2626">(empty)</span>' ?></td>
-        </tr>
+    <div class="card">
+        <h2 style="margin-top:0">🔍 Diagnostic Results</h2>
+        <?php foreach ($results as $r): ?>
+            <p class="<?php echo $r['s']; ?>">
+                <?php
+                    if ($r['s'] === 'ok')   echo '✅ ';
+                    elseif ($r['s'] === 'err') echo '❌ ';
+                    else echo '⚠️ ';
+                    echo htmlspecialchars($r['m']);
+                ?>
+            </p>
         <?php endforeach; ?>
-    </table>
-</div>
-<?php endif; ?>
+    </div>
 
-<div class="card">
-    <h2>⚙️ Expected .env Settings</h2>
-    <pre>
-MAIL_MAILER=smtp
+    <?php if (!empty($envVars)): ?>
+    <div class="card">
+        <h2 style="margin-top:0">📋 Current .env MAIL Settings</h2>
+        <table>
+            <tr><th>Setting</th><th>Value</th></tr>
+            <?php foreach ($envVars as $k => $v): ?>
+            <tr>
+                <td><?php echo htmlspecialchars($k); ?></td>
+                <td><?php echo ($k === 'MAIL_PASSWORD') ? str_repeat('*', strlen($v)) : htmlspecialchars($v); ?></td>
+            </tr>
+            <?php endforeach; ?>
+        </table>
+    </div>
+    <?php else: ?>
+    <div class="card">
+        <p class="err">❌ No MAIL_* settings found in .env. Paste these settings into your .env file:</p>
+        <pre>MAIL_MAILER=smtp
 MAIL_HOST=mail.jlm.com.ng
 MAIL_PORT=465
 MAIL_USERNAME=learnerium@jlm.com.ng
 MAIL_PASSWORD=~,nzExgp]*v;uw+%
 MAIL_ENCRYPTION=ssl
 MAIL_FROM_ADDRESS=learnerium@jlm.com.ng
-MAIL_FROM_NAME="Learnerium"
-    </pre>
-    <p class="err">⚠️ DELETE this file (test_mail.php) from your server after testing!</p>
-</div>
+MAIL_FROM_NAME="Learnerium"</pre>
+    </div>
+    <?php endif; ?>
 
+    <div class="del">
+        ⚠️ <strong>DELETE this file after testing!</strong><br>
+        cPanel → File Manager → learnerium.jlm.com.ng → delete <code>test_mail.php</code>
+    </div>
+</div>
 </body>
 </html>
