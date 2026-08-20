@@ -102,6 +102,28 @@
                                     <p class="text-sm font-bold text-gray-800 truncate">{{ Auth::user()->email }}</p>
                                 </div>
                                 <a href="{{ route('dashboard') }}" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-jlm transition"><i class="fas fa-th-large mr-3 text-gray-400"></i>Dashboard</a>
+
+                                @if(Auth::user()->canSwitchRole())
+                                    <div class="px-2 py-1.5 bg-gray-50 border-y border-gray-100 my-1">
+                                        <form action="{{ route('switch.role') }}" method="POST">
+                                            @csrf
+                                            @if(session('active_role') === 'student')
+                                                <input type="hidden" name="role" value="instructor">
+                                                <button type="submit" class="w-full flex items-center justify-between text-xs font-bold text-secondary-jlm bg-pink-50 hover:bg-pink-100 border border-pink-200 px-3 py-2 rounded-lg transition shadow-sm">
+                                                    <span><i class="fas fa-chalkboard-teacher mr-1.5"></i>Switch to Instructor</span>
+                                                    <i class="fas fa-exchange-alt"></i>
+                                                </button>
+                                            @else
+                                                <input type="hidden" name="role" value="student">
+                                                <button type="submit" class="w-full flex items-center justify-between text-xs font-bold text-primary-jlm bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3 py-2 rounded-lg transition shadow-sm">
+                                                    <span><i class="fas fa-user-graduate mr-1.5"></i>Switch to Student View</span>
+                                                    <i class="fas fa-exchange-alt"></i>
+                                                </button>
+                                            @endif
+                                        </form>
+                                    </div>
+                                @endif
+
                                 @if(Auth::user()->isInstructor())
                                     <a href="{{ route('instructor.manage.courses') }}" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-jlm transition"><i class="fas fa-tasks mr-3 text-gray-400"></i>Manage Courses</a>
                                 @else

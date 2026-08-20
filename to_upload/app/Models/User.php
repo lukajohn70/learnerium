@@ -82,6 +82,9 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isInstructor(): bool
     {
+        if (session()->has('active_role')) {
+            return session('active_role') === 'instructor';
+        }
         return $this->role === 'instructor';
     }
 
@@ -90,7 +93,18 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isStudent(): bool
     {
-        return $this->role === 'student';
+        if (session()->has('active_role')) {
+            return session('active_role') === 'student';
+        }
+        return $this->role === 'student' || $this->role === 'instructor';
+    }
+
+    /**
+     * Check if user is eligible to switch modes.
+     */
+    public function canSwitchRole(): bool
+    {
+        return $this->role === 'instructor' || $this->role === 'admin';
     }
 
     /**

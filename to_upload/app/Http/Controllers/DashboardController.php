@@ -49,9 +49,23 @@ class DashboardController extends Controller
         $courses = $user->coursesTaught()->with(['lessons', 'enrollments'])->get();
         $totalStudents = $courses->sum(fn($c) => $c->enrollments->count());
 
-        return view('instructor-dashboard', compact('user', 'courses', 'totalStudents'));
-    }
+    /**
+     * Switch active view mode between Instructor and Student.
+     */
+    public function switchRole(Request $request)
+    {
+        $user = Auth::user();
+        $targetRole = $request->input('role');
 
-    // You can add other dashboard-related methods here as needed
-    // public function parseAbilityAndArguments() { /* ... */ } // This was a suggestion by Laravel, not needed for now
+        if ($user && $user->canSwitchRole()) {
+            if (in_array($targetRole, ['student', 'instructor'])) {
+                session(['active_role' => $targetRole]);
+                $msg = $targetRole === 'student' ? 'Switched to Student View Mode.' : 'Switched to Instructor View Mode.';
+                $redirectRoute = $targetRole === 'student' ? 'student.dashboard' : 'instructor.dashboard';
+                return redirect()->route($redirectRoute)->with('status', $msg);
+            }
+        }
+
+        return back();
+    }
 }
