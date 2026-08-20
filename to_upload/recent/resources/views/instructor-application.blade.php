@@ -70,11 +70,21 @@
             </div>
 
             @guest
-                <div class="bg-blue-50 border border-blue-200 rounded-2xl p-6 text-center">
-                    <p class="text-blue-900 font-semibold text-sm mb-4">You need an account before submitting an instructor application.</p>
-                    <div class="flex justify-center gap-3">
-                        <a href="{{ route('login.student') }}" class="bg-primary-jlm text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow">Sign In</a>
-                        <a href="{{ route('register') }}" class="border border-primary-jlm text-primary-jlm px-6 py-2.5 rounded-xl text-sm font-bold">Register Account</a>
+                <div class="bg-blue-50 border border-blue-200 rounded-2xl p-8 text-center shadow-sm">
+                    <div class="w-12 h-12 bg-blue-100 text-primary-jlm rounded-full flex items-center justify-center text-xl mx-auto mb-3">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-1">Create an Account to Apply</h3>
+                    <p class="text-gray-600 text-sm mb-6 max-w-md mx-auto">
+                        Register a free account to fill out your instructor verification details. As soon as you register, your application form will open automatically.
+                    </p>
+                    <div class="flex flex-col sm:flex-row justify-center gap-3">
+                        <a href="{{ route('register.instructor') }}" class="bg-secondary-jlm hover:bg-secondary-jlm/90 text-white px-8 py-3 rounded-xl font-bold text-sm shadow-md transition">
+                            <i class="fas fa-user-plus mr-1.5"></i>Register Account to Apply
+                        </a>
+                        <a href="{{ route('login.student') }}" class="border border-primary-jlm text-primary-jlm hover:bg-primary-jlm/5 px-6 py-3 rounded-xl font-bold text-sm transition">
+                            Already have an account? Sign In
+                        </a>
                     </div>
                 </div>
             @else
