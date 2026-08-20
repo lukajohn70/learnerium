@@ -165,7 +165,7 @@
                 <a href="{{ route('instructor.apply') }}"
                    class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all duration-200 {{ ($role ?? 'student') === 'instructor' ? 'bg-white text-secondary-jlm shadow-md' : 'text-gray-600 hover:text-gray-900' }}">
                     <i class="fas fa-chalkboard-teacher text-base {{ ($role ?? 'student') === 'instructor' ? 'text-secondary-jlm' : 'text-gray-400' }}"></i>
-                    <span>Instructor Portal</span>
+                    <span>Apply as Instructor</span>
                 </a>
             </div>
 
