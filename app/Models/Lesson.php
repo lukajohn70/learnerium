@@ -32,5 +32,15 @@ class Lesson extends Model
     {
         return $this->progress()->where('user_id', $user->id)->first();
     }
+
+    public function tasks()
+    {
+        return $this->hasMany(Task::class)->orderBy('id');
+    }
+
+    public function quizzes()
+    {
+        return $this->hasMany(Quiz::class);
+    }
 }
 

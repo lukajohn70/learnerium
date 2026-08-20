@@ -13,6 +13,8 @@ use App\Http\Controllers\QuizController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\QuizQuestionController;
 use App\Http\Controllers\StudentQuizController;
+use App\Http\Controllers\LessonTaskController;
+use App\Http\Controllers\StudentTaskController;
 use App\Http\Middleware\IsInstructor;
 
 /*
@@ -106,6 +108,9 @@ Route::middleware(['auth', 'instructor'])->group(function () {
 
     // Question Routes (instructor only)
     Route::resource('/instructor/quizzes.questions', QuizQuestionController::class);
+
+    // Lesson Task Routes (instructor only)
+    Route::resource('/instructor/lessons.tasks', LessonTaskController::class);
 });
 
 Route::middleware(['auth'])->group(function () {
@@ -114,6 +119,12 @@ Route::middleware(['auth'])->group(function () {
     // Lesson Routes
     Route::get('/courses/{course}/lessons/{lesson}', [LessonController::class, 'show'])->name('lesson.show');
     Route::post('/courses/{course}/lessons/{lesson}/complete', [LessonController::class, 'markComplete'])->name('lesson.complete');
+
+    // Student Task Submission Routes
+    Route::post('/tasks/{task}/submit', [StudentTaskController::class, 'store'])->name('student.tasks.submit');
+    Route::post('/submissions/{submission}/peer-review', [StudentTaskController::class, 'submitPeerReview'])->name('student.tasks.peer-review');
+    Route::post('/tasks/{task}/approve-submission/{submission}', [LessonTaskController::class, 'approveSubmission'])->name('instructor.tasks.approve');
+    Route::post('/tasks/{task}/reject-submission/{submission}', [LessonTaskController::class, 'rejectSubmission'])->name('instructor.tasks.reject');
 });
 
 Route::get('/home', function () {

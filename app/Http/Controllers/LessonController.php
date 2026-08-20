@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Course;
 use App\Models\Lesson;
 use App\Models\LessonProgress;
+use App\Models\Submission;
+use App\Http\Controllers\StudentTaskController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -35,9 +37,57 @@ class LessonController extends Controller
             );
         }
 
-        $lessons = $course->lessons;
+        $lessons = $course->lessons()->with('tasks')->get();
 
-        return view('student.lesson', compact('course', 'lesson', 'lessons', 'progress'));
+        // Load tasks for this lesson
+        $tasks = $lesson->tasks()->orderBy('id')->get();
+
+        // Load user's own submissions keyed by task_id
+        $userSubmissions = [];
+        $pendingRequiredTask = false;
+        $lessonCompleted = false;
+        $pendingReviews = [];
+
+        if ($user->id !== $course->instructor_id) {
+            // Check lesson completion status
+            $lessonProgress = LessonProgress::where('user_id', $user->id)
+                ->where('lesson_id', $lesson->id)
+                ->first();
+            $lessonCompleted = $lessonProgress && $lessonProgress->completed;
+
+            // Submissions by this user for this lesson's tasks
+            $taskIds = $tasks->pluck('id');
+            $submissions = Submission::whereIn('task_id', $taskIds)
+                ->where('user_id', $user->id)
+                ->get()
+                ->keyBy('task_id');
+            $userSubmissions = $submissions->toArray();
+
+            // Convert back to models for easy access in view
+            $userSubmissions = $submissions; // keep as collection
+
+            // Check if any required task is not yet approved
+            foreach ($tasks as $task) {
+                if ($task->is_required) {
+                    $sub = $submissions->get($task->id);
+                    if (!$sub || $sub->status !== 'approved') {
+                        $pendingRequiredTask = true;
+                        break;
+                    }
+                }
+            }
+
+            // Load peer review submissions for each peer-review task
+            foreach ($tasks->where('peer_review_enabled', true) as $task) {
+                $pendingReviews[$task->id] = StudentTaskController::pendingReviewsFor($user->id, $lesson);
+            }
+        }
+
+        return view('student.lesson', compact(
+            'course', 'lesson', 'lessons', 'progress',
+            'tasks', 'userSubmissions', 'pendingRequiredTask',
+            'lessonCompleted', 'pendingReviews'
+        ));
     }
 
     /**
@@ -75,7 +125,7 @@ class LessonController extends Controller
             $enrollment->updateProgress();
         }
 
-        return response()->json(['message' => 'Lesson marked as completed']);
+        return redirect()->back()->with('status', 'Lesson marked as completed! Great work.');
     }
 
     /**

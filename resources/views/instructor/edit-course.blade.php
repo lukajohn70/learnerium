@@ -161,6 +161,13 @@
                         @if($lesson->video_url)
                             <span class="text-xs bg-blue-100 text-blue-600 px-2.5 py-1 rounded-full font-medium"><i class="fas fa-video mr-1"></i>Video</span>
                         @endif
+                        @if($lesson->tasks->count() > 0)
+                            <span class="text-xs bg-orange-100 text-orange-700 px-2.5 py-1 rounded-full font-semibold"><i class="fas fa-lock mr-1"></i>{{ $lesson->tasks->count() }} Gate{{ $lesson->tasks->count() > 1 ? 's' : '' }}</span>
+                        @endif
+                        <a href="{{ route('lessons.tasks.index', $lesson->id) }}"
+                           class="inline-flex items-center gap-1.5 bg-orange-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-orange-600 transition shadow-sm">
+                            <i class="fas fa-tasks"></i> Tasks
+                        </a>
                         <a href="{{ route('lessons.quizzes.index', $lesson->id) }}"
                            class="inline-flex items-center gap-1.5 bg-purple-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-purple-700 transition shadow-sm">
                             <i class="fas fa-question-circle"></i> Quizzes
