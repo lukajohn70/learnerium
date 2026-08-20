@@ -137,6 +137,9 @@ class CourseController extends Controller
 
         return redirect()
             ->route('instructor.courses.edit', $course)
+            ->with('status', 'Course created successfully! Now add your modules and lessons.');
+    }
+
     public function destroy(Course $course)
     {
         $this->authorizeInstructor($course);

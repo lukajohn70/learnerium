@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Account — Learnerium</title>
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="https://cdn.tailwindcss.com"></script>
@@ -83,10 +85,8 @@
 
         <!-- Top logo -->
         <div class="relative z-10">
-            <a href="{{ url('/') }}" class="inline-flex items-center gap-3 text-3xl font-black tracking-tight text-white hover:opacity-95 transition">
-                <div class="w-10 h-10 rounded-xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center text-accent-jlm text-xl shadow-inner">
-                    <i class="fas fa-graduation-cap"></i>
-                </div>
+            <a href="{{ url('/') }}" class="inline-flex items-center gap-3 text-3xl font-black tracking-tight text-white hover:opacity-95 transition group">
+                <img src="{{ asset('logo.png') }}" alt="Learnerium Logo" class="h-11 w-auto object-contain drop-shadow-lg transition group-hover:scale-105">
                 <span>Learnerium</span>
             </a>
         </div>
@@ -149,8 +149,8 @@
 
             <!-- Mobile Header Logo -->
             <div class="lg:hidden text-center mb-8">
-                <a href="{{ url('/') }}" class="inline-flex items-center gap-2.5 text-3xl font-black text-primary-jlm">
-                    <i class="fas fa-graduation-cap text-secondary-jlm"></i>
+                <a href="{{ url('/') }}" class="inline-flex items-center gap-2.5 text-3xl font-black text-primary-jlm group">
+                    <img src="{{ asset('logo.png') }}" alt="Learnerium Logo" class="h-9 w-auto object-contain transition group-hover:scale-105">
                     <span>Learnerium</span>
                 </a>
             </div>

@@ -9,6 +9,10 @@
 
     <title>@yield('title', config('app.name', 'Learnerium') . ' - Elevating Education')</title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -60,7 +64,10 @@
         <!-- Unified Navbar -->
         <nav class="bg-white shadow-md p-4 sticky top-0 z-50">
             <div class="container mx-auto flex justify-between items-center">
-                <a href="{{ url('/') }}" class="text-3xl font-extrabold text-primary-jlm tracking-tight">Learnerium</a>
+                <a href="{{ url('/') }}" class="flex items-center gap-2.5 group">
+                    <img src="{{ asset('logo.png') }}" alt="Learnerium Logo" class="h-9 w-auto object-contain transition group-hover:scale-105">
+                    <span class="text-2xl font-extrabold text-primary-jlm tracking-tight">Learnerium</span>
+                </a>
                 
                 <!-- Desktop Nav Links -->
                 <div class="hidden lg:flex items-center space-x-6">
@@ -295,7 +302,10 @@
     <footer class="bg-gray-900 text-white py-12 mt-auto">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center md:items-start">
             <div class="mb-8 md:mb-0 text-center md:text-left">
-                <h3 class="text-2xl font-extrabold text-white mb-2 tracking-tight">Learnerium</h3>
+                <div class="flex items-center justify-center md:justify-start gap-2.5 mb-3">
+                    <img src="{{ asset('logo.png') }}" alt="Learnerium Logo" class="h-9 w-auto object-contain bg-white/10 p-1 rounded-lg">
+                    <h3 class="text-2xl font-extrabold text-white tracking-tight">Learnerium</h3>
+                </div>
                 <p class="text-gray-400 text-sm">&copy; {{ date('Y') }} Learnerium. Powered by JLM. All rights reserved.</p>
             </div>
             <div class="grid grid-cols-2 gap-8 md:grid-cols-3 md:gap-12 text-center md:text-left">
