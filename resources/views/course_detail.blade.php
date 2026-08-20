@@ -1,323 +1,372 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Learnerium - Course: Introduction to Web Development</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'primary-jlm': '#1b2299',          // Deep Blue
-                        'primary-jlm-dark': '#141a73',     // Slightly darker primary for hover
-                        'secondary-jlm': '#e4306d',        // Vibrant Pink
-                        'accent-jlm': '#f7de7a',           // Soft Yellow
-                        'gray-jlm-light': '#f8f8f8',       // Custom light gray for backgrounds
-                    },
-                    fontFamily: {
-                        'inter': ['Inter', 'sans-serif'], // Define Inter font family
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif; /* Apply Inter font */
-            background-color: #f8f8f8; /* Light gray background from brand guide */
-        }
-        /* Custom scrollbar for a cleaner look */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-    </style>
-</head>
-<body class="antialiased text-gray-800">
+@extends('layouts.app')
 
-    <nav class="bg-white shadow-sm p-4 sticky top-0 z-50">
-        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center">
-            <a href="/" class="text-3xl font-extrabold text-primary-jlm mb-4 md:mb-0">Learnerium</a>
-            <div class="flex flex-wrap justify-center md:space-x-4 space-x-2">
-                <a href="{{ url('/') }}" class="text-gray-700 hover:text-primary-jlm transition duration-300 px-2 py-1">Home</a>
-<a href="{{ url('/courses') }}" class="text-gray-700 hover:text-primary-jlm transition duration-300 px-2 py-1">Courses</a>
-<a href="{{ url('/instructors') }}" class="text-gray-700 hover:text-primary-jlm transition duration-300 px-2 py-1">Instructors</a>
-<a href="{{ url('/about') }}" class="text-gray-700 hover:text-primary-jlm transition duration-300 px-2 py-1">About Us</a>
-<a href="{{ url('/contact') }}" class="text-gray-700 hover:text-primary-jlm transition duration-300 px-2 py-1">Contact</a>
-<a href="{{ url('/login') }}" class="bg-primary-jlm text-white px-4 py-2 rounded-lg hover:bg-primary-jlm-dark transition duration-300 shadow-md">Login</a>
-<a href="{{ url('/register') }}" class="border border-primary-jlm text-primary-jlm px-4 py-2 rounded-lg hover:bg-primary-jlm/10 transition duration-300">Register</a>
-            </div>
+@section('title'){{ $course->title }} — Learnerium@endsection
+
+@section('content')
+
+{{-- ===== HERO BANNER ===== --}}
+<section class="bg-gradient-to-br from-gray-900 via-primary-jlm to-gray-900 text-white py-14 px-4">
+    <div class="max-w-7xl mx-auto flex flex-col lg:flex-row items-center lg:items-start gap-10">
+
+        {{-- Thumbnail --}}
+        <div class="lg:w-5/12 w-full flex-shrink-0">
+            @if($course->thumbnail)
+                <img src="{{ asset('storage/' . $course->thumbnail) }}"
+                     alt="{{ $course->title }}"
+                     class="rounded-2xl shadow-2xl w-full object-cover aspect-video">
+            @else
+                <div class="rounded-2xl bg-white/10 border border-white/20 w-full aspect-video flex items-center justify-center">
+                    <i class="fas fa-graduation-cap text-6xl text-white/30"></i>
+                </div>
+            @endif
         </div>
-    </nav>
 
-    <section class="bg-gray-900 text-white py-16 px-4">
-        <div class="container mx-auto flex flex-col lg:flex-row items-center lg:items-start gap-8">
-            <div class="lg:w-1/2 w-full">
-                <img src="https://placehold.co/700x400/1b2299/f7de7a?text=Course+Video+Thumbnail" alt="Course Thumbnail" class="rounded-lg shadow-lg w-full">
+        {{-- Course Meta --}}
+        <div class="lg:w-7/12 w-full">
+
+            {{-- Breadcrumb --}}
+            <p class="text-sm text-white/60 mb-3">
+                <a href="{{ route('courses') }}" class="hover:text-white transition">All Courses</a>
+                <span class="mx-2">›</span>
+                <span class="text-white/80">{{ $course->title }}</span>
+            </p>
+
+            <h1 class="text-3xl md:text-4xl font-extrabold leading-tight mb-4">{{ $course->title }}</h1>
+
+            @if($course->description)
+                <p class="text-lg text-white/80 mb-6 leading-relaxed">{{ $course->description }}</p>
+            @endif
+
+            {{-- Instructor --}}
+            <div class="flex items-center gap-3 mb-5">
+                <img src="https://placehold.co/40x40/e4306d/ffffff?text={{ urlencode(substr($course->instructor?->name ?? 'IN', 0, 2)) }}"
+                     alt="{{ $course->instructor?->name }}"
+                     class="w-10 h-10 rounded-full border-2 border-secondary-jlm">
+                <div>
+                    <p class="text-xs text-white/50 uppercase tracking-wide font-semibold">Instructor</p>
+                    <p class="text-sm font-bold text-white">{{ $course->instructor?->name ?? 'Learnerium Instructor' }}</p>
+                </div>
             </div>
-            <div class="lg:w-1/2 w-full lg:text-left text-center">
-                <h1 class="text-4xl md:text-5xl font-extrabold mb-4 leading-tight">{{ $course->title }}</h1>
-                <p class="text-xl opacity-90 mb-6">{{ $course->description }}</p>
 
-                <div class="flex items-center lg:justify-start justify-center mb-6 space-x-4">
-                    <div class="flex items-center">
-                        <span class="text-accent-jlm text-2xl mr-2">⭐</span>
-                        <span class="text-2xl font-bold">4.8</span>
-                        <span class="text-gray-400 text-lg ml-2">(8,500 ratings)</span>
-                    </div>
-                    <div class="flex items-center">
-                        <img src="https://placehold.co/40x40/e4306d/ffffff?text=SK" alt="Instructor Profile" class="rounded-full mr-2">
-                        <a href="#" class="text-lg font-semibold text-secondary-jlm hover:underline">{{ $course->instructor?->name ?? 'Instructor' }}</a>
-                    </div>
+            {{-- Badges row --}}
+            <div class="flex flex-wrap gap-3 mb-6 text-sm">
+                @if($course->level)
+                    <span class="bg-white/10 border border-white/20 text-white px-3 py-1 rounded-full font-medium capitalize">
+                        <i class="fas fa-signal mr-1"></i> {{ ucfirst($course->level) }}
+                    </span>
+                @endif
+                @if($course->duration_minutes)
+                    <span class="bg-white/10 border border-white/20 text-white px-3 py-1 rounded-full font-medium">
+                        <i class="fas fa-clock mr-1"></i> {{ floor($course->duration_minutes / 60) }}h {{ $course->duration_minutes % 60 }}m
+                    </span>
+                @endif
+                @php $totalLessons = $course->lessons->count(); @endphp
+                @if($totalLessons > 0)
+                    <span class="bg-white/10 border border-white/20 text-white px-3 py-1 rounded-full font-medium">
+                        <i class="fas fa-book-open mr-1"></i> {{ $totalLessons }} {{ Str::plural('Lesson', $totalLessons) }}
+                    </span>
+                @endif
+                @php $totalStudents = $course->enrollments->count(); @endphp
+                @if($totalStudents > 0)
+                    <span class="bg-white/10 border border-white/20 text-white px-3 py-1 rounded-full font-medium">
+                        <i class="fas fa-users mr-1"></i> {{ number_format($totalStudents) }} enrolled
+                    </span>
+                @endif
+                @if($course->published_at)
+                    <span class="bg-white/10 border border-white/20 text-white px-3 py-1 rounded-full font-medium">
+                        <i class="fas fa-calendar mr-1"></i> Updated {{ $course->published_at->format('M Y') }}
+                    </span>
+                @endif
+            </div>
+
+            {{-- ===== PRICING + ENROLL ===== --}}
+            <div class="flex flex-wrap items-center gap-4">
+
+                {{-- Price display block --}}
+                <div>
+                    @if($course->price > 0)
+                        {{-- Primary: Naira --}}
+                        <div class="flex items-baseline gap-3 flex-wrap">
+                            <span id="priceDisplay" class="text-4xl font-extrabold text-accent-jlm">
+                                ₦{{ number_format($course->price, 0) }}
+                            </span>
+                        </div>
+
+                        {{-- Currency Switcher --}}
+                        <div class="mt-2 flex items-center gap-2 flex-wrap">
+                            <span class="text-xs text-white/50">View in:</span>
+                            @php
+                                // Approximate live rates vs 1 NGN (baked-in fallback rates)
+                                // NGN = base. All rates are per 1 NGN.
+                                $rates = [
+                                    'NGN' => ['rate' => 1,           'symbol' => '₦',  'name' => 'NGN'],
+                                    'GHS' => ['rate' => 0.00495,     'symbol' => 'GH₵','name' => 'GHS'],
+                                    'KES' => ['rate' => 0.105,       'symbol' => 'KSh','name' => 'KES'],
+                                    'ZAR' => ['rate' => 0.015,       'symbol' => 'R',  'name' => 'ZAR'],
+                                    'EGP' => ['rate' => 0.05,        'symbol' => 'E£', 'name' => 'EGP'],
+                                    'TZS' => ['rate' => 2.12,        'symbol' => 'TSh','name' => 'TZS'],
+                                    'XOF' => ['rate' => 0.49,        'symbol' => 'F',  'name' => 'XOF'],
+                                    'USD' => ['rate' => 0.000625,    'symbol' => '$',  'name' => 'USD'],
+                                    'GBP' => ['rate' => 0.000495,    'symbol' => '£',  'name' => 'GBP'],
+                                    'EUR' => ['rate' => 0.00057,     'symbol' => '€',  'name' => 'EUR'],
+                                    'CAD' => ['rate' => 0.00085,     'symbol' => 'C$', 'name' => 'CAD'],
+                                    'AED' => ['rate' => 0.0023,      'symbol' => 'د.إ','name' => 'AED'],
+                                ];
+                            @endphp
+                            @foreach($rates as $code => $info)
+                                <button
+                                    class="currency-btn text-xs px-2 py-0.5 rounded-full border font-semibold transition
+                                           {{ $code === 'NGN' ? 'bg-accent-jlm text-primary-jlm border-accent-jlm' : 'border-white/30 text-white/70 hover:border-white hover:text-white' }}"
+                                    data-rate="{{ $info['rate'] }}"
+                                    data-symbol="{{ $info['symbol'] }}"
+                                    data-base="{{ $course->price }}"
+                                    data-code="{{ $code }}">
+                                    {{ $code }}
+                                </button>
+                            @endforeach
+                        </div>
+                        <p class="text-xs text-white/40 mt-1">* Conversion rates are approximate</p>
+                    @else
+                        <span class="text-4xl font-extrabold text-green-400">Free</span>
+                    @endif
                 </div>
 
-                <p class="text-gray-300 text-sm mb-6">Last updated: {{ optional($course->published_at)->format('M Y') ?? optional($course->created_at)->format('M Y') }}</p>
-
-                <div class="text-center lg:text-left">
-                    <span class="text-accent-jlm font-bold text-4xl mr-4">
-                        {{ $course->price > 0 ? '₦' . number_format($course->price, 2) : 'Free' }}
-                    </span>
+                {{-- Enroll / Enrolled button --}}
+                <div class="ml-0 lg:ml-4">
                     @auth
-                        @php
-                            $isEnrolled = auth()->user()->coursesEnrolled->contains($course->id);
-                        @endphp
-                        @if ($isEnrolled)
-                            <span class="inline-block bg-green-600 text-white px-6 py-3 rounded-full text-lg font-semibold">Enrolled</span>
+                        @php $isEnrolled = auth()->user()->coursesEnrolled->contains($course->id); @endphp
+                        @if($isEnrolled)
+                            <span class="inline-flex items-center gap-2 bg-green-500 text-white px-7 py-3 rounded-full text-lg font-bold shadow-lg">
+                                <i class="fas fa-check-circle"></i> Enrolled
+                            </span>
                         @else
-                            <form action="{{ route('courses.enroll', $course) }}" method="POST" class="inline-block">
+                            <form action="{{ route('courses.enroll', $course) }}" method="POST" class="inline">
                                 @csrf
-                                <button type="submit" class="bg-secondary-jlm text-white px-8 py-4 rounded-full text-xl font-semibold hover:bg-secondary-jlm/90 transition duration-300 shadow-lg transform hover:scale-105">Enroll Now</button>
+                                <button type="submit"
+                                        class="bg-secondary-jlm hover:bg-secondary-jlm/90 text-white px-8 py-3.5 rounded-full text-lg font-bold transition shadow-xl hover:shadow-secondary-jlm/40 hover:scale-105 transform duration-200">
+                                    Enrol Now
+                                </button>
                             </form>
                         @endif
                     @else
-                        <a href="{{ route('login') }}" class="bg-secondary-jlm text-white px-8 py-4 rounded-full text-xl font-semibold hover:bg-secondary-jlm/90 transition duration-300 shadow-lg transform hover:scale-105 inline-block">Login to Enroll</a>
+                        <a href="{{ route('login.student') }}"
+                           class="inline-block bg-secondary-jlm hover:bg-secondary-jlm/90 text-white px-8 py-3.5 rounded-full text-lg font-bold transition shadow-xl hover:scale-105 transform duration-200">
+                            Login to Enrol
+                        </a>
                     @endauth
                 </div>
-                @if (session('status'))
-                    <div class="mt-4 text-green-300">{{ session('status') }}</div>
-                @endif
             </div>
+
+            @if(session('status'))
+                <div class="mt-4 flex items-center gap-2 bg-green-500/20 border border-green-400/40 text-green-300 px-4 py-2 rounded-xl text-sm">
+                    <i class="fas fa-check-circle"></i> {{ session('status') }}
+                </div>
+            @endif
         </div>
-    </section>
+    </div>
+</section>
 
-    <main class="py-16 px-4 bg-gray-jlm-light">
-        <div class="container mx-auto flex flex-col lg:flex-row gap-12">
-            <div class="lg:w-2/3 w-full space-y-12">
-                <section class="bg-white p-8 rounded-lg shadow-md">
-                    <h2 class="text-3xl font-bold text-primary-jlm mb-6">What you'll learn</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700">
-                        <div class="flex items-start">
-                            <svg class="w-6 h-6 text-secondary-jlm mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            <span>Build responsive web pages with HTML5 and CSS3.</span>
-                        </div>
-                        <div class="flex items-start">
-                            <svg class="w-6 h-6 text-secondary-jlm mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            <span>Add interactivity to websites using JavaScript.</span>
-                        </div>
-                        <div class="flex items-start">
-                            <svg class="w-6 h-6 text-secondary-jlm mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            <span>Understand fundamental web development concepts.</span>
-                        </div>
-                        <div class="flex items-start">
-                            <svg class="w-6 h-6 text-secondary-jlm mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            <span>Deploy your projects live on the internet.</span>
+{{-- ===== MAIN CONTENT AREA ===== --}}
+<div class="max-w-7xl mx-auto px-4 py-12">
+    <div class="flex flex-col lg:flex-row gap-10">
+
+        {{-- LEFT: Main info --}}
+        <div class="lg:w-2/3 w-full space-y-8">
+
+            {{-- Course Curriculum --}}
+            @if($course->lessons->count() > 0)
+            <section class="bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
+                <h2 class="text-2xl font-extrabold text-gray-900 mb-6 flex items-center gap-3">
+                    <i class="fas fa-list-ul text-primary-jlm"></i> Course Content
+                </h2>
+
+                <p class="text-gray-500 text-sm mb-5">
+                    <span class="font-semibold text-gray-700">{{ $course->lessons->count() }}</span> {{ Str::plural('lesson', $course->lessons->count()) }}
+                    @if($course->duration_minutes)
+                        · <span class="font-semibold text-gray-700">{{ floor($course->duration_minutes / 60) }}h {{ $course->duration_minutes % 60 }}m</span> total length
+                    @endif
+                </p>
+
+                <div class="space-y-2" id="curriculum">
+                    @foreach($course->lessons as $lesson)
+                    <div class="border border-gray-100 rounded-xl overflow-hidden">
+                        <button onclick="toggleLesson('lesson-{{ $lesson->id }}')"
+                                class="flex items-center justify-between w-full text-left px-5 py-3.5 hover:bg-gray-50 transition">
+                            <div class="flex items-center gap-3">
+                                <span class="w-7 h-7 rounded-full bg-primary-jlm/10 text-primary-jlm text-xs font-bold flex items-center justify-center flex-shrink-0">
+                                    {{ $loop->iteration }}
+                                </span>
+                                <span class="font-semibold text-gray-800 text-sm">{{ $lesson->title }}</span>
+                            </div>
+                            <div class="flex items-center gap-3 flex-shrink-0 ml-4">
+                                @if($lesson->video_url)
+                                    <span class="text-xs text-blue-500 font-medium"><i class="fas fa-play-circle mr-1"></i>Video</span>
+                                @endif
+                                <i class="fas fa-chevron-down text-gray-400 text-xs transition-transform" id="icon-lesson-{{ $lesson->id }}"></i>
+                            </div>
+                        </button>
+                        <div id="lesson-{{ $lesson->id }}" class="hidden bg-gray-50 px-5 py-3 border-t border-gray-100">
+                            @if($lesson->description)
+                                <p class="text-sm text-gray-600 mb-2">{{ $lesson->description }}</p>
+                            @else
+                                <p class="text-sm text-gray-400 italic">No description provided.</p>
+                            @endif
                         </div>
                     </div>
-                </section>
+                    @endforeach
+                </div>
+            </section>
+            @endif
 
-                <section class="bg-white p-8 rounded-lg shadow-md">
-                    <h2 class="text-3xl font-bold text-primary-jlm mb-6">Course Content</h2>
-                    <div id="accordion-curriculum">
-                        <div class="border-b border-gray-200 py-4">
-                            <button class="flex justify-between items-center w-full text-left font-semibold text-xl text-gray-800 focus:outline-none">
-                                <span>Module 1: HTML Fundamentals</span>
-                                <svg class="w-5 h-5 text-gray-500 transform rotate-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                            </button>
-                            <div class="mt-3 text-gray-600 hidden">
-                                <ul class="list-disc list-inside space-y-2">
-                                    <li>Lesson 1.1: Introduction to HTML</li>
-                                    <li>Lesson 1.2: HTML Structure and Elements</li>
-                                    <li>Lesson 1.3: Text Formatting and Links</li>
-                                    <li>Lesson 1.4: Images and Multimedia</li>
-                                </ul>
-                            </div>
+            {{-- About the Instructor --}}
+            <section class="bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
+                <h2 class="text-2xl font-extrabold text-gray-900 mb-6 flex items-center gap-3">
+                    <i class="fas fa-chalkboard-teacher text-primary-jlm"></i> About the Instructor
+                </h2>
+                <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+                    <img src="https://placehold.co/100x100/1b2299/f7de7a?text={{ urlencode(substr($course->instructor?->name ?? 'IN', 0, 2)) }}"
+                         alt="{{ $course->instructor?->name }}"
+                         class="w-24 h-24 rounded-full border-4 border-primary-jlm/20 shadow-md flex-shrink-0">
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-1">{{ $course->instructor?->name ?? 'Learnerium Instructor' }}</h3>
+                        <p class="text-secondary-jlm font-semibold text-sm mb-3">Course Instructor</p>
+                        @php $instructorCourseCount = $course->instructor ? $course->instructor->coursesTaught()->count() : 0; @endphp
+                        <div class="flex flex-wrap gap-4 text-sm text-gray-500">
+                            @if($instructorCourseCount > 0)
+                                <span><i class="fas fa-book mr-1 text-primary-jlm"></i> {{ $instructorCourseCount }} {{ Str::plural('Course', $instructorCourseCount) }}</span>
+                            @endif
+                            @php $instructorStudents = $course->instructor ? \App\Models\Enrollment::whereIn('course_id', $course->instructor->coursesTaught()->pluck('id'))->count() : 0; @endphp
+                            @if($instructorStudents > 0)
+                                <span><i class="fas fa-users mr-1 text-primary-jlm"></i> {{ number_format($instructorStudents) }} Students</span>
+                            @endif
                         </div>
-                        <div class="border-b border-gray-200 py-4">
-                            <button class="flex justify-between items-center w-full text-left font-semibold text-xl text-gray-800 focus:outline-none">
-                                <span>Module 2: CSS Styling</span>
-                                <svg class="w-5 h-5 text-gray-500 transform rotate-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                            </button>
-                            <div class="mt-3 text-gray-600 hidden">
-                                <ul class="list-disc list-inside space-y-2">
-                                    <li>Lesson 2.1: CSS Introduction and Selectors</li>
-                                    <li>Lesson 2.2: The Box Model</li>
-                                    <li>Lesson 2.3: Flexbox and Grid</li>
-                                    <li>Lesson 2.4: Responsive Design</li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="py-4">
-                            <button class="flex justify-between items-center w-full text-left font-semibold text-xl text-gray-800 focus:outline-none">
-                                <span>Module 3: JavaScript Interactivity</span>
-                                <svg class="w-5 h-5 text-gray-500 transform rotate-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                            </button>
-                            <div class="mt-3 text-gray-600 hidden">
-                                <ul class="list-disc list-inside space-y-2">
-                                    <li>Lesson 3.1: Basics of JavaScript</li>
-                                    <li>Lesson 3.2: DOM Manipulation</li>
-                                    <li>Lesson 3.3: Events and Functions</li>
-                                    <li>Lesson 3.4: Project: Interactive To-Do List</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="bg-white p-8 rounded-lg shadow-md">
-                    <h2 class="text-3xl font-bold text-primary-jlm mb-6">About the Instructor</h2>
-                    <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-                        <img src="https://placehold.co/120x120/e4306d/ffffff?text=SK" alt="Instructor Profile Picture" class="rounded-full w-32 h-32 object-cover shadow-lg">
-                        <div class="text-center sm:text-left">
-                            <h3 class="text-2xl font-bold text-gray-800 mb-2">Sarah K.</h3>
-                            <p class="text-secondary-jlm font-semibold mb-3">Experienced Web Developer & Educator</p>
-                            <p class="text-gray-700 leading-relaxed">Sarah is a passionate web developer with over 10 years of experience. She loves sharing her knowledge and empowering others to build amazing things online. Her teaching style is practical, clear, and focused on real-world application.</p>
-                            <div class="flex items-center sm:justify-start justify-center text-gray-600 text-sm mt-4">
-                                <span class="mr-4">⭐ 4.8 Instructor Rating</span>
-                                <span>🎓 5 Courses</span>
-                            </div>
-                            <a href="#" class="mt-4 inline-block text-primary-jlm hover:underline font-semibold">View Instructor Profile</a>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="bg-white p-8 rounded-lg shadow-md">
-                    <h2 class="text-3xl font-bold text-primary-jlm mb-6">Student Feedback</h2>
-                    <div class="flex items-center mb-6">
-                        <span class="text-accent-jlm text-5xl font-bold mr-4">4.8</span>
-                        <div>
-                            <div class="flex items-center text-accent-jlm mb-1">
-                                ⭐⭐⭐⭐⭐
-                            </div>
-                            <p class="text-gray-600 text-sm">(8,500 ratings)</p>
-                        </div>
-                    </div>
-
-                    <div class="space-y-8">
-                        <div class="border-b pb-4 border-gray-100">
-                            <div class="flex items-center mb-2">
-                                <img src="https://placehold.co/40x40/1b2299/f7de7a?text=JD" alt="User Avatar" class="w-10 h-10 rounded-full mr-3">
-                                <div>
-                                    <p class="font-semibold text-gray-900">John D.</p>
-                                    <p class="text-gray-500 text-sm">2 days ago</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center text-accent-jlm text-sm mb-2">
-                                ⭐⭐⭐⭐⭐
-                            </div>
-                            <p class="text-gray-700 leading-relaxed">"Absolutely fantastic course! Sarah explains complex topics in a very easy-to-understand way. I learned so much and feel confident in building my own websites now."</p>
-                        </div>
-
-                        <div class="border-b pb-4 border-gray-100">
-                            <div class="flex items-center mb-2">
-                                <img src="https://placehold.co/40x40/f7de7a/1b2299?text=AT" alt="User Avatar" class="w-10 h-10 rounded-full mr-3">
-                                <div>
-                                    <p class="font-semibold text-gray-900">Aisha T.</p>
-                                    <p class="text-gray-500 text-sm">1 week ago</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center text-accent-jlm text-sm mb-2">
-                                ⭐⭐⭐⭐
-                            </div>
-                            <p class="text-gray-700 leading-relaxed">"A solid introduction to web development. I appreciated the practical exercises. A bit fast-paced at times, but overall a great learning experience."</p>
-                        </div>
-
-                        <div>
-                            <div class="flex items-center mb-2">
-                                <img src="https://placehold.co/40x40/e4306d/ffffff?text=CM" alt="User Avatar" class="w-10 h-10 rounded-full mr-3">
-                                <div>
-                                    <p class="font-semibold text-gray-900">Chisom M.</p>
-                                    <p class="text-gray-500 text-sm">3 weeks ago</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center text-accent-jlm text-sm mb-2">
-                                ⭐⭐⭐⭐⭐
-                            </div>
-                            <p class="text-gray-700 leading-relaxed">"Highly recommend this course! The content is comprehensive, and the instructor is very engaging. Learnerium makes learning enjoyable."</p>
-                        </div>
-                    </div>
-                </section>
-            </div>
-
-            <aside class="lg:w-1/3 w-full">
-                <div class="bg-white p-6 rounded-lg shadow-xl sticky top-24 border-t-4 border-primary-jlm">
-                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Course Includes:</h3>
-                    <ul class="space-y-3 text-gray-700 text-lg mb-6">
-                        <li class="flex items-center">
-                            <svg class="w-6 h-6 text-secondary-jlm mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-3 1m8-14v-3m-2 3v-2.25M13.5 16h-11V6h11v10zm-4-9h4m-4 4h4m-4 4h4m-4-10H3.75L3 18l3-1 2-2zM15 11l-3-3m0 0l-3 3m3-3v8"></path></svg>
-                            <span>12 hours on-demand video</span>
-                        </li>
-                        <li class="flex items-center">
-                            <svg class="w-6 h-6 text-secondary-jlm mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14v6m-3-3h6m-1-4l-8-8-6 6v6h14z"></path></svg>
-                            <span>15 downloadable resources</span>
-                        </li>
-                        <li class="flex items-center">
-                            <svg class="w-6 h-6 text-secondary-jlm mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-3 3z"></path></svg>
-                            <span>Full lifetime access</span>
-                        </li>
-                        <li class="flex items-center">
-                            <svg class="w-6 h-6 text-secondary-jlm mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            <span>Certificate of completion</span>
-                        </li>
-                    </ul>
-                    <div class="text-center">
-                        <span class="text-primary-jlm font-bold text-5xl block mb-4">$49.99</span>
-                        <a href="#" class="bg-accent-jlm text-primary-jlm px-8 py-4 rounded-full text-xl font-bold hover:bg-accent-jlm/90 transition duration-300 shadow-xl transform hover:scale-105 block w-full mb-4">Buy Now</a>
-                        <button class="bg-gray-100 text-primary-jlm border border-primary-jlm px-8 py-4 rounded-full text-xl font-bold hover:bg-gray-200 transition duration-300 shadow-md block w-full">Add to Cart</button>
                     </div>
                 </div>
-            </aside>
-        </div>
-    </main>
+            </section>
 
-    <footer class="bg-gray-800 text-white py-8 px-4 mt-16">
-        <div class="container mx-auto text-center text-gray-400">
-            <p>&copy; 2025 Learnerium. Powered by JLM. Creative. Fast. Personalised.</p>
-            <div class="mt-4 space-x-4 text-sm">
-                <a href="#" class="hover:text-secondary-jlm">Privacy Policy</a>
-                <a href="#" class="hover:text-secondary-jlm">Terms of Service</a>
-                <a href="#" class="hover:text-secondary-jlm">Sitemap</a>
+        </div>
+
+        {{-- RIGHT: Sticky sidebar --}}
+        <aside class="lg:w-1/3 w-full">
+            <div class="bg-white rounded-2xl shadow-xl sticky top-24 border border-gray-100 overflow-hidden">
+
+                {{-- Sidebar price header --}}
+                <div class="bg-gradient-to-r from-primary-jlm to-primary-jlm-dark px-6 py-5 text-white">
+                    @if($course->price > 0)
+                        <p class="text-3xl font-extrabold" id="sidebarPrice">₦{{ number_format($course->price, 0) }}</p>
+                        <p class="text-xs text-white/60 mt-0.5">Displayed in Naira (NGN)</p>
+                    @else
+                        <p class="text-3xl font-extrabold text-green-300">Free</p>
+                    @endif
+                </div>
+
+                <div class="p-6">
+                    {{-- Enrol button --}}
+                    @auth
+                        @php $isEnrolled = auth()->user()->coursesEnrolled->contains($course->id); @endphp
+                        @if($isEnrolled)
+                            <a href="{{ route('lesson.show', [$course, $course->lessons->first()]) }}"
+                               class="block w-full text-center bg-green-500 text-white px-6 py-3.5 rounded-xl font-bold hover:bg-green-600 transition shadow-md mb-4">
+                                <i class="fas fa-play-circle mr-2"></i>Continue Learning
+                            </a>
+                        @else
+                            <form action="{{ route('courses.enroll', $course) }}" method="POST">
+                                @csrf
+                                <button type="submit"
+                                        class="w-full bg-secondary-jlm text-white px-6 py-3.5 rounded-xl font-bold hover:bg-secondary-jlm/90 transition shadow-md mb-4">
+                                    Enrol Now
+                                </button>
+                            </form>
+                        @endif
+                    @else
+                        <a href="{{ route('login.student') }}"
+                           class="block w-full text-center bg-secondary-jlm text-white px-6 py-3.5 rounded-xl font-bold hover:bg-secondary-jlm/90 transition shadow-md mb-4">
+                            Login to Enrol
+                        </a>
+                    @endauth
+
+                    {{-- Course includes --}}
+                    <h3 class="font-bold text-gray-700 text-sm uppercase tracking-wide mb-3">This course includes:</h3>
+                    <ul class="space-y-2.5 text-sm text-gray-600">
+                        @if($course->lessons->count() > 0)
+                            <li class="flex items-center gap-2.5">
+                                <i class="fas fa-book-open text-primary-jlm w-4 text-center"></i>
+                                {{ $course->lessons->count() }} {{ Str::plural('lesson', $course->lessons->count()) }}
+                            </li>
+                        @endif
+                        @if($course->duration_minutes)
+                            <li class="flex items-center gap-2.5">
+                                <i class="fas fa-clock text-primary-jlm w-4 text-center"></i>
+                                {{ floor($course->duration_minutes / 60) }}h {{ $course->duration_minutes % 60 }}m of content
+                            </li>
+                        @endif
+                        @if($course->level)
+                            <li class="flex items-center gap-2.5">
+                                <i class="fas fa-signal text-primary-jlm w-4 text-center"></i>
+                                {{ ucfirst($course->level) }} level
+                            </li>
+                        @endif
+                        <li class="flex items-center gap-2.5">
+                            <i class="fas fa-infinity text-primary-jlm w-4 text-center"></i>
+                            Lifetime access
+                        </li>
+                        <li class="flex items-center gap-2.5">
+                            <i class="fas fa-certificate text-primary-jlm w-4 text-center"></i>
+                            Certificate of completion
+                        </li>
+                    </ul>
+                </div>
             </div>
-        </div>
-    </footer>
+        </aside>
+    </div>
+</div>
 
-    <script>
-        // Simple accordion functionality for curriculum
-        document.addEventListener('DOMContentLoaded', () => {
-            const accordionButtons = document.querySelectorAll('#accordion-curriculum button');
+{{-- ===== CURRENCY SWITCHER SCRIPT ===== --}}
+@if($course->price > 0)
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const btns = document.querySelectorAll('.currency-btn');
+    const priceDisplay   = document.getElementById('priceDisplay');
+    const sidebarPrice   = document.getElementById('sidebarPrice');
 
-            accordionButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    const content = button.nextElementSibling;
-                    const icon = button.querySelector('svg');
+    btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const rate   = parseFloat(btn.dataset.rate);
+            const symbol = btn.dataset.symbol;
+            const base   = parseFloat(btn.dataset.base);
+            const code   = btn.dataset.code;
+            const converted = base * rate;
 
-                    content.classList.toggle('hidden');
-                    icon.classList.toggle('rotate-180'); // Rotate arrow icon
-                });
+            // Format: show 2 decimal for small values, 0 for large
+            const formatted = converted < 100
+                ? converted.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})
+                : Math.round(converted).toLocaleString();
+
+            if (priceDisplay)  priceDisplay.textContent  = symbol + formatted;
+            if (sidebarPrice)  sidebarPrice.textContent  = symbol + formatted;
+
+            // Highlight active button
+            btns.forEach(b => {
+                b.classList.remove('bg-accent-jlm', 'text-primary-jlm', 'border-accent-jlm');
+                b.classList.add('border-white/30', 'text-white/70');
             });
+            btn.classList.add('bg-accent-jlm', 'text-primary-jlm', 'border-accent-jlm');
+            btn.classList.remove('border-white/30', 'text-white/70');
         });
-    </script>
-</body>
-</html>
+    });
+});
+</script>
+@endif
+
+{{-- ===== LESSON ACCORDION SCRIPT ===== --}}
+<script>
+function toggleLesson(id) {
+    const el   = document.getElementById(id);
+    const icon = document.getElementById('icon-' + id);
+    if (!el) return;
+    el.classList.toggle('hidden');
+    if (icon) icon.classList.toggle('rotate-180');
+}
+</script>
+
+@endsection

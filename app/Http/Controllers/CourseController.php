@@ -29,7 +29,7 @@ class CourseController extends Controller
     public function show(string $slug)
     {
         $course = Course::where('slug', $slug)
-            ->with('instructor')
+            ->with(['instructor', 'lessons', 'enrollments'])
             ->firstOrFail();
 
         return view('course_detail', compact('course'));

@@ -74,12 +74,12 @@
                 <!-- Auth/Menu -->
                 <div class="hidden lg:flex items-center space-x-4">
                     @guest
-                        <div class="relative group">
-                            <button class="bg-primary-jlm text-white px-5 py-2.5 rounded-lg hover:bg-primary-jlm-dark transition duration-300 shadow-md font-semibold text-sm flex items-center space-x-2">
+                        <div class="relative" id="signInDropdownWrap">
+                            <button id="signInDropdownBtn" class="bg-primary-jlm text-white px-5 py-2.5 rounded-lg hover:bg-primary-jlm-dark transition duration-300 shadow-md font-semibold text-sm flex items-center space-x-2">
                                 <span>Sign In</span>
                                 <i class="fas fa-chevron-down text-xs"></i>
                             </button>
-                            <div class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl py-2 z-20 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto transition-all duration-200 border border-gray-100 origin-top-right">
+                            <div id="signInDropdownMenu" class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl py-2 z-20 hidden border border-gray-100 origin-top-right">
                                 <a href="{{ route('login.student') }}" class="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-primary-jlm/5 hover:text-primary-jlm font-medium">
                                     <i class="fas fa-user-graduate mr-2.5 text-primary-jlm text-base"></i>Student Sign In
                                 </a>
@@ -90,13 +90,13 @@
                         </div>
                         <a href="{{ route('register') }}" class="border border-primary-jlm text-primary-jlm px-5 py-2.5 rounded-lg hover:bg-primary-jlm/5 transition duration-300 font-semibold text-sm">Register</a>
                     @else
-                        <div class="relative group">
+                        <div class="relative" id="userDropdownWrap">
                             <button id="userDropdownBtn" class="flex items-center text-primary-jlm focus:outline-none hover:text-secondary-jlm font-semibold space-x-2">
                                 <img src="https://placehold.co/32x32/1b2299/f7de7a?text={{ urlencode(substr(Auth::user()->name, 0, 2)) }}" alt="User Profile" class="w-8 h-8 rounded-full border-2 border-primary-jlm">
                                 <span>{{ Auth::user()->name }}</span>
                                 <i class="fas fa-chevron-down text-xs"></i>
                             </button>
-                            <div id="userDropdownMenu" class="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-xl py-2 z-20 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto transition-all duration-200 border border-gray-100 origin-top-right">
+                            <div id="userDropdownMenu" class="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-xl py-2 z-20 hidden border border-gray-100 origin-top-right">
                                 <div class="px-4 py-2 border-b border-gray-100 mb-1">
                                     <p class="text-xs text-gray-400 font-medium">Logged in as</p>
                                     <p class="text-sm font-bold text-gray-800 truncate">{{ Auth::user()->email }}</p>
@@ -229,16 +229,46 @@
         </div>
     </footer>
 
-    <!-- Mobile menu toggle script -->
+    <!-- Mobile menu toggle + Dropdown hover scripts -->
     <script>
+        // Mobile menu
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const mobileMenu = document.getElementById('mobileMenu');
-
         if (mobileMenuBtn && mobileMenu) {
-            mobileMenuBtn.addEventListener('click', () => {
-                mobileMenu.classList.toggle('hidden');
+            mobileMenuBtn.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+        }
+
+        // Generic sticky-hover dropdown: keeps menu open when moving from trigger to menu
+        function stickyDropdown(wrapperId, btnId, menuId) {
+            const wrap = document.getElementById(wrapperId);
+            const btn  = document.getElementById(btnId);
+            const menu = document.getElementById(menuId);
+            if (!wrap || !btn || !menu) return;
+
+            let leaveTimer = null;
+
+            function showMenu() {
+                clearTimeout(leaveTimer);
+                menu.classList.remove('hidden');
+            }
+            function hideMenu() {
+                leaveTimer = setTimeout(() => menu.classList.add('hidden'), 120);
+            }
+
+            // Both the button and the menu keep it open
+            btn.addEventListener('mouseenter', showMenu);
+            btn.addEventListener('mouseleave', hideMenu);
+            menu.addEventListener('mouseenter', showMenu);
+            menu.addEventListener('mouseleave', hideMenu);
+
+            // Also close on click outside
+            document.addEventListener('click', (e) => {
+                if (!wrap.contains(e.target)) menu.classList.add('hidden');
             });
         }
+
+        stickyDropdown('signInDropdownWrap', 'signInDropdownBtn', 'signInDropdownMenu');
+        stickyDropdown('userDropdownWrap',   'userDropdownBtn',   'userDropdownMenu');
     </script>
 </body>
 </html>
