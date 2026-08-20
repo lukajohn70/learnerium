@@ -243,6 +243,11 @@
                                                 <span class="text-xs bg-blue-50 text-blue-600 px-2.5 py-1 rounded-lg font-semibold"><i class="fas fa-play-circle mr-1"></i>Video</span>
                                             @endif
 
+                                            <!-- Edit Lesson Button -->
+                                            <button onclick="toggleModal('editLessonModal-{{ $lesson->id }}')" class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-xs" title="Edit Lesson Details & Video Link">
+                                                <i class="fas fa-edit"></i> Edit Lesson
+                                            </button>
+
                                             <!-- Task Gates -->
                                             <a href="{{ route('lessons.tasks.index', $lesson->id) }}" class="inline-flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-xs">
                                                 <i class="fas fa-tasks"></i> Task Gates ({{ $lesson->tasks->count() }})
@@ -260,6 +265,67 @@
                                                 <button type="submit" onclick="return confirm('Delete this lesson?')" class="text-gray-400 hover:text-red-600 p-1.5 rounded-lg transition">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
+                                            </form>
+                                        </div>
+                                    </div>
+
+                                    <!-- Edit Lesson Modal for {{ $lesson->title }} -->
+                                    <div id="editLessonModal-{{ $lesson->id }}" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+                                        <div class="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-gray-100 space-y-5 text-left">
+                                            <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+                                                <div>
+                                                    <span class="text-xs font-bold text-blue-600 uppercase">Editing Lesson</span>
+                                                    <h3 class="text-lg font-extrabold text-gray-900">{{ $lesson->title }}</h3>
+                                                </div>
+                                                <button onclick="toggleModal('editLessonModal-{{ $lesson->id }}')" class="text-gray-400 hover:text-gray-600">
+                                                    <i class="fas fa-times text-lg"></i>
+                                                </button>
+                                            </div>
+                                            <form action="{{ route('instructor.lessons.update', [$course, $lesson]) }}" method="POST" class="space-y-4">
+                                                @csrf
+                                                @method('PUT')
+
+                                                <div>
+                                                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">Lesson Title <span class="text-secondary-jlm">*</span></label>
+                                                    <input type="text" name="title" value="{{ old('title', $lesson->title) }}" required class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-blue-600">
+                                                </div>
+
+                                                <div>
+                                                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">Video / Media URL (YouTube, Vimeo, MP4, Google Drive)</label>
+                                                    <input type="url" name="video_url" value="{{ old('video_url', $lesson->video_url) }}" placeholder="https://youtube.com/watch?v=..." class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-600">
+                                                </div>
+
+                                                <div>
+                                                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">Module Section</label>
+                                                    <select name="module_id" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm bg-white font-medium focus:outline-none focus:border-blue-600">
+                                                        <option value="">No Module (Standalone Lesson)</option>
+                                                        @foreach($course->modules as $mOption)
+                                                            <option value="{{ $mOption->id }}" {{ $lesson->module_id == $mOption->id ? 'selected' : '' }}>{{ $mOption->title }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+
+                                                <div>
+                                                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">Description (Optional)</label>
+                                                    <textarea name="description" rows="2" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-600">{{ old('description', $lesson->description) }}</textarea>
+                                                </div>
+
+                                                <div>
+                                                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">Lesson Text / HTML Content (Optional)</label>
+                                                    <textarea name="content" rows="4" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-600">{{ old('content', $lesson->content) }}</textarea>
+                                                </div>
+
+                                                <div>
+                                                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">Display Order</label>
+                                                    <input type="number" name="order" value="{{ old('order', $lesson->order) }}" min="0" required class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-600">
+                                                </div>
+
+                                                <div class="pt-3 border-t border-gray-100 flex justify-end gap-2">
+                                                    <button type="button" onclick="toggleModal('editLessonModal-{{ $lesson->id }}')" class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-xs font-bold">Cancel</button>
+                                                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-md">
+                                                        <i class="fas fa-save mr-1"></i>Update Lesson
+                                                    </button>
+                                                </div>
                                             </form>
                                         </div>
                                     </div>
