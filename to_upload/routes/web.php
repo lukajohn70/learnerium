@@ -48,6 +48,9 @@ Route::post('/login/instructor', [LoginController::class, 'loginInstructor'])->n
 Route::get('/apply-instructor', [InstructorApplicationController::class, 'showForm'])->name('instructor.apply');
 Route::post('/apply-instructor', [InstructorApplicationController::class, 'submit'])->name('instructor.apply.submit');
 
+Route::get('/register/instructor', [InstructorApplicationController::class, 'showForm'])->name('register.instructor');
+Route::post('/register/instructor', [InstructorApplicationController::class, 'submit'])->name('register.instructor.post');
+
 // Admin Review Routes
 Route::get('/admin/instructor-applications', [InstructorApplicationController::class, 'index'])->name('admin.instructor.applications');
 Route::post('/admin/instructor-applications/{application}/approve', [InstructorApplicationController::class, 'approve'])->name('admin.instructor.applications.approve');
