@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\ModuleMaterial;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -27,6 +28,11 @@ class Module extends Model
     public function lessons(): HasMany
     {
         return $this->hasMany(Lesson::class)->orderBy('order', 'asc');
+    }
+
+    public function materials(): HasMany
+    {
+        return $this->hasMany(ModuleMaterial::class);
     }
 
     /**

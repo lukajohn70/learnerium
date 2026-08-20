@@ -7,11 +7,17 @@
         <div class="bg-gradient-to-br from-primary-jlm to-secondary-jlm rounded-2xl p-8 mb-6 text-white shadow-xl relative overflow-hidden">
             <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px); background-size: 30px 30px;"></div>
             <div class="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-6">
-                <div class="relative">
-                    <img src="https://placehold.co/120x120/f7de7a/1b2299?text={{ urlencode(substr(Auth::user()->name, 0, 2)) }}" 
+                <div class="relative group">
+                    <img src="{{ Auth::user()->avatarUrl() }}" 
                          alt="{{ Auth::user()->name }}" 
-                         class="w-28 h-28 rounded-full border-4 border-white shadow-lg">
-                    <span class="absolute bottom-1 right-1 bg-green-400 border-2 border-white w-5 h-5 rounded-full"></span>
+                         class="w-28 h-28 rounded-full border-4 border-white shadow-lg object-cover">
+                    <form action="{{ route('profile.avatar') }}" method="POST" enctype="multipart/form-data" class="absolute bottom-0 right-0">
+                        @csrf
+                        <label for="avatar_input" class="w-8 h-8 bg-accent-jlm hover:bg-yellow-300 text-primary-jlm rounded-full flex items-center justify-center cursor-pointer shadow-md transition" title="Upload New Profile Picture">
+                            <i class="fas fa-camera text-xs"></i>
+                        </label>
+                        <input type="file" id="avatar_input" name="avatar" accept="image/*" class="hidden" onchange="this.form.submit()">
+                    </form>
                 </div>
                 <div class="text-center sm:text-left">
                     <h1 class="text-3xl font-extrabold mb-1">{{ Auth::user()->name }}</h1>

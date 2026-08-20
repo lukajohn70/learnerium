@@ -63,10 +63,19 @@ class CourseController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
             'thumbnail' => ['nullable', 'url'],
+            'thumbnail_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
             'price' => ['nullable', 'numeric', 'min:0'],
-            'level' => ['required', 'in:Beginner,Intermediate,Advanced'],
+            'level' => ['required', 'in:Beginner,Intermediate,Advanced,All Levels'],
             'duration_minutes' => ['required', 'integer', 'min:1'],
         ]);
+
+        if ($request->hasFile('thumbnail_file')) {
+            $file = $request->file('thumbnail_file');
+            $filename = time() . '_' . preg_replace('/[^A-Za-z0-9\._-]/', '_', $file->getClientOriginalName());
+            $file->move(public_path('uploads/thumbnails'), $filename);
+            $data['thumbnail'] = asset('uploads/thumbnails/' . $filename);
+        }
+        unset($data['thumbnail_file']);
 
         $data['slug'] = \Illuminate\Support\Str::slug($data['title']);
         $data['price'] = $data['price'] ?? 0;
@@ -74,8 +83,8 @@ class CourseController extends Controller
         $course->update($data);
 
         return redirect()
-            ->route('instructor.manage.courses')
-            ->with('status', 'Course updated successfully.');
+            ->route('instructor.courses.edit', $course)
+            ->with('status', 'Course details updated successfully.');
     }
 
     public function publish(Course $course)
@@ -97,21 +106,30 @@ class CourseController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
             'thumbnail' => ['nullable', 'url'],
+            'thumbnail_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
             'price' => ['nullable', 'numeric', 'min:0'],
-            'level' => ['required', 'in:Beginner,Intermediate,Advanced'],
+            'level' => ['required', 'in:Beginner,Intermediate,Advanced,All Levels'],
             'duration_minutes' => ['required', 'integer', 'min:1'],
         ]);
+
+        if ($request->hasFile('thumbnail_file')) {
+            $file = $request->file('thumbnail_file');
+            $filename = time() . '_' . preg_replace('/[^A-Za-z0-9\._-]/', '_', $file->getClientOriginalName());
+            $file->move(public_path('uploads/thumbnails'), $filename);
+            $data['thumbnail'] = asset('uploads/thumbnails/' . $filename);
+        }
+        unset($data['thumbnail_file']);
 
         $data['instructor_id'] = Auth::id();
         $data['slug'] = Str::slug($data['title']);
         $data['price'] = $data['price'] ?? 0;
         $data['published_at'] = now();
 
-        Course::create($data);
+        $course = Course::create($data);
 
         return redirect()
-            ->route('instructor.manage.courses')
-            ->with('status', 'Course created successfully.');
+            ->route('instructor.courses.edit', $course)
+            ->with('status', 'Course created! Now add your first module below to build your curriculum.');
     }
 
     private function authorizeInstructor(Course $course): void

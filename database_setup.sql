@@ -1,6 +1,6 @@
 -- ============================================================
 -- Learnerium Complete Database Schema (Safe Install Script)
--- Generated: 2026-08-20 17:59:08
+-- Generated: 2026-08-20 18:14:07
 -- ============================================================
 
 SET FOREIGN_KEY_CHECKS = 0;
@@ -10,6 +10,7 @@ CREATE TABLE `users` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
   `email` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `avatar` varchar(191) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `email_verified_at` timestamp NULL DEFAULT NULL,
   `password` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
   `remember_token` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -110,6 +111,21 @@ CREATE TABLE `modules` (
   KEY `modules_course_id_foreign` (`course_id`),
   CONSTRAINT `modules_course_id_foreign` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+DROP TABLE IF EXISTS `module_materials`;
+CREATE TABLE `module_materials` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `module_id` bigint unsigned NOT NULL,
+  `title` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `type` enum('document','link') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'document',
+  `url_or_path` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `file_name` varchar(191) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `module_materials_module_id_foreign` (`module_id`),
+  CONSTRAINT `module_materials_module_id_foreign` FOREIGN KEY (`module_id`) REFERENCES `modules` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 DROP TABLE IF EXISTS `lessons`;
 CREATE TABLE `lessons` (
@@ -275,6 +291,6 @@ CREATE TABLE `migrations` (
   `migration` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
   `batch` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;

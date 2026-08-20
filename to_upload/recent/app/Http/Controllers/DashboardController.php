@@ -71,4 +71,24 @@ class DashboardController extends Controller
 
         return back();
     }
+
+    /**
+     * Upload and update user profile avatar.
+     */
+    public function updateAvatar(Request $request)
+    {
+        $request->validate([
+            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+        ]);
+
+        $user = Auth::user();
+        if ($request->hasFile('avatar')) {
+            $file = $request->file('avatar');
+            $filename = time() . '_' . preg_replace('/[^A-Za-z0-9\._-]/', '_', $file->getClientOriginalName());
+            $file->move(public_path('uploads/avatars'), $filename);
+            $user->update(['avatar' => $filename]);
+        }
+
+        return back()->with('status', 'Profile picture updated successfully!');
+    }
 }

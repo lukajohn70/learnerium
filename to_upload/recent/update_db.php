@@ -53,7 +53,37 @@ try {
         $logs[] = array('s' => 'warn', 'm' => '⚠️ Column `module_id` already exists in `lessons` table (skipped)');
     }
 
-    // 3. Create instructor_applications table if not exists
+    // 3. Create module_materials table
+    $hasMaterials = $pdo->query("SHOW TABLES LIKE 'module_materials'")->rowCount() > 0;
+    if (!$hasMaterials) {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `module_materials` (
+          `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+          `module_id` bigint(20) UNSIGNED NOT NULL,
+          `title` varchar(255) NOT NULL,
+          `type` enum('document','link') NOT NULL DEFAULT 'document',
+          `url_or_path` varchar(255) NOT NULL,
+          `file_name` varchar(255) DEFAULT NULL,
+          `created_at` timestamp NULL DEFAULT NULL,
+          `updated_at` timestamp NULL DEFAULT NULL,
+          PRIMARY KEY (`id`),
+          KEY `module_materials_module_id_foreign` (`module_id`),
+          CONSTRAINT `module_materials_module_id_foreign` FOREIGN KEY (`module_id`) REFERENCES `modules` (`id`) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+        $logs[] = array('s' => 'ok', 'm' => '✅ Created `module_materials` table');
+    } else {
+        $logs[] = array('s' => 'warn', 'm' => '⚠️ Table `module_materials` already exists (skipped)');
+    }
+
+    // 4. Add avatar to users table if not exists
+    $userCols = $pdo->query("SHOW COLUMNS FROM `users` LIKE 'avatar'")->fetchAll();
+    if (empty($userCols)) {
+        $pdo->exec("ALTER TABLE `users` ADD COLUMN `avatar` varchar(255) DEFAULT NULL AFTER `email`;");
+        $logs[] = array('s' => 'ok', 'm' => '✅ Added `avatar` column to `users` table');
+    } else {
+        $logs[] = array('s' => 'warn', 'm' => '⚠️ Column `avatar` already exists in `users` table (skipped)');
+    }
+
+    // 5. Create instructor_applications table if not exists
     $hasApps = $pdo->query("SHOW TABLES LIKE 'instructor_applications'")->rowCount() > 0;
     if (!$hasApps) {
         $pdo->exec("CREATE TABLE IF NOT EXISTS `instructor_applications` (

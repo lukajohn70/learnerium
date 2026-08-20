@@ -69,6 +69,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', function () {
         return view('profile');
     })->name('profile');
+    Route::post('/profile/avatar', [DashboardController::class, 'updateAvatar'])->name('profile.avatar');
     Route::get('/settings', function () {
         return view('settings');
     })->name('settings');
@@ -112,6 +113,8 @@ Route::middleware(['auth', 'instructor'])->group(function () {
     Route::post('/instructor/courses/{course}/modules', [ModuleController::class, 'store'])->name('instructor.modules.store');
     Route::put('/instructor/courses/{course}/modules/{module}', [ModuleController::class, 'update'])->name('instructor.modules.update');
     Route::delete('/instructor/courses/{course}/modules/{module}', [ModuleController::class, 'destroy'])->name('instructor.modules.destroy');
+    Route::post('/instructor/courses/{course}/modules/{module}/materials', [ModuleController::class, 'addMaterial'])->name('instructor.modules.materials.store');
+    Route::delete('/instructor/courses/{course}/modules/{module}/materials/{material}', [ModuleController::class, 'deleteMaterial'])->name('instructor.modules.materials.destroy');
 
     // Lesson Routes (instructor only)
     Route::post('/instructor/courses/{course}/lessons', [LessonController::class, 'store'])->name('instructor.lessons.store');

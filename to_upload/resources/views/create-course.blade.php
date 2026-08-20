@@ -28,7 +28,7 @@
             <div class="bg-gray-50 border-b border-gray-100 px-6 py-4">
                 <h2 class="text-lg font-bold text-gray-800"><i class="fas fa-info-circle mr-2 text-primary-jlm"></i>Course Details</h2>
             </div>
-            <form action="{{ route('instructor.courses.store') }}" method="POST" class="p-6 space-y-6">
+            <form action="{{ route('instructor.courses.store') }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-6">
                 @csrf
 
                 <div>
@@ -47,9 +47,12 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
-                        <label for="thumbnail" class="block text-sm font-semibold text-gray-700 mb-1.5">Thumbnail URL</label>
+                        <label for="thumbnail_file" class="block text-sm font-semibold text-gray-700 mb-1.5">Upload Thumbnail Image</label>
+                        <input type="file" id="thumbnail_file" name="thumbnail_file" accept="image/*"
+                               class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-primary-jlm text-sm file:mr-4 file:py-1.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-primary-jlm/10 file:text-primary-jlm hover:file:bg-primary-jlm/20">
+                        <p class="text-xs text-gray-400 mt-1">Or paste URL below:</p>
                         <input type="url" id="thumbnail" name="thumbnail" value="{{ old('thumbnail') }}"
-                               class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-jlm/30 focus:border-primary-jlm transition text-gray-800"
+                               class="w-full mt-1 px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-primary-jlm text-xs"
                                placeholder="https://example.com/image.jpg">
                     </div>
                     <div>

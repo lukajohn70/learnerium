@@ -24,8 +24,20 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'role',
+        'avatar',
         'profile_picture',
     ];
+
+    public function avatarUrl(): string
+    {
+        if ($this->avatar) {
+            return str_starts_with($this->avatar, 'http') ? $this->avatar : asset('uploads/avatars/' . $this->avatar);
+        }
+        if ($this->profile_picture) {
+            return str_starts_with($this->profile_picture, 'http') ? $this->profile_picture : asset('uploads/avatars/' . $this->profile_picture);
+        }
+        return 'https://placehold.co/120x120/f7de7a/1b2299?text=' . urlencode(substr($this->name, 0, 2));
+    }
 
     /**
      * The attributes that should be hidden for serialization.
