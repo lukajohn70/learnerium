@@ -57,6 +57,14 @@ class Course extends Model
     }
 
     /**
+     * Get the modules for the Course.
+     */
+    public function modules(): HasMany
+    {
+        return $this->hasMany(Module::class, 'course_id')->orderBy('order', 'asc');
+    }
+
+    /**
      * Get the lessons for the Course.
      */
     public function lessons(): HasMany

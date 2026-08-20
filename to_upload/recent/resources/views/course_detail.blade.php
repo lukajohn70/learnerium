@@ -200,44 +200,59 @@
             @endif
 
             {{-- Course Content Accordion --}}
-            @if($course->lessons->count() > 0)
+            @if($course->modules->count() > 0 || $course->lessons->count() > 0)
             <section class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-                <h2 class="text-2xl font-extrabold text-primary-jlm mb-2">Course Content</h2>
+                <h2 class="text-2xl font-extrabold text-primary-jlm mb-2">Course Curriculum</h2>
                 <p class="text-gray-500 text-sm mb-6">
-                    <span class="font-semibold text-gray-700">{{ $course->lessons->count() }}</span> {{ Str::plural('lesson', $course->lessons->count()) }}
-                    @if($course->duration_minutes)
-                        &nbsp;·&nbsp;
-                        <span class="font-semibold text-gray-700">{{ floor($course->duration_minutes / 60) }}h {{ $course->duration_minutes % 60 }}m</span> total
+                    @if($course->modules->count() > 0)
+                        <span class="font-semibold text-gray-700">{{ $course->modules->count() }}</span> {{ Str::plural('module', $course->modules->count()) }} &nbsp;·&nbsp;
                     @endif
+                    <span class="font-semibold text-gray-700">{{ $course->lessons->count() }}</span> {{ Str::plural('lesson', $course->lessons->count()) }}
                 </p>
 
-                <div id="accordion-curriculum" class="space-y-2">
-                    @foreach($course->lessons as $lesson)
-                    <div class="border border-gray-200 rounded-xl overflow-hidden">
-                        <button onclick="toggleAccordion('lesson-{{ $lesson->id }}', 'icon-{{ $lesson->id }}')"
-                                class="flex justify-between items-center w-full text-left px-5 py-4 hover:bg-gray-50 transition focus:outline-none">
-                            <div class="flex items-center gap-3">
-                                <span class="w-7 h-7 bg-primary-jlm/10 text-primary-jlm text-xs font-bold rounded-full flex items-center justify-center flex-shrink-0">
-                                    {{ $loop->iteration }}
-                                </span>
-                                <span class="font-semibold text-gray-800 text-sm">{{ $lesson->title }}</span>
+                <div class="space-y-4">
+                    @if($course->modules->count() > 0)
+                        @foreach($course->modules as $modIndex => $module)
+                            <div class="border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
+                                <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                                    <div>
+                                        <span class="text-xs font-bold uppercase tracking-wider text-secondary-jlm">Module {{ $modIndex + 1 }}</span>
+                                        <h3 class="text-base font-extrabold text-gray-900">{{ $module->title }}</h3>
+                                        @if($module->description)
+                                            <p class="text-xs text-gray-500 mt-0.5">{{ $module->description }}</p>
+                                        @endif
+                                    </div>
+                                    <span class="text-xs font-semibold bg-white border border-gray-200 text-gray-600 px-3 py-1 rounded-full">
+                                        {{ $module->lessons->count() }} {{ Str::plural('lesson', $module->lessons->count()) }}
+                                    </span>
+                                </div>
+                                <div class="divide-y divide-gray-100 bg-white">
+                                    @forelse($module->lessons as $lesson)
+                                        <div class="px-6 py-3.5 flex items-center justify-between hover:bg-gray-50/80 transition text-sm">
+                                            <div class="flex items-center gap-3">
+                                                <i class="fas fa-play-circle text-primary-jlm"></i>
+                                                <span class="font-medium text-gray-800">{{ $lesson->title }}</span>
+                                            </div>
+                                            @if($lesson->is_free)
+                                                <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 rounded-full">Free Preview</span>
+                                            @endif
+                                        </div>
+                                    @empty
+                                        <div class="p-4 text-xs text-gray-400 italic">No lessons in this module yet.</div>
+                                    @endforelse
+                                </div>
                             </div>
-                            <div class="flex items-center gap-3 flex-shrink-0 ml-3">
-                                @if($lesson->video_url)
-                                    <span class="text-xs text-blue-500 hidden sm:block"><i class="fas fa-play-circle mr-1"></i>Video</span>
-                                @endif
-                                <i id="icon-{{ $lesson->id }}" class="fas fa-chevron-down text-gray-400 text-xs transition-transform duration-200"></i>
+                        @endforeach
+                    @else
+                        @foreach($course->lessons as $lesson)
+                            <div class="p-4 border border-gray-200 rounded-xl flex items-center justify-between text-sm">
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-play-circle text-primary-jlm"></i>
+                                    <span class="font-medium text-gray-800">{{ $lesson->title }}</span>
+                                </div>
                             </div>
-                        </button>
-                        <div id="lesson-{{ $lesson->id }}" class="hidden bg-gray-50 px-5 pb-4 pt-2 border-t border-gray-100">
-                            @if($lesson->description)
-                                <p class="text-sm text-gray-600 leading-relaxed">{{ $lesson->description }}</p>
-                            @else
-                                <p class="text-sm text-gray-400 italic">No description provided for this lesson.</p>
-                            @endif
-                        </div>
-                    </div>
-                    @endforeach
+                        @endforeach
+                    @endif
                 </div>
             </section>
             @endif

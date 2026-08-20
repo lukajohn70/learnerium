@@ -11,6 +11,7 @@ class Lesson extends Model
 
     protected $fillable = [
         'course_id',
+        'module_id',
         'title',
         'description',
         'order',
@@ -21,6 +22,32 @@ class Lesson extends Model
     public function course()
     {
         return $this->belongsTo(Course::class);
+    }
+
+    public function module()
+    {
+        return $this->belongsTo(Module::class);
+    }
+
+    /**
+     * Check if this lesson is unlocked for the given user based on module gating rules.
+     */
+    public function isUnlockedFor($user): bool
+    {
+        if (!$user) {
+            return false;
+        }
+
+        // Instructors / Admins bypass completion locks
+        if (method_exists($user, 'isInstructor') && $user->isInstructor()) {
+            return true;
+        }
+
+        if ($this->module) {
+            return $this->module->isUnlockedFor($user);
+        }
+
+        return true;
     }
 
     public function progress()

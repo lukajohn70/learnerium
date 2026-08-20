@@ -28,6 +28,12 @@ class LessonController extends Controller
             abort(403, 'You are not enrolled in this course.');
         }
 
+        // Verify module unlock status for student
+        if (!$lesson->isUnlockedFor($user)) {
+            return redirect()->route('course.detail', $course->slug)
+                ->with('error', '🔒 Module Locked: Complete all lessons in previous modules first to unlock this section.');
+        }
+
         // Get or create lesson progress for student
         $progress = null;
         if ($user->id !== $course->instructor_id) {
@@ -140,6 +146,7 @@ class LessonController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'module_id' => 'nullable|exists:modules,id',
             'description' => 'nullable|string',
             'order' => 'required|integer|min:0',
             'video_url' => 'nullable|url',
@@ -167,6 +174,7 @@ class LessonController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'module_id' => 'nullable|exists:modules,id',
             'description' => 'nullable|string',
             'order' => 'required|integer|min:0',
             'video_url' => 'nullable|url',

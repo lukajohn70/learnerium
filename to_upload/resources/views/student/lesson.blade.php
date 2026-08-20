@@ -282,32 +282,78 @@
 
         </div>
 
-        <!-- Sidebar: Lesson List -->
+        <!-- Sidebar: Module & Lesson Navigation -->
         <div class="lg:col-span-1">
             <div class="bg-white rounded-2xl shadow-md p-5 sticky top-24">
-                <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                    <i class="fas fa-list-ul text-primary-jlm"></i>Course Lessons
+                <h3 class="text-base font-bold text-gray-800 mb-4 flex items-center justify-between">
+                    <span class="flex items-center gap-2"><i class="fas fa-layer-group text-primary-jlm"></i>Course Curriculum</span>
                 </h3>
-                <div class="space-y-1.5 max-h-[60vh] overflow-y-auto pr-1">
-                    @forelse($lessons as $item)
-                        @php
-                            $itemHasRequiredTasks = $item->tasks->where('is_required', true)->count() > 0;
-                        @endphp
-                        <a href="{{ route('lesson.show', [$course, $item]) }}"
-                           class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition {{ $item->id === $lesson->id ? 'bg-primary-jlm text-white' : 'hover:bg-gray-50 text-gray-700' }}">
-                            <span class="text-xs font-bold w-5 h-5 flex-shrink-0 rounded-full flex items-center justify-center {{ $item->id === $lesson->id ? 'bg-white/20' : 'bg-gray-100' }}">
-                                {{ $loop->iteration }}
-                            </span>
-                            <div class="flex-grow min-w-0">
-                                <p class="text-xs font-semibold truncate">{{ $item->title }}</p>
+
+                <div class="space-y-4 max-h-[65vh] overflow-y-auto pr-1">
+                    @if($course->modules->count() > 0)
+                        @foreach($course->modules as $modIndex => $mod)
+                            @php
+                                $modUnlocked = $mod->isUnlockedFor(auth()->user());
+                                $modCompleted = $mod->isCompletedBy(auth()->user());
+                            @endphp
+                            <div class="border border-gray-200 rounded-xl overflow-hidden shadow-xs">
+                                <div class="bg-gray-50 px-3.5 py-2.5 border-b border-gray-200 flex items-center justify-between text-xs font-bold">
+                                    <div class="flex items-center gap-2 text-gray-800 truncate">
+                                        @if(!$modUnlocked)
+                                            <i class="fas fa-lock text-amber-500 flex-shrink-0" title="Module Locked"></i>
+                                        @elseif($modCompleted)
+                                            <i class="fas fa-check-circle text-emerald-500 flex-shrink-0" title="Module Completed"></i>
+                                        @else
+                                            <i class="fas fa-book-open text-primary-jlm flex-shrink-0"></i>
+                                        @endif
+                                        <span class="truncate">M{{ $modIndex + 1 }}: {{ $mod->title }}</span>
+                                    </div>
+                                    @if(!$modUnlocked)
+                                        <span class="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full flex-shrink-0">Locked</span>
+                                    @endif
+                                </div>
+                                <div class="divide-y divide-gray-100">
+                                    @foreach($mod->lessons as $item)
+                                        @php
+                                            $itemUnlocked = $modUnlocked;
+                                            $itemProgress = $item->userProgress(auth()->user());
+                                            $isCompleted = $itemProgress && $itemProgress->completed;
+                                        @endphp
+                                        @if($itemUnlocked)
+                                            <a href="{{ route('lesson.show', [$course, $item]) }}"
+                                               class="flex items-center justify-between px-3.5 py-2 text-xs transition {{ $item->id === $lesson->id ? 'bg-primary-jlm text-white font-bold' : 'hover:bg-gray-50 text-gray-700' }}">
+                                                <div class="flex items-center gap-2 truncate">
+                                                    @if($isCompleted)
+                                                        <i class="fas fa-check-circle text-emerald-500 text-xs flex-shrink-0"></i>
+                                                    @else
+                                                        <i class="far fa-circle text-gray-300 text-xs flex-shrink-0"></i>
+                                                    @endif
+                                                    <span class="truncate">{{ $item->title }}</span>
+                                                </div>
+                                                @if($item->tasks->where('is_required', true)->count() > 0)
+                                                    <i class="fas fa-tasks text-orange-400 text-[10px] ml-1 flex-shrink-0"></i>
+                                                @endif
+                                            </a>
+                                        @else
+                                            <div class="flex items-center justify-between px-3.5 py-2 text-xs text-gray-400 bg-gray-50/50 cursor-not-allowed">
+                                                <div class="flex items-center gap-2 truncate">
+                                                    <i class="fas fa-lock text-gray-300 text-xs flex-shrink-0"></i>
+                                                    <span class="truncate">{{ $item->title }}</span>
+                                                </div>
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                </div>
                             </div>
-                            @if($itemHasRequiredTasks)
-                                <i class="fas fa-tasks text-orange-400 text-xs flex-shrink-0" title="Has required tasks"></i>
-                            @endif
-                        </a>
-                    @empty
-                        <p class="text-gray-400 text-sm text-center py-4">No lessons yet.</p>
-                    @endforelse
+                        @endforeach
+                    @else
+                        @foreach($lessons as $item)
+                            <a href="{{ route('lesson.show', [$course, $item]) }}"
+                               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs transition {{ $item->id === $lesson->id ? 'bg-primary-jlm text-white font-bold' : 'hover:bg-gray-50 text-gray-700' }}">
+                                <span class="truncate">{{ $item->title }}</span>
+                            </a>
+                        @endforeach
+                    @endif
                 </div>
             </div>
         </div>

@@ -88,16 +88,50 @@
             </form>
         </div>
 
-        <!-- Add New Lesson -->
-        <div class="bg-white rounded-2xl shadow-md overflow-hidden border-t-4 border-green-500">
-            <div class="bg-gray-50 border-b border-gray-100 px-6 py-4">
-                <h2 class="text-lg font-bold text-gray-800"><i class="fas fa-plus-circle mr-2 text-green-500"></i>Add New Lesson</h2>
-            </div>
-            <form action="{{ route('instructor.lessons.store', $course) }}" method="POST" class="p-6 space-y-5">
+        <!-- Module Management -->
+        <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-100 mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+                <i class="fas fa-layer-group text-primary-jlm"></i>Course Modules (Sections)
+            </h2>
+            <p class="text-xs text-gray-500 mb-4">Organize your course into ordered modules. Students must complete all lessons in Module 1 before unlocking Module 2.</p>
+            <form action="{{ route('instructor.modules.store', $course) }}" method="POST" class="flex flex-col sm:flex-row gap-3 mb-6">
                 @csrf
+                <input type="text" name="title" required placeholder="New Module Title (e.g., Module 1: Getting Started)" class="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary-jlm">
+                <button type="submit" class="bg-primary-jlm text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-primary-jlm/90 transition flex items-center justify-center gap-1.5 shadow-sm">
+                    <i class="fas fa-plus-circle"></i>Add Module
+                </button>
+            </form>
+            @if($course->modules->count() > 0)
+                <div class="space-y-3">
+                    @foreach($course->modules as $modIndex => $mod)
+                        <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-center justify-between">
+                            <div>
+                                <span class="text-xs font-bold text-secondary-jlm uppercase">Module {{ $modIndex + 1 }}</span>
+                                <h3 class="font-extrabold text-gray-900 text-sm">{{ $mod->title }}</h3>
+                                <span class="text-xs text-gray-400">{{ $mod->lessons->count() }} {{ Str::plural('lesson', $mod->lessons->count()) }}</span>
+                            </div>
+                            <form action="{{ route('instructor.modules.destroy', [$course, $mod]) }}" method="POST" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" onclick="return confirm('Delete this module?')" class="text-red-500 hover:text-red-700 text-xs font-bold px-2 py-1">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </form>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div>
+        <!-- Add Lesson Form -->
+        <div class="bg-white rounded-2xl shadow-md p-6 md:p-8 mb-8 border border-gray-100">
+            <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                <i class="fas fa-plus-circle text-green-500"></i>Add New Lesson
+            </h2>
+            <form action="{{ route('instructor.lessons.store', $course) }}" method="POST" class="space-y-5">
+                @csrf
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    <div class="sm:col-span-2">
                         <label for="lesson_title" class="block text-sm font-semibold text-gray-700 mb-1.5">Lesson Title <span class="text-red-500">*</span></label>
                         <input id="lesson_title" name="title" type="text" required
                                class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400/30 focus:border-green-500 transition text-gray-800"
@@ -110,6 +144,18 @@
                                class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400/30 focus:border-green-500 transition text-gray-800">
                     </div>
                 </div>
+
+                @if($course->modules->count() > 0)
+                    <div>
+                        <label for="module_id" class="block text-sm font-semibold text-gray-700 mb-1.5">Assign to Module</label>
+                        <select name="module_id" id="module_id" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary-jlm bg-white">
+                            <option value="">No Module (Standalone Lesson)</option>
+                            @foreach($course->modules as $mod)
+                                <option value="{{ $mod->id }}">{{ $mod->title }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
 
                 <div>
                     <label for="lesson_description" class="block text-sm font-semibold text-gray-700 mb-1.5">Description</label>
