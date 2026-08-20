@@ -270,8 +270,8 @@
                                     </div>
 
                                     <!-- Edit Lesson Modal for {{ $lesson->title }} -->
-                                    <div id="editLessonModal-{{ $lesson->id }}" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
-                                        <div class="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-gray-100 space-y-5 text-left">
+                                    <div id="editLessonModal-{{ $lesson->id }}" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/60 backdrop-blur-sm p-4 sm:p-6 flex items-center justify-center">
+                                        <div class="bg-white rounded-3xl max-w-xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl border border-gray-100 space-y-5 text-left my-auto">
                                             <div class="flex items-center justify-between pb-3 border-b border-gray-100">
                                                 <div>
                                                     <span class="text-xs font-bold text-blue-600 uppercase">Editing Lesson</span>
@@ -342,8 +342,8 @@
                         </div>
 
                         <!-- Add Lesson Modal for this Module -->
-                        <div id="addLessonModal-{{ $mod->id }}" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
-                            <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-gray-100 space-y-5">
+                        <div id="addLessonModal-{{ $mod->id }}" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/60 backdrop-blur-sm p-4 sm:p-6 flex items-center justify-center">
+                            <div class="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl border border-gray-100 space-y-5 my-auto">
                                 <div class="flex items-center justify-between pb-3 border-b border-gray-100">
                                     <div>
                                         <span class="text-xs font-bold text-secondary-jlm uppercase">Adding Lesson to</span>
@@ -381,9 +381,11 @@
                                     </div>
                                 </form>
                             </div>
+                        </div>
+
                         <!-- Add Material Modal for this Module -->
-                        <div id="addMaterialModal-{{ $mod->id }}" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
-                            <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-gray-100 space-y-5">
+                        <div id="addMaterialModal-{{ $mod->id }}" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/60 backdrop-blur-sm p-4 sm:p-6 flex items-center justify-center">
+                            <div class="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl border border-gray-100 space-y-5 my-auto">
                                 <div class="flex items-center justify-between pb-3 border-b border-gray-100">
                                     <div>
                                         <span class="text-xs font-bold text-amber-600 uppercase">Attach Material to</span>
