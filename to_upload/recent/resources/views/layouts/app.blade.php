@@ -126,9 +126,11 @@
 
                                 @if(Auth::user()->isInstructor())
                                     <a href="{{ route('instructor.manage.courses') }}" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-jlm transition"><i class="fas fa-tasks mr-3 text-gray-400"></i>Manage Courses</a>
+                                    <a href="{{ route('admin.instructor.applications') }}" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-jlm transition"><i class="fas fa-user-check mr-3 text-gray-400"></i>Review Instructor Apps</a>
                                 @else
                                     <a href="{{ route('student.courses') }}" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-jlm transition"><i class="fas fa-graduation-cap mr-3 text-gray-400"></i>My Courses</a>
                                     <a href="{{ route('student.progress') }}" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-jlm transition"><i class="fas fa-chart-pie mr-3 text-gray-400"></i>My Progress</a>
+                                    <a href="{{ route('instructor.apply') }}" class="block px-4 py-2.5 text-sm text-secondary-jlm font-bold hover:bg-gray-50 transition"><i class="fas fa-chalkboard-teacher mr-3"></i>Apply as Instructor</a>
                                 @endif
                                 <a href="{{ url('/profile') }}" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-jlm transition"><i class="fas fa-user-circle mr-3 text-gray-400"></i>Profile</a>
                                 <a href="{{ url('/settings') }}" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-jlm transition"><i class="fas fa-cog mr-3 text-gray-400"></i>Settings</a>

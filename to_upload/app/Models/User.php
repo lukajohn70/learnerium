@@ -126,4 +126,9 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(PeerReview::class, 'reviewer_id');
     }
+
+    public function instructorApplication()
+    {
+        return $this->hasOne(InstructorApplication::class);
+    }
 }

@@ -15,6 +15,7 @@ use App\Http\Controllers\QuizQuestionController;
 use App\Http\Controllers\StudentQuizController;
 use App\Http\Controllers\LessonTaskController;
 use App\Http\Controllers\StudentTaskController;
+use App\Http\Controllers\InstructorApplicationController;
 use App\Http\Middleware\IsInstructor;
 
 /*
@@ -43,9 +44,14 @@ Route::post('/login/student', [LoginController::class, 'loginStudent'])->name('l
 Route::get('/login/instructor', [LoginController::class, 'showInstructorLoginForm'])->name('login.instructor');
 Route::post('/login/instructor', [LoginController::class, 'loginInstructor'])->name('login.instructor.post');
 
-// Instructor Registration Routes
-Route::get('/register/instructor', [RegisterController::class, 'showInstructorRegistrationForm'])->name('register.instructor');
-Route::post('/register/instructor', [RegisterController::class, 'registerInstructor'])->name('register.instructor.post');
+// Instructor Application & Verification Routes
+Route::get('/apply-instructor', [InstructorApplicationController::class, 'showForm'])->name('instructor.apply');
+Route::post('/apply-instructor', [InstructorApplicationController::class, 'submit'])->name('instructor.apply.submit');
+
+// Admin Review Routes
+Route::get('/admin/instructor-applications', [InstructorApplicationController::class, 'index'])->name('admin.instructor.applications');
+Route::post('/admin/instructor-applications/{application}/approve', [InstructorApplicationController::class, 'approve'])->name('admin.instructor.applications.approve');
+Route::post('/admin/instructor-applications/{application}/reject', [InstructorApplicationController::class, 'reject'])->name('admin.instructor.applications.reject');
 
 
 // Dashboard Routes (Protected & Email Verified)

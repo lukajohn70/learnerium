@@ -22,7 +22,7 @@
             <a href="{{ url('/courses') }}" class="w-full sm:w-auto bg-accent-jlm text-primary-jlm px-8 py-4 rounded-full text-lg font-bold hover:bg-yellow-300 transition duration-300 shadow-xl transform hover:scale-105">
                 <i class="fas fa-compass mr-2"></i>Explore Courses
             </a>
-            <a href="{{ route('register.instructor') }}" class="w-full sm:w-auto border-2 border-white/80 text-white px-8 py-4 rounded-full text-lg font-bold hover:bg-white hover:text-primary-jlm transition duration-300 transform hover:scale-105">
+            <a href="{{ route('instructor.apply') }}" class="w-full sm:w-auto border-2 border-white/80 text-white px-8 py-4 rounded-full text-lg font-bold hover:bg-white hover:text-primary-jlm transition duration-300 transform hover:scale-105">
                 <i class="fas fa-chalkboard-teacher mr-2"></i>Become an Instructor
             </a>
         </div>
