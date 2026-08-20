@@ -67,6 +67,17 @@
                     <a href="{{ url('/') }}" class="text-primary-jlm hover:text-secondary-jlm font-medium transition duration-300">Home</a>
                     <a href="{{ route('courses') }}" class="text-primary-jlm hover:text-secondary-jlm font-medium transition duration-300">Courses</a>
                     <a href="{{ route('instructors') }}" class="text-primary-jlm hover:text-secondary-jlm font-medium transition duration-300">Instructors</a>
+                    @auth
+                        @if(Auth::user()->isInstructor())
+                            <a href="{{ route('instructor.dashboard') }}" class="text-secondary-jlm font-bold hover:text-secondary-jlm/80 transition duration-300 flex items-center gap-1.5">
+                                <i class="fas fa-chalkboard-teacher text-xs"></i>Instructor
+                            </a>
+                        @else
+                            <a href="{{ route('instructor.apply') }}" class="text-secondary-jlm font-bold hover:text-secondary-jlm/80 transition duration-300">Teach on Learnerium</a>
+                        @endif
+                    @else
+                        <a href="{{ route('instructor.apply') }}" class="text-secondary-jlm font-bold hover:text-secondary-jlm/80 transition duration-300">Teach on Learnerium</a>
+                    @endauth
                     <a href="{{ route('about') }}" class="text-primary-jlm hover:text-secondary-jlm font-medium transition duration-300">About Us</a>
                     <a href="{{ route('contact') }}" class="text-primary-jlm hover:text-secondary-jlm font-medium transition duration-300">Contact</a>
                 </div>
