@@ -55,6 +55,7 @@ echo "<p>✅ Course Created / Updated: <strong>{$course->title}</strong> (ID: {$
 $courseStructure = [
     [
         'title' => '00. Setting Up',
+        'description' => 'Essential tools and software environment setup including VS Code installation, Live Server extension, Git version control, and GitHub repository creation.',
         'order' => 1,
         'materials' => [
             [
@@ -88,6 +89,7 @@ $courseStructure = [
     ],
     [
         'title' => '01. Week 1: HTML & Web Mechanics',
+        'description' => 'Core concepts of how the web works, boilerplate HTML structure, semantic HTML5 tags, accessible contact forms, and pushing code to GitHub.',
         'order' => 2,
         'materials' => [
             [
@@ -134,6 +136,7 @@ foreach ($courseStructure as $modData) {
             'title' => $modData['title'],
         ],
         [
+            'description' => $modData['description'],
             'order' => $modData['order'],
         ]
     );
