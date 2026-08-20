@@ -31,8 +31,8 @@ Route::get('/instructors', function () { return view('instructors'); })->name('i
 Route::get('/about', function () { return view('about'); })->name('about');
 Route::get('/contact', function () { return view('contact'); })->name('contact');
 
-// Authentication Routes
-Auth::routes();
+// Authentication Routes (Email Verification Enabled)
+Auth::routes(['verify' => true]);
 
 // Dedicated Student Login Routes
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -48,8 +48,8 @@ Route::get('/register/instructor', [RegisterController::class, 'showInstructorRe
 Route::post('/register/instructor', [RegisterController::class, 'registerInstructor'])->name('register.instructor.post');
 
 
-// Dashboard Routes (Protected)
-Route::middleware(['auth'])->group(function () {
+// Dashboard Routes (Protected & Email Verified)
+Route::middleware(['auth', 'verified'])->group(function () {
         // Student Quiz Routes
         Route::get('/courses/{course}/lessons/{lesson}/quizzes/{quiz}', [StudentQuizController::class, 'show'])->name('student.quiz.show');
         Route::post('/courses/{course}/lessons/{lesson}/quizzes/{quiz}/submit', [StudentQuizController::class, 'submit'])->name('student.quiz.submit');
@@ -113,7 +113,7 @@ Route::middleware(['auth', 'instructor'])->group(function () {
     Route::resource('/instructor/lessons.tasks', LessonTaskController::class);
 });
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/courses/{course}/enroll', [EnrollmentController::class, 'store'])->name('courses.enroll');
     
     // Lesson Routes
