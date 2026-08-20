@@ -1,22 +1,29 @@
-name: Deploy to TrueHost cPanel
+name: Deploy Learnerium to Live Server
 
 on:
   push:
     branches:
-      - main
+      - production
 
 jobs:
   web-deploy:
-    name: 🎉 Deploy
+    name: 🚀 Sync Approved Code to TrueHost
     runs-on: ubuntu-latest
     steps:
     - name: 🚚 Get latest code
       uses: actions/checkout@v3
 
-    - name: 📂 Sync files
+    - name: 📂 Sync files over FTP
       uses: SamKirland/ftp-deploy-action@v4.3.4
       with:
-        server: jlm.com.ng
+        server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
         server-dir: /learnerium.jlm.com.ng/
+        exclude: |
+          **/.git**
+          **/.git*/**
+          **/.env**
+          **/node_modules/**
+          **/vendor/**
+          **/storage/*.key
