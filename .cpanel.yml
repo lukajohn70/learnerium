@@ -1,7 +1,5 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/gwylvxeo/learnerium.jlm.com.ng
+    - export DEPLOYPATH=/home/gwylvxeo/learnerium.jlm.com.ng/
     - /bin/cp -R * $DEPLOYPATH
-    - /bin/cp .htaccess $DEPLOYPATH/.htaccess
-    - /bin/cp index.php $DEPLOYPATH/index.php
