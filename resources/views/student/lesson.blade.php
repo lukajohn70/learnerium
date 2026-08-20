@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title'){{ $lesson->title }} — {{ $course->title }}@endsection
+@section('title', $lesson->title . ' — ' . $course->title . ' — Learnerium')
 
 @section('content')
 <div class="max-w-7xl mx-auto px-4 py-8">
