@@ -25,6 +25,11 @@
 
         {{-- Info right --}}
         <div class="lg:w-7/12 w-full">
+            @if($course->category)
+                <span class="inline-block bg-accent-jlm text-primary-jlm font-black text-xs uppercase tracking-widest px-3.5 py-1 rounded-full mb-3 shadow-sm">
+                    {{ $course->category }}
+                </span>
+            @endif
 
             <h1 class="text-3xl md:text-4xl font-extrabold leading-tight mb-4">{{ $course->title }}</h1>
 

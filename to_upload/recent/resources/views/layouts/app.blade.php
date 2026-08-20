@@ -103,7 +103,7 @@
                     @else
                         <div class="relative" id="userDropdownWrap">
                             <button id="userDropdownBtn" class="flex items-center text-primary-jlm focus:outline-none hover:text-secondary-jlm font-semibold space-x-2">
-                                <img src="https://placehold.co/32x32/1b2299/f7de7a?text={{ urlencode(substr(Auth::user()->name, 0, 2)) }}" alt="User Profile" class="w-8 h-8 rounded-full border-2 border-primary-jlm">
+                                <img src="{{ Auth::user()->avatarUrl() }}" alt="{{ Auth::user()->name }}" class="w-8 h-8 rounded-full border-2 border-primary-jlm object-cover">
                                 <span>{{ Auth::user()->name }}</span>
                                 <i class="fas fa-chevron-down text-xs"></i>
                             </button>
@@ -161,40 +161,102 @@
             </div>
 
             <!-- Mobile Nav Links -->
-            <div id="mobileMenu" class="hidden lg:hidden mt-4 bg-gray-50 rounded-xl p-4 border border-gray-100 space-y-3">
-                <a href="{{ url('/') }}" class="block px-3 py-2 text-primary-jlm hover:text-secondary-jlm hover:bg-white rounded-lg transition font-medium">Home</a>
-                <a href="{{ route('courses') }}" class="block px-3 py-2 text-primary-jlm hover:text-secondary-jlm hover:bg-white rounded-lg transition font-medium">Courses</a>
-                <a href="{{ route('instructors') }}" class="block px-3 py-2 text-primary-jlm hover:text-secondary-jlm hover:bg-white rounded-lg transition font-medium">Instructors</a>
-                <a href="{{ route('about') }}" class="block px-3 py-2 text-primary-jlm hover:text-secondary-jlm hover:bg-white rounded-lg transition font-medium">About Us</a>
-                <a href="{{ route('contact') }}" class="block px-3 py-2 text-primary-jlm hover:text-secondary-jlm hover:bg-white rounded-lg transition font-medium">Contact</a>
-                
+            <div id="mobileMenu" class="hidden lg:hidden mt-4 bg-gray-50 rounded-2xl p-4 border border-gray-200 space-y-3 shadow-lg">
+                <!-- Navigation Links -->
+                <div class="space-y-1">
+                    <a href="{{ url('/') }}" class="block px-3.5 py-2 text-primary-jlm hover:text-secondary-jlm hover:bg-white rounded-xl transition font-medium text-sm">
+                        <i class="fas fa-home mr-2 text-primary-jlm"></i>Home
+                    </a>
+                    <a href="{{ route('courses') }}" class="block px-3.5 py-2 text-primary-jlm hover:text-secondary-jlm hover:bg-white rounded-xl transition font-medium text-sm">
+                        <i class="fas fa-book mr-2 text-primary-jlm"></i>Courses
+                    </a>
+                    <a href="{{ route('instructors') }}" class="block px-3.5 py-2 text-primary-jlm hover:text-secondary-jlm hover:bg-white rounded-xl transition font-medium text-sm">
+                        <i class="fas fa-user-tie mr-2 text-primary-jlm"></i>Instructors
+                    </a>
+                    @auth
+                        @if(Auth::user()->isInstructor())
+                            <a href="{{ route('instructor.dashboard') }}" class="block px-3.5 py-2 text-secondary-jlm font-bold hover:bg-white rounded-xl transition text-sm">
+                                <i class="fas fa-chalkboard-teacher mr-2"></i>Instructor Dashboard
+                            </a>
+                        @else
+                            <a href="{{ route('instructor.apply') }}" class="block px-3.5 py-2 text-secondary-jlm font-bold hover:bg-white rounded-xl transition text-sm">
+                                <i class="fas fa-hand-holding-heart mr-2"></i>Teach on Learnerium
+                            </a>
+                        @endif
+                    @else
+                        <a href="{{ route('instructor.apply') }}" class="block px-3.5 py-2 text-secondary-jlm font-bold hover:bg-white rounded-xl transition text-sm">
+                            <i class="fas fa-hand-holding-heart mr-2"></i>Teach on Learnerium
+                        </a>
+                    @endauth
+                    <a href="{{ route('about') }}" class="block px-3.5 py-2 text-primary-jlm hover:text-secondary-jlm hover:bg-white rounded-xl transition font-medium text-sm">
+                        <i class="fas fa-info-circle mr-2 text-primary-jlm"></i>About Us
+                    </a>
+                    <a href="{{ route('contact') }}" class="block px-3.5 py-2 text-primary-jlm hover:text-secondary-jlm hover:bg-white rounded-xl transition font-medium text-sm">
+                        <i class="fas fa-envelope mr-2 text-primary-jlm"></i>Contact
+                    </a>
+                </div>
+
                 <hr class="border-gray-200">
 
                 @guest
-                    <div class="space-y-2 pt-2">
-                        <a href="{{ route('login.student') }}" class="flex items-center justify-center gap-2 bg-primary-jlm text-white py-2.5 rounded-lg font-semibold text-sm shadow">
+                    <div class="space-y-2 pt-1">
+                        <a href="{{ route('login.student') }}" class="flex items-center justify-center gap-2 bg-primary-jlm text-white py-2.5 rounded-xl font-semibold text-sm shadow-sm">
                             <i class="fas fa-user-graduate"></i>Student Sign In
                         </a>
-                        <a href="{{ route('login.instructor') }}" class="flex items-center justify-center gap-2 bg-secondary-jlm text-white py-2.5 rounded-lg font-semibold text-sm shadow">
+                        <a href="{{ route('login.instructor') }}" class="flex items-center justify-center gap-2 bg-secondary-jlm text-white py-2.5 rounded-xl font-semibold text-sm shadow-sm">
                             <i class="fas fa-chalkboard-teacher"></i>Instructor Portal
                         </a>
-                        <a href="{{ route('register') }}" class="block text-center border border-primary-jlm text-primary-jlm py-2.5 rounded-lg font-semibold text-sm">Register</a>
+                        <a href="{{ route('register') }}" class="block text-center border border-primary-jlm text-primary-jlm py-2.5 rounded-xl font-semibold text-sm hover:bg-primary-jlm/5">Register Account</a>
                     </div>
                 @else
-                    <div class="space-y-1">
-                        <div class="px-3 py-2 text-xs text-gray-400 font-semibold uppercase">My Account</div>
-                        <a href="{{ route('dashboard') }}" class="block px-3 py-2 text-sm text-gray-700 hover:bg-white rounded-lg transition">Dashboard</a>
-                        @if(Auth::user()->isInstructor())
-                            <a href="{{ route('instructor.manage.courses') }}" class="block px-3 py-2 text-sm text-gray-700 hover:bg-white rounded-lg transition">Manage Courses</a>
-                        @else
-                            <a href="{{ route('student.courses') }}" class="block px-3 py-2 text-sm text-gray-700 hover:bg-white rounded-lg transition">My Courses</a>
-                            <a href="{{ route('student.progress') }}" class="block px-3 py-2 text-sm text-gray-700 hover:bg-white rounded-lg transition">My Progress</a>
+                    <div class="space-y-2 pt-1">
+                        <!-- User Card Header -->
+                        <div class="flex items-center gap-3 bg-white p-3 rounded-xl border border-gray-200">
+                            <img src="{{ Auth::user()->avatarUrl() }}" alt="{{ Auth::user()->name }}" class="w-10 h-10 rounded-full border-2 border-primary-jlm object-cover">
+                            <div class="min-w-0">
+                                <p class="text-xs font-bold text-gray-900 truncate">{{ Auth::user()->name }}</p>
+                                <p class="text-[11px] text-gray-400 truncate">{{ Auth::user()->email }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Switch Role Button -->
+                        @if(Auth::user()->canSwitchRole())
+                            <form action="{{ route('switch.role') }}" method="POST">
+                                @csrf
+                                @if(session('active_role') === 'student')
+                                    <input type="hidden" name="role" value="instructor">
+                                    <button type="submit" class="w-full flex items-center justify-between text-xs font-bold text-secondary-jlm bg-pink-50 hover:bg-pink-100 border border-pink-200 px-3.5 py-2.5 rounded-xl transition shadow-xs">
+                                        <span><i class="fas fa-chalkboard-teacher mr-2"></i>Switch to Instructor View</span>
+                                        <i class="fas fa-exchange-alt"></i>
+                                    </button>
+                                @else
+                                    <input type="hidden" name="role" value="student">
+                                    <button type="submit" class="w-full flex items-center justify-between text-xs font-bold text-primary-jlm bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3.5 py-2.5 rounded-xl transition shadow-xs">
+                                        <span><i class="fas fa-user-graduate mr-2"></i>Switch to Student View</span>
+                                        <i class="fas fa-exchange-alt"></i>
+                                    </button>
+                                @endif
+                            </form>
                         @endif
-                        <a href="{{ url('/profile') }}" class="block px-3 py-2 text-sm text-gray-700 hover:bg-white rounded-lg transition">Profile</a>
-                        <a href="{{ url('/settings') }}" class="block px-3 py-2 text-sm text-gray-700 hover:bg-white rounded-lg transition">Settings</a>
+
+                        <div class="space-y-1 pt-1">
+                            <a href="{{ route('dashboard') }}" class="block px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-white rounded-xl transition"><i class="fas fa-th-large mr-2.5 text-gray-400"></i>Dashboard</a>
+
+                            @if(Auth::user()->isInstructor())
+                                <a href="{{ route('instructor.manage.courses') }}" class="block px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-white rounded-xl transition"><i class="fas fa-tasks mr-2.5 text-gray-400"></i>Manage Courses</a>
+                                <a href="{{ route('admin.instructor.applications') }}" class="block px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-white rounded-xl transition"><i class="fas fa-user-check mr-2.5 text-gray-400"></i>Review Instructor Apps</a>
+                            @else
+                                <a href="{{ route('student.courses') }}" class="block px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-white rounded-xl transition"><i class="fas fa-graduation-cap mr-2.5 text-gray-400"></i>My Courses</a>
+                                <a href="{{ route('student.progress') }}" class="block px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-white rounded-xl transition"><i class="fas fa-chart-pie mr-2.5 text-gray-400"></i>My Progress</a>
+                            @endif
+
+                            <a href="{{ url('/profile') }}" class="block px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-white rounded-xl transition"><i class="fas fa-user-circle mr-2.5 text-gray-400"></i>Profile</a>
+                            <a href="{{ url('/settings') }}" class="block px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-white rounded-xl transition"><i class="fas fa-cog mr-2.5 text-gray-400"></i>Settings</a>
+                        </div>
+
                         <form method="POST" action="{{ route('logout') }}" class="block pt-2">
                             @csrf
-                            <button type="submit" class="w-full text-center bg-red-50 text-red-600 py-2.5 rounded-lg font-semibold text-sm hover:bg-red-100 transition">Logout</button>
+                            <button type="submit" class="w-full text-center bg-red-50 text-red-600 py-2.5 rounded-xl font-bold text-sm hover:bg-red-100 transition"><i class="fas fa-sign-out-alt mr-2"></i>Logout</button>
                         </form>
                     </div>
                 @endguest

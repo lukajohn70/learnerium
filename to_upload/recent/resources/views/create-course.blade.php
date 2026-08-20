@@ -63,13 +63,23 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div>
+                        <label for="category" class="block text-sm font-semibold text-gray-700 mb-1.5">Category <span class="text-red-500">*</span></label>
+                        <select id="category" name="category"
+                                class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-jlm/30 focus:border-primary-jlm transition text-gray-800 bg-white" required>
+                            <option value="">Select Category</option>
+                            @foreach(['Web Development & Programming', 'Data Science & AI', 'Business & Entrepreneurship', 'Graphic Design & UI/UX', 'Digital Marketing & SEO', 'Cyber Security & IT', 'Personal Development', 'Languages & Academics'] as $catOption)
+                                <option value="{{ $catOption }}" {{ old('category') === $catOption ? 'selected' : '' }}>{{ $catOption }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div>
                         <label for="level" class="block text-sm font-semibold text-gray-700 mb-1.5">Level <span class="text-red-500">*</span></label>
                         <select id="level" name="level"
                                 class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-jlm/30 focus:border-primary-jlm transition text-gray-800 bg-white" required>
                             <option value="">Select Level</option>
-                            @foreach(['Beginner', 'Intermediate', 'Advanced'] as $level)
+                            @foreach(['Beginner', 'Intermediate', 'Advanced', 'All Levels'] as $level)
                                 <option value="{{ $level }}" {{ old('level') === $level ? 'selected' : '' }}>{{ $level }}</option>
                             @endforeach
                         </select>

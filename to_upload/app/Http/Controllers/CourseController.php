@@ -16,14 +16,20 @@ class CourseController extends Controller
         return view('instructor.course-students', compact('course', 'students'));
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $courses = Course::whereNotNull('published_at')
+        $query = Course::whereNotNull('published_at')
             ->latest('published_at')
-            ->with('instructor')
-            ->get();
+            ->with('instructor');
 
-        return view('courses', compact('courses'));
+        if ($request->filled('category')) {
+            $query->where('category', $request->category);
+        }
+
+        $courses = $query->get();
+        $categories = Course::whereNotNull('published_at')->whereNotNull('category')->distinct()->pluck('category')->values();
+
+        return view('courses', compact('courses', 'categories'));
     }
 
     public function show(string $slug)
@@ -62,6 +68,7 @@ class CourseController extends Controller
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
+            'category' => ['required', 'string', 'max:100'],
             'thumbnail' => ['nullable', 'url'],
             'thumbnail_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
             'price' => ['nullable', 'numeric', 'min:0'],
@@ -105,6 +112,7 @@ class CourseController extends Controller
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
+            'category' => ['required', 'string', 'max:100'],
             'thumbnail' => ['nullable', 'url'],
             'thumbnail_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
             'price' => ['nullable', 'numeric', 'min:0'],

@@ -107,6 +107,15 @@ try {
         $logs[] = array('s' => 'warn', 'm' => '⚠️ Table `instructor_applications` already exists (skipped)');
     }
 
+    // 6. Add category to courses table if not exists
+    $courseCols = $pdo->query("SHOW COLUMNS FROM `courses` LIKE 'category'")->fetchAll();
+    if (empty($courseCols)) {
+        $pdo->exec("ALTER TABLE `courses` ADD COLUMN `category` varchar(255) DEFAULT NULL AFTER `level`;");
+        $logs[] = array('s' => 'ok', 'm' => '✅ Added `category` column to `courses` table');
+    } else {
+        $logs[] = array('s' => 'warn', 'm' => '⚠️ Column `category` already exists in `courses` table (skipped)');
+    }
+
     $pdo->exec('SET FOREIGN_KEY_CHECKS = 1;');
     $logs[] = array('s' => 'ok', 'm' => '🎉 Database schema updates applied successfully!');
 

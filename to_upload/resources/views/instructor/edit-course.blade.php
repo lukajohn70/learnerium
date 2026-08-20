@@ -113,7 +113,17 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div>
+                        <label for="category" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Course Category <span class="text-secondary-jlm">*</span></label>
+                        <select id="category" name="category" required
+                                class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-primary-jlm text-sm bg-white font-medium">
+                            <option value="">Select Category</option>
+                            @foreach(['Web Development & Programming', 'Data Science & AI', 'Business & Entrepreneurship', 'Graphic Design & UI/UX', 'Digital Marketing & SEO', 'Cyber Security & IT', 'Personal Development', 'Languages & Academics'] as $catOption)
+                                <option value="{{ $catOption }}" {{ old('category', $course->category) === $catOption ? 'selected' : '' }}>{{ $catOption }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div>
                         <label for="level" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Difficulty Level <span class="text-secondary-jlm">*</span></label>
                         <select id="level" name="level" required

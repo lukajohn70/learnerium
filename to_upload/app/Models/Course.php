@@ -25,6 +25,7 @@ class Course extends Model
         'thumbnail',
         'price',
         'level',
+        'category',
         'duration_minutes',
         'published_at',
     ];

@@ -54,11 +54,18 @@
             <div class="mb-6">
                 <h3 class="font-bold text-sm uppercase tracking-wider text-primary-jlm mb-3">Categories</h3>
                 <ul class="space-y-2 text-sm text-gray-600">
-                    <li><a href="#" class="hover:text-secondary-jlm transition font-medium flex justify-between items-center"><span>Technology</span> <span class="bg-gray-100 text-xs px-2 py-0.5 rounded-full font-semibold">120</span></a></li>
-                    <li><a href="#" class="hover:text-secondary-jlm transition font-medium flex justify-between items-center"><span>Business</span> <span class="bg-gray-100 text-xs px-2 py-0.5 rounded-full font-semibold">85</span></a></li>
-                    <li><a href="#" class="hover:text-secondary-jlm transition font-medium flex justify-between items-center"><span>Arts & Design</span> <span class="bg-gray-100 text-xs px-2 py-0.5 rounded-full font-semibold">60</span></a></li>
-                    <li><a href="#" class="hover:text-secondary-jlm transition font-medium flex justify-between items-center"><span>Media Production</span> <span class="bg-gray-100 text-xs px-2 py-0.5 rounded-full font-semibold">45</span></a></li>
-                    <li><a href="#" class="hover:text-secondary-jlm transition font-medium flex justify-between items-center"><span>Science & Data</span> <span class="bg-gray-100 text-xs px-2 py-0.5 rounded-full font-semibold">70</span></a></li>
+                    <li>
+                        <a href="{{ route('courses') }}" class="hover:text-secondary-jlm transition font-medium flex justify-between items-center {{ !request('category') ? 'text-secondary-jlm font-extrabold' : '' }}">
+                            <span>All Categories</span>
+                        </a>
+                    </li>
+                    @foreach($categories as $cat)
+                        <li>
+                            <a href="{{ route('courses', ['category' => $cat]) }}" class="hover:text-secondary-jlm transition font-medium flex justify-between items-center {{ request('category') === $cat ? 'text-secondary-jlm font-extrabold' : '' }}">
+                                <span>{{ $cat }}</span>
+                            </a>
+                        </li>
+                    @endforeach
                 </ul>
             </div>
 
@@ -127,6 +134,11 @@
                             </div>
 
                             <div class="p-6">
+                                @if($course->category)
+                                    <span class="inline-block bg-primary-jlm/10 text-primary-jlm font-extrabold text-[11px] uppercase tracking-wider px-2.5 py-0.5 rounded-full mb-2">
+                                        {{ $course->category }}
+                                    </span>
+                                @endif
                                 <h3 class="font-extrabold text-xl text-gray-900 mb-2 leading-snug hover:text-primary-jlm transition">
                                     <a href="{{ route('course.detail', $course->slug) }}">{{ $course->title }}</a>
                                 </h3>
