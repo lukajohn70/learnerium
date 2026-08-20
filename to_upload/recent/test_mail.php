@@ -109,9 +109,12 @@ if (file_exists($envFile)) {
 <div class="card">
     <h2>🔍 Test Results</h2>
     <?php foreach ($result as $line): ?>
-        <p class="<?= str_starts_with($line, '✅') ? 'ok' : (str_starts_with($line, '❌') ? 'err' : 'warn') ?>">
-            <?= htmlspecialchars($line) ?>
-        </p>
+        <?php
+            if (strpos($line, '✅') !== false) $cls = 'ok';
+            elseif (strpos($line, '❌') !== false) $cls = 'err';
+            else $cls = 'warn';
+        ?>
+        <p class="<?= $cls ?>"><?= htmlspecialchars($line) ?></p>
     <?php endforeach; ?>
 </div>
 
