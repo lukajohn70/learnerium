@@ -49,6 +49,9 @@ class DashboardController extends Controller
         $courses = $user->coursesTaught()->with(['lessons', 'enrollments'])->get();
         $totalStudents = $courses->sum(fn($c) => $c->enrollments->count());
 
+        return view('instructor-dashboard', compact('user', 'courses', 'totalStudents'));
+    }
+
     /**
      * Switch active view mode between Instructor and Student.
      */
