@@ -107,6 +107,7 @@ Route::middleware(['auth', 'instructor'])->group(function () {
     Route::post('/instructor/courses', [CourseController::class, 'store'])->name('instructor.courses.store');
     Route::get('/instructor/courses/{course}/edit', [CourseController::class, 'edit'])->name('instructor.courses.edit');
     Route::put('/instructor/courses/{course}', [CourseController::class, 'update'])->name('instructor.courses.update');
+    Route::delete('/instructor/courses/{course}', [CourseController::class, 'destroy'])->name('instructor.courses.destroy');
     Route::post('/instructor/courses/{course}/publish', [CourseController::class, 'publish'])->name('instructor.courses.publish');
     
     // Module Routes (instructor only)

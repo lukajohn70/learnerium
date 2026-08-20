@@ -137,7 +137,16 @@ class CourseController extends Controller
 
         return redirect()
             ->route('instructor.courses.edit', $course)
-            ->with('status', 'Course created! Now add your first module below to build your curriculum.');
+    public function destroy(Course $course)
+    {
+        $this->authorizeInstructor($course);
+
+        $title = $course->title;
+        $course->delete();
+
+        return redirect()
+            ->route('instructor.manage.courses')
+            ->with('status', "Course \"{$title}\" was permanently deleted.");
     }
 
     private function authorizeInstructor(Course $course): void

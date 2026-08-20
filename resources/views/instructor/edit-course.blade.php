@@ -30,6 +30,13 @@
                 <a href="{{ route('course.detail', $course->slug) }}" target="_blank" class="border border-gray-300 text-gray-700 hover:bg-gray-50 text-xs font-bold px-3.5 py-2 rounded-xl transition">
                     <i class="fas fa-eye mr-1"></i> Preview
                 </a>
+                <form action="{{ route('instructor.courses.destroy', $course) }}" method="POST" class="inline" onsubmit="return confirm('⚠️ Are you sure you want to PERMANENTLY DELETE this course?\n\nThis action cannot be undone!');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold px-3.5 py-2 rounded-xl transition" title="Delete Entire Course">
+                        <i class="fas fa-trash-alt mr-1"></i> Delete Course
+                    </button>
+                </form>
             </div>
         </div>
 
@@ -268,12 +275,12 @@
                                                 <i class="fas fa-question-circle"></i> Quizzes ({{ $lesson->quizzes->count() }})
                                             </a>
 
-                                            <!-- Delete -->
+                                            <!-- Delete Lesson -->
                                             <form action="{{ route('instructor.lessons.destroy', [$course, $lesson]) }}" method="POST" class="inline">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" onclick="return confirm('Delete this lesson?')" class="text-gray-400 hover:text-red-600 p-1.5 rounded-lg transition">
-                                                    <i class="fas fa-trash"></i>
+                                                <button type="submit" onclick="return confirm('Delete this lesson?')" class="inline-flex items-center gap-1 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-2.5 py-1.5 rounded-lg text-xs font-bold transition shadow-xs" title="Delete Lesson">
+                                                    <i class="fas fa-trash-alt"></i> Delete
                                                 </button>
                                             </form>
                                         </div>

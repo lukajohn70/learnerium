@@ -84,6 +84,15 @@
                                 Published {{ $course->published_at->format('M d, Y') }}
                             </span>
                         @endif
+
+                        <!-- Delete Course Button -->
+                        <form action="{{ route('instructor.courses.destroy', $course) }}" method="POST" class="inline" onsubmit="return confirm('⚠️ Are you sure you want to PERMANENTLY DELETE &quot;{{ $course->title }}&quot;?\n\nThis will remove all modules, lessons, quizzes, materials, and student progress records!');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3.5 py-2 rounded-xl font-semibold text-xs transition shadow-2xs" title="Delete Course">
+                                <i class="fas fa-trash-alt mr-1"></i>Delete
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
