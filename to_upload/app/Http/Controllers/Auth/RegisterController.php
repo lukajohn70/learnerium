@@ -75,30 +75,24 @@ class RegisterController extends Controller
 
     /**
      * Show the instructor registration form.
-     *
-     * @return \Illuminate\View\View
      */
     public function showInstructorRegistrationForm()
     {
-        return view('auth.register', ['role' => 'instructor']); // Pass 'instructor' role to the view
+        return view('auth.register', ['role' => 'instructor']);
     }
 
     /**
      * Handle an instructor registration request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
      */
     public function registerInstructor(Request $request)
     {
         $this->validator($request->all())->validate();
 
-        event(new Registered($user = $this->create(array_merge($request->all(), ['role' => 'instructor'])))); // Force role to instructor
+        event(new Registered($user = $this->create(array_merge($request->all(), ['role' => 'student']))));
 
         $this->guard()->login($user);
 
-        // You might want a different redirect for instructors after registration
-        return $this->registered($request, $user)
-                        ?: redirect($this->redirectTo); // Or redirect()->route('instructor.dashboard');
+        return redirect()->route('instructor.apply')
+            ->with('status', 'Account created! Please fill out your instructor verification details below.');
     }
 }
