@@ -1,6 +1,12 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    # Direct all requests to the public directory
+
+    # Serve existing files/folders directly if they exist
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Direct all requests to public directory
     RewriteCond %{REQUEST_URI} !^/public/
     RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>

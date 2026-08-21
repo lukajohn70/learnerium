@@ -50,6 +50,19 @@ Route::get('/terms-of-service', function () { return view('eua'); })->name('eua'
 // Payment callback - public route (Paystack redirects here)
 Route::get('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
 
+// Media / Uploads file serving route (Guarantees online image delivery on cPanel shared hosting)
+Route::get('/uploads/{folder}/{filename}', function ($folder, $filename) {
+    $path = public_path("uploads/{$folder}/{$filename}");
+    if (file_exists($path)) {
+        return response()->file($path);
+    }
+    $rootPath = base_path("public/uploads/{$folder}/{$filename}");
+    if (file_exists($rootPath)) {
+        return response()->file($rootPath);
+    }
+    abort(404);
+})->where('folder', 'thumbnails|avatars|materials');
+
 // Authentication Routes (Email Verification Enabled)
 Auth::routes(['verify' => true]);
 
