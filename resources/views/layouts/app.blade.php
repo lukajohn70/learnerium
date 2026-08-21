@@ -459,21 +459,6 @@
                         Elevating education through creative, interactive, and personalized learning. Empowering students and professionals across Africa and beyond.
                     </p>
                     
-                    {{-- Social Media Links --}}
-                    <div class="flex items-center space-x-3 pt-2">
-                        <a href="https://twitter.com/jlmng" target="_blank" rel="noopener" class="w-9 h-9 rounded-xl bg-slate-800/80 text-gray-400 hover:text-white hover:bg-primary-jlm flex items-center justify-center transition-all duration-200" title="Twitter / X">
-                            <i class="fab fa-x-twitter text-sm"></i>
-                        </a>
-                        <a href="https://linkedin.com" target="_blank" rel="noopener" class="w-9 h-9 rounded-xl bg-slate-800/80 text-gray-400 hover:text-white hover:bg-primary-jlm flex items-center justify-center transition-all duration-200" title="LinkedIn">
-                            <i class="fab fa-linkedin-in text-sm"></i>
-                        </a>
-                        <a href="https://facebook.com" target="_blank" rel="noopener" class="w-9 h-9 rounded-xl bg-slate-800/80 text-gray-400 hover:text-white hover:bg-primary-jlm flex items-center justify-center transition-all duration-200" title="Facebook">
-                            <i class="fab fa-facebook-f text-sm"></i>
-                        </a>
-                        <a href="https://instagram.com" target="_blank" rel="noopener" class="w-9 h-9 rounded-xl bg-slate-800/80 text-gray-400 hover:text-white hover:bg-[#e4306d] flex items-center justify-center transition-all duration-200" title="Instagram">
-                            <i class="fab fa-instagram text-sm"></i>
-                        </a>
-                    </div>
                 </div>
 
                 {{-- Column 2: Explore --}}
