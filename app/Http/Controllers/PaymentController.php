@@ -147,16 +147,20 @@ class PaymentController extends Controller
             ]
         );
 
-        // Paystack Payload
+        $currency = strtoupper($request->input('currency', 'NGN'));
+
+        // Paystack Payload with Multi-Currency support
         $payload = [
             'email' => $user->email,
-            'amount' => (int) round($finalPrice * 100), // in kobo
+            'amount' => (int) round($finalPrice * 100), // in minor currency unit (kobo/cents/pesewas)
+            'currency' => $currency,
             'reference' => $reference,
             'callback_url' => route('payment.callback'),
             'metadata' => [
                 'course_id' => $course->id,
                 'user_id' => $user->id,
                 'coupon_code' => $couponCode,
+                'currency' => $currency,
             ]
         ];
 
