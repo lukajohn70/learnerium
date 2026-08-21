@@ -30,13 +30,25 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function avatarUrl(): string
     {
-        if ($this->avatar) {
-            return str_starts_with($this->avatar, 'http') ? $this->avatar : asset('uploads/avatars/' . $this->avatar);
+        if (!empty($this->avatar)) {
+            if (str_starts_with($this->avatar, 'http://') || str_starts_with($this->avatar, 'https://')) {
+                return $this->avatar;
+            }
+            $filename = basename($this->avatar);
+            if (file_exists(public_path('uploads/avatars/' . $filename))) {
+                return asset('uploads/avatars/' . $filename);
+            }
         }
-        if ($this->profile_picture) {
-            return str_starts_with($this->profile_picture, 'http') ? $this->profile_picture : asset('uploads/avatars/' . $this->profile_picture);
+        if (!empty($this->profile_picture)) {
+            if (str_starts_with($this->profile_picture, 'http://') || str_starts_with($this->profile_picture, 'https://')) {
+                return $this->profile_picture;
+            }
+            $filename = basename($this->profile_picture);
+            if (file_exists(public_path('uploads/avatars/' . $filename))) {
+                return asset('uploads/avatars/' . $filename);
+            }
         }
-        return 'https://placehold.co/120x120/f7de7a/1b2299?text=' . urlencode(substr($this->name, 0, 2));
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=1b2299&color=f7b731&bold=true';
     }
 
     /**

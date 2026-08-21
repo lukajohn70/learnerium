@@ -10,8 +10,8 @@
     <title>@yield('title', config('app.name', 'Learnerium') . ' - Elevating Education')</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
-    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/png" href="{{ asset('logo.png') }}">
+    <link rel="shortcut icon" href="{{ asset('logo.png') }}">
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -141,6 +141,9 @@
                                     <p class="text-xs text-gray-400 font-medium">Logged in as</p>
                                     <p class="text-sm font-bold text-gray-800 truncate">{{ Auth::user()->email }}</p>
                                 </div>
+                                @if(Auth::user()->role === 'admin' || Auth::user()->isAdmin())
+                                    <a href="{{ route('admin.dashboard') }}" class="block px-4 py-2.5 text-sm font-extrabold text-red-600 hover:bg-red-50 transition border-b border-gray-100"><i class="fas fa-shield-alt mr-3 text-red-500"></i>Admin Dashboard</a>
+                                @endif
                                 <a href="{{ route('dashboard') }}" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-jlm transition"><i class="fas fa-th-large mr-3 text-gray-400"></i>Dashboard</a>
                                 <a href="{{ route('cart.index') }}" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-jlm transition"><i class="fas fa-shopping-cart mr-3 text-gray-400"></i>Shopping Cart</a>
                                 <a href="{{ route('wishlist.index') }}" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-jlm transition"><i class="fas fa-heart mr-3 text-pink-400"></i>My Wishlist</a>
