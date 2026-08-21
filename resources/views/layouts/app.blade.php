@@ -306,7 +306,8 @@
                     <img src="{{ asset('logo.png') }}" alt="Learnerium Logo" class="h-9 w-auto object-contain bg-white/10 p-1 rounded-lg">
                     <h3 class="text-2xl font-extrabold text-white tracking-tight">Learnerium</h3>
                 </div>
-                <p class="text-gray-400 text-sm">&copy; {{ date('Y') }} Learnerium. Powered by JLM. All rights reserved.</p>
+                <p class="text-gray-400 text-sm">&copy; {{ date('Y') }} Learnerium. Powered by <a href="https://jlm.com.ng" target="_blank" rel="noopener" class="inline-flex items-center gap-1 bg-accent-jlm text-primary-jlm px-2 py-0.5 rounded-full text-xs font-extrabold hover:bg-yellow-300 transition"><i class="fas fa-external-link-alt text-[8px]"></i>JLM</a>. All rights reserved.</p>
+
             </div>
             <div class="grid grid-cols-2 gap-8 md:grid-cols-3 md:gap-12 text-center md:text-left">
                 <div>
@@ -322,14 +323,14 @@
                     <ul class="space-y-2.5">
                         <li><a href="{{ route('courses') }}" class="text-gray-400 hover:text-white transition duration-200">Courses</a></li>
                         <li><a href="{{ route('instructors') }}" class="text-gray-400 hover:text-white transition duration-200">Instructors</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white transition duration-200">Blog</a></li>
+
                     </ul>
                 </div>
                 <div>
                     <h4 class="text-lg font-semibold mb-4 text-accent-jlm">Legal</h4>
                     <ul class="space-y-2.5">
-                        <li><a href="#" class="text-gray-400 hover:text-white transition duration-200">Privacy Policy</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white transition duration-200">Terms of Service</a></li>
+                        <li><a href="{{ route('privacy') }}" class="text-gray-400 hover:text-white transition duration-200">Privacy Policy</a></li>
+                        <li><a href="{{ route('eua') }}" class="text-gray-400 hover:text-white transition duration-200">Terms of Service</a></li>
                     </ul>
                 </div>
             </div>

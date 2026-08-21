@@ -280,6 +280,119 @@
             @endif
             <!-- ======================= END TASK GATES ======================= -->
 
+            <!-- ======================= LESSON DISCUSSIONS ======================= -->
+            @php
+                $discussions = $lesson->discussions()->whereNull('parent_id')->with(['user', 'replies.user'])->latest()->get();
+            @endphp
+            <div class="bg-white rounded-2xl shadow-md overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+                    <i class="fas fa-comments text-primary-jlm text-lg"></i>
+                    <h2 class="font-bold text-gray-800 text-base">Discussion ({{ $discussions->count() }})</h2>
+                </div>
+
+                <!-- Post new comment -->
+                <div class="px-6 py-4 border-b border-gray-50 bg-gray-50/50">
+                    <form action="{{ route('lesson.discussion.store', [$course, $lesson]) }}" method="POST" class="flex gap-3">
+                        @csrf
+                        <img src="{{ auth()->user()->avatarUrl() }}" class="w-9 h-9 rounded-full border-2 border-gray-100 object-cover flex-shrink-0 mt-0.5">
+                        <div class="flex-1">
+                            <textarea name="comment" rows="2" placeholder="Share your thoughts, ask a question..."
+                                class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-jlm/30 focus:border-primary-jlm text-sm resize-none text-gray-800" required></textarea>
+                            <div class="mt-2 flex justify-end">
+                                <button type="submit" class="bg-primary-jlm hover:bg-primary-jlm-dark text-white px-5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                                    <i class="fas fa-paper-plane"></i> Post Comment
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Comments List -->
+                <div class="divide-y divide-gray-50">
+                    @forelse($discussions as $comment)
+                    <div class="px-6 py-4" id="comment-{{ $comment->id }}">
+                        <div class="flex gap-3">
+                            <img src="{{ $comment->user->avatarUrl() }}" class="w-9 h-9 rounded-full object-cover border-2 border-gray-100 flex-shrink-0 mt-0.5">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                    <span class="font-bold text-sm text-gray-800">{{ $comment->user->name }}</span>
+                                    @if($comment->user->id === $course->instructor_id)
+                                        <span class="bg-primary-jlm/10 text-primary-jlm text-[10px] font-bold px-1.5 py-0.5 rounded-md">Instructor</span>
+                                    @endif
+                                    <span class="text-[10px] text-gray-400">{{ $comment->created_at->diffForHumans() }}</span>
+                                </div>
+                                <p class="text-sm text-gray-700 leading-relaxed">{{ $comment->comment }}</p>
+
+                                <div class="mt-2 flex items-center gap-3">
+                                    <button onclick="toggleReplyForm({{ $comment->id }})" class="text-[10px] text-primary-jlm font-semibold hover:underline flex items-center gap-1">
+                                        <i class="fas fa-reply"></i> Reply
+                                    </button>
+                                    @if(auth()->user()->id === $comment->user_id || auth()->user()->role === 'admin')
+                                        <form action="{{ route('lesson.discussion.destroy', $comment) }}" method="POST" class="inline"
+                                            onsubmit="return confirm('Delete this comment?')">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="text-[10px] text-red-400 font-semibold hover:underline flex items-center gap-1">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+
+                                <!-- Reply Form (hidden by default) -->
+                                <div id="reply-form-{{ $comment->id }}" class="hidden mt-3">
+                                    <form action="{{ route('lesson.discussion.store', [$course, $lesson]) }}" method="POST" class="flex gap-2">
+                                        @csrf
+                                        <input type="hidden" name="parent_id" value="{{ $comment->id }}">
+                                        <textarea name="comment" rows="1" placeholder="Write a reply..."
+                                            class="flex-1 px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-jlm/30 text-xs resize-none text-gray-800" required></textarea>
+                                        <button type="submit" class="bg-primary-jlm text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-primary-jlm-dark transition flex-shrink-0">
+                                            <i class="fas fa-reply"></i>
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <!-- Nested Replies -->
+                                @if($comment->replies->count() > 0)
+                                <div class="mt-3 pl-4 border-l-2 border-gray-100 space-y-3">
+                                    @foreach($comment->replies as $reply)
+                                    <div class="flex gap-2.5">
+                                        <img src="{{ $reply->user->avatarUrl() }}" class="w-7 h-7 rounded-full object-cover border border-gray-100 flex-shrink-0">
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-2 mb-0.5 flex-wrap">
+                                                <span class="font-bold text-xs text-gray-800">{{ $reply->user->name }}</span>
+                                                @if($reply->user->id === $course->instructor_id)
+                                                    <span class="bg-primary-jlm/10 text-primary-jlm text-[10px] font-bold px-1 rounded">Instructor</span>
+                                                @endif
+                                                <span class="text-[10px] text-gray-400">{{ $reply->created_at->diffForHumans() }}</span>
+                                            </div>
+                                            <p class="text-xs text-gray-700">{{ $reply->comment }}</p>
+                                            @if(auth()->user()->id === $reply->user_id || auth()->user()->role === 'admin')
+                                                <form action="{{ route('lesson.discussion.destroy', $reply) }}" method="POST" class="mt-1 inline"
+                                                    onsubmit="return confirm('Delete this reply?')">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit" class="text-[10px] text-red-400 hover:underline">
+                                                        <i class="fas fa-trash"></i> Delete
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    @empty
+                    <div class="px-6 py-10 text-center text-gray-400">
+                        <i class="fas fa-comment-slash text-4xl mb-3 opacity-30 block"></i>
+                        <p class="text-sm">Be the first to start a discussion on this lesson!</p>
+                    </div>
+                    @endforelse
+                </div>
+            </div>
+            <!-- ======================= END DISCUSSIONS ======================= -->
+
         </div>
 
         <!-- Sidebar: Module & Lesson Navigation -->
@@ -372,4 +485,16 @@
     </div>
     <script>setTimeout(() => { const el = document.getElementById('flash-err'); if(el) el.remove(); }, 5000);</script>
 @endif
+<script>
+function toggleReplyForm(commentId) {
+    const form = document.getElementById('reply-form-' + commentId);
+    if (form) {
+        form.classList.toggle('hidden');
+        if (!form.classList.contains('hidden')) {
+            form.querySelector('textarea').focus();
+        }
+    }
+}
+</script>
 @endsection
+

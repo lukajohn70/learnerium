@@ -17,6 +17,9 @@ use App\Http\Controllers\LessonTaskController;
 use App\Http\Controllers\StudentTaskController;
 use App\Http\Controllers\InstructorApplicationController;
 use App\Http\Controllers\ModuleController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\LessonDiscussionController;
 use App\Http\Middleware\IsInstructor;
 
 /*
@@ -32,6 +35,11 @@ Route::get('/courses/{slug}', [CourseController::class, 'show'])->name('course.d
 Route::get('/instructors', function () { return view('instructors'); })->name('instructors');
 Route::get('/about', function () { return view('about'); })->name('about');
 Route::get('/contact', function () { return view('contact'); })->name('contact');
+Route::get('/privacy-policy', function () { return view('privacy'); })->name('privacy');
+Route::get('/terms-of-service', function () { return view('eua'); })->name('eua');
+
+// Payment callback - public route (Paystack redirects here)
+Route::get('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
 
 // Authentication Routes (Email Verification Enabled)
 Auth::routes(['verify' => true]);
@@ -52,27 +60,44 @@ Route::post('/apply-instructor', [InstructorApplicationController::class, 'submi
 Route::get('/register/instructor', [InstructorApplicationController::class, 'showForm'])->name('register.instructor');
 Route::post('/register/instructor', [InstructorApplicationController::class, 'submit'])->name('register.instructor.post');
 
-// Admin Review Routes
+// --- ADMIN ROUTES ---
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/users', [AdminDashboardController::class, 'users'])->name('users');
+    Route::post('/users/{user}/role', [AdminDashboardController::class, 'updateUserRole'])->name('users.role');
+    Route::get('/courses', [AdminDashboardController::class, 'courses'])->name('courses');
+    Route::post('/courses/{course}/toggle-publish', [AdminDashboardController::class, 'toggleCoursePublish'])->name('courses.toggle');
+    Route::get('/coupons', [AdminDashboardController::class, 'coupons'])->name('coupons');
+    Route::post('/coupons', [AdminDashboardController::class, 'storeCoupon'])->name('coupons.store');
+    Route::delete('/coupons/{coupon}', [AdminDashboardController::class, 'destroyCoupon'])->name('coupons.destroy');
+    Route::get('/payments', [AdminDashboardController::class, 'payments'])->name('payments');
+    Route::get('/instructor-applications', [InstructorApplicationController::class, 'index'])->name('instructor.applications');
+    Route::post('/instructor-applications/{application}/approve', [InstructorApplicationController::class, 'approve'])->name('instructor.applications.approve');
+    Route::post('/instructor-applications/{application}/reject', [InstructorApplicationController::class, 'reject'])->name('instructor.applications.reject');
+});
+
+// Legacy admin routes (keep backward compatible until we update all views)
 Route::get('/admin/instructor-applications', [InstructorApplicationController::class, 'index'])->name('admin.instructor.applications');
 Route::post('/admin/instructor-applications/{application}/approve', [InstructorApplicationController::class, 'approve'])->name('admin.instructor.applications.approve');
 Route::post('/admin/instructor-applications/{application}/reject', [InstructorApplicationController::class, 'reject'])->name('admin.instructor.applications.reject');
 
-
 // Dashboard Routes (Protected & Email Verified)
 Route::middleware(['auth', 'verified'])->group(function () {
-        // Student Quiz Routes
-        Route::get('/courses/{course}/lessons/{lesson}/quizzes/{quiz}', [StudentQuizController::class, 'show'])->name('student.quiz.show');
-        Route::post('/courses/{course}/lessons/{lesson}/quizzes/{quiz}/submit', [StudentQuizController::class, 'submit'])->name('student.quiz.submit');
-        Route::get('/courses/{course}/lessons/{lesson}/quizzes/{quiz}/result', [StudentQuizController::class, 'result'])->name('student.quiz.result');
+    // Student Quiz Routes
+    Route::get('/courses/{course}/lessons/{lesson}/quizzes/{quiz}', [StudentQuizController::class, 'show'])->name('student.quiz.show');
+    Route::post('/courses/{course}/lessons/{lesson}/quizzes/{quiz}/submit', [StudentQuizController::class, 'submit'])->name('student.quiz.submit');
+    Route::get('/courses/{course}/lessons/{lesson}/quizzes/{quiz}/result', [StudentQuizController::class, 'result'])->name('student.quiz.result');
+
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/switch-role', [DashboardController::class, 'switchRole'])->name('switch.role');
     Route::get('/profile', function () {
         return view('profile');
     })->name('profile');
     Route::post('/profile/avatar', [DashboardController::class, 'updateAvatar'])->name('profile.avatar');
-    Route::get('/settings', function () {
-        return view('settings');
-    })->name('settings');
+    Route::get('/settings', [DashboardController::class, 'settings'])->name('settings');
+    Route::post('/settings/profile', [DashboardController::class, 'updateProfile'])->name('settings.profile');
+    Route::post('/settings/password', [DashboardController::class, 'updatePassword'])->name('settings.password');
+
     Route::get('/student/dashboard', [DashboardController::class, 'studentDashboard'])
          ->name('student.dashboard');
     Route::get('/dashboard/courses', function() {
@@ -98,6 +123,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return view('instructor.student-analytics');
     })->middleware(IsInstructor::class)
       ->name('instructor.student.analytics');
+
+    // Checkout & Payment Routes
+    Route::get('/courses/{course}/checkout', [PaymentController::class, 'checkout'])->name('courses.checkout');
+    Route::post('/courses/{course}/checkout/initialize', [PaymentController::class, 'initialize'])->name('courses.checkout.initialize');
+    Route::post('/courses/{course}/checkout/coupon', [PaymentController::class, 'applyCoupon'])->name('courses.checkout.coupon');
+
+    // Lesson Discussion Routes
+    Route::post('/courses/{course}/lessons/{lesson}/discussions', [LessonDiscussionController::class, 'store'])->name('lesson.discussion.store');
+    Route::delete('/discussions/{discussion}', [LessonDiscussionController::class, 'destroy'])->name('lesson.discussion.destroy');
 });
 
 Route::middleware(['auth', 'instructor'])->group(function () {
@@ -109,7 +143,7 @@ Route::middleware(['auth', 'instructor'])->group(function () {
     Route::put('/instructor/courses/{course}', [CourseController::class, 'update'])->name('instructor.courses.update');
     Route::delete('/instructor/courses/{course}', [CourseController::class, 'destroy'])->name('instructor.courses.destroy');
     Route::post('/instructor/courses/{course}/publish', [CourseController::class, 'publish'])->name('instructor.courses.publish');
-    
+
     // Module Routes (instructor only)
     Route::post('/instructor/courses/{course}/modules', [ModuleController::class, 'store'])->name('instructor.modules.store');
     Route::put('/instructor/courses/{course}/modules/{module}', [ModuleController::class, 'update'])->name('instructor.modules.update');
@@ -135,7 +169,7 @@ Route::middleware(['auth', 'instructor'])->group(function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/courses/{course}/enroll', [EnrollmentController::class, 'store'])->name('courses.enroll');
-    
+
     // Lesson Routes
     Route::get('/courses/{course}/lessons/{lesson}', [LessonController::class, 'show'])->name('lesson.show');
     Route::post('/courses/{course}/lessons/{lesson}/complete', [LessonController::class, 'markComplete'])->name('lesson.complete');

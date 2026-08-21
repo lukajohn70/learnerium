@@ -27,6 +27,10 @@ class Enrollment extends Model
         'course_id',
         'progress_percentage',
         'completion_date',
+        'payment_status',
+        'amount_paid',
+        'coupon_code',
+        'payment_reference',
     ];
 
     /**

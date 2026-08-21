@@ -139,7 +139,7 @@
         <!-- Footer watermark -->
         <div class="relative z-10 text-xs text-white/50 flex items-center justify-between border-t border-white/10 pt-6">
             <span>&copy; {{ date('Y') }} Learnerium</span>
-            <span>Powered by JLM</span>
+            <span>Powered by <a href="https://jlm.com.ng" target="_blank" rel="noopener" class="inline-flex items-center gap-1 bg-accent-jlm text-primary-jlm px-2 py-0.5 rounded-full text-xs font-extrabold hover:bg-yellow-300 transition"><i class="fas fa-external-link-alt text-[8px]"></i>JLM</a></span>
         </div>
     </div>
 

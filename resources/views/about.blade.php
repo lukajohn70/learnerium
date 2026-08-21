@@ -14,7 +14,7 @@
             About Learnerium
         </h1>
         <p class="text-lg sm:text-xl md:text-2xl opacity-90 max-w-2xl mx-auto font-light leading-relaxed">
-            Elevating education through creative, fast, and personalized learning experiences powered by JLM.
+            Elevating education through creative, fast, and personalized learning experiences powered by <a href="https://jlm.com.ng" target="_blank" rel="noopener" class="inline-flex items-center gap-1 bg-accent-jlm text-primary-jlm px-2.5 py-0.5 rounded-full text-sm font-extrabold hover:bg-yellow-300 transition"><i class="fas fa-external-link-alt text-[9px]"></i>JLM</a>.
         </p>
     </div>
 </header>

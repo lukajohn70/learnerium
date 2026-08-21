@@ -139,7 +139,10 @@
 
             {{-- Enrol button --}}
             @auth
-                @php $isEnrolled = auth()->user()->coursesEnrolled->contains($course->id); @endphp
+                @php
+                    $isEnrolled = auth()->user()->enrolledIn($course->id);
+                    $isPaid     = (float) $course->price > 0;
+                @endphp
                 @if($isEnrolled)
                     @if($course->lessons->count() > 0)
                         <a href="{{ route('lesson.show', [$course, $course->lessons->first()]) }}"
@@ -151,12 +154,17 @@
                             <i class="fas fa-check-circle"></i> Enrolled
                         </span>
                     @endif
+                @elseif($isPaid)
+                    <a href="{{ route('courses.checkout', $course) }}"
+                       class="inline-flex items-center gap-2 bg-secondary-jlm hover:bg-secondary-jlm/90 text-white px-8 py-3.5 rounded-full text-lg font-bold transition shadow-xl hover:shadow-secondary-jlm/30 hover:scale-105 transform duration-200">
+                        <i class="fas fa-lock"></i> Buy Now &mdash; ₦{{ number_format($course->price, 2) }}
+                    </a>
                 @else
                     <form action="{{ route('courses.enroll', $course) }}" method="POST" class="inline">
                         @csrf
                         <button type="submit"
                                 class="inline-flex items-center gap-2 bg-secondary-jlm hover:bg-secondary-jlm/90 text-white px-8 py-3.5 rounded-full text-lg font-bold transition shadow-xl hover:shadow-secondary-jlm/30 hover:scale-105 transform duration-200">
-                            Enrol Now
+                            Enrol Free
                         </button>
                     </form>
                 @endif
@@ -314,9 +322,12 @@
                 </div>
 
                 <div class="px-6 py-5 space-y-4">
-                    {{-- CTA --}}
+                        {{-- CTA --}}
                     @auth
-                        @php $isEnrolled = auth()->user()->coursesEnrolled->contains($course->id); @endphp
+                        @php
+                            $isEnrolled = auth()->user()->enrolledIn($course->id);
+                            $isPaid     = (float) $course->price > 0;
+                        @endphp
                         @if($isEnrolled)
                             @if($course->lessons->count() > 0)
                                 <a href="{{ route('lesson.show', [$course, $course->lessons->first()]) }}"
@@ -328,12 +339,17 @@
                                     <i class="fas fa-check-circle mr-2"></i>You're Enrolled
                                 </div>
                             @endif
+                        @elseif($isPaid)
+                            <a href="{{ route('courses.checkout', $course) }}"
+                               class="block w-full text-center bg-accent-jlm hover:bg-yellow-400 text-primary-jlm px-6 py-3.5 rounded-xl font-extrabold transition shadow-md text-lg">
+                                <i class="fas fa-lock mr-2"></i>Buy &mdash; ₦{{ number_format($course->price, 2) }}
+                            </a>
                         @else
                             <form action="{{ route('courses.enroll', $course) }}" method="POST">
                                 @csrf
                                 <button type="submit"
                                         class="w-full bg-accent-jlm hover:bg-yellow-400 text-primary-jlm px-6 py-3.5 rounded-xl font-extrabold transition shadow-md text-lg">
-                                    Enrol Now
+                                    Enrol Free
                                 </button>
                             </form>
                         @endif

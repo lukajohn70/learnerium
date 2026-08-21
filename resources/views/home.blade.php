@@ -16,7 +16,7 @@
             Learning, Elevated by Creativity.
         </h1>
         <p class="text-lg sm:text-xl md:text-2xl mb-10 opacity-90 max-w-3xl mx-auto font-light leading-relaxed">
-            Unlock your potential with Learnerium — powered by JLM's innovative, personalised approach to education and skill mastery.
+            Unlock your potential with Learnerium — powered by <a href="https://jlm.com.ng" target="_blank" rel="noopener" class="inline-flex items-center gap-1 bg-accent-jlm text-primary-jlm px-2.5 py-0.5 rounded-full text-sm font-extrabold hover:bg-yellow-300 transition no-underline"><i class="fas fa-external-link-alt text-[9px]"></i>JLM</a>'s innovative, personalised approach to education and skill mastery.
         </p>
         <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
             <a href="{{ url('/courses') }}" class="w-full sm:w-auto bg-accent-jlm text-primary-jlm px-8 py-4 rounded-full text-lg font-bold hover:bg-yellow-300 transition duration-300 shadow-xl transform hover:scale-105">
@@ -94,7 +94,7 @@
 <section class="py-16 px-4 bg-white">
     <div class="max-w-7xl mx-auto text-center">
         <h2 class="text-3xl md:text-4xl font-extrabold text-primary-jlm mb-4">
-            Our Core Values <span class="text-secondary-jlm">(Powered by JLM)</span>
+            Our Core Values <span class="text-secondary-jlm">(Powered by <a href="https://jlm.com.ng" target="_blank" rel="noopener" class="inline-flex items-center gap-1 bg-accent-jlm text-primary-jlm px-2 py-0.5 rounded-full text-sm font-extrabold hover:bg-yellow-300 transition"><i class="fas fa-external-link-alt text-[9px]"></i>JLM</a>)</span>
         </h2>
         <p class="text-gray-500 text-base max-w-2xl mx-auto mb-12">Building a future where learning is accessible, engaging, and directly impactful.</p>
 

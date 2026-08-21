@@ -69,5 +69,10 @@ class Lesson extends Model
     {
         return $this->hasMany(Quiz::class);
     }
+
+    public function discussions()
+    {
+        return $this->hasMany(LessonDiscussion::class, 'lesson_id');
+    }
 }
 

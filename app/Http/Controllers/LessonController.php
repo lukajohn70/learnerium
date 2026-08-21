@@ -22,10 +22,22 @@ class LessonController extends Controller
             abort(404);
         }
 
-        // Check if user is enrolled or is the instructor
+        // Check if user is enrolled (with payment) or is the instructor/admin
         $user = Auth::user();
-        if (!$user->enrolledIn($course->id) && $user->id !== $course->instructor_id) {
-            abort(403, 'You are not enrolled in this course.');
+        $isInstructor = $user->id === $course->instructor_id;
+        $isAdmin = $user->role === 'admin';
+
+        if (!$isInstructor && !$isAdmin && !$user->enrolledIn($course->id)) {
+            // If paid course, redirect to checkout
+            if ((float) $course->price > 0) {
+                return redirect()->route('courses.checkout', $course)
+                    ->with('info', 'Please complete payment to access this lesson.');
+            }
+            // Free course — just enroll them
+            \App\Models\Enrollment::firstOrCreate(
+                ['user_id' => $user->id, 'course_id' => $course->id],
+                ['payment_status' => 'paid', 'amount_paid' => 0]
+            );
         }
 
         // Verify module unlock status for student

@@ -112,6 +112,14 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Helper method to check if the user is an admin.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    /**
      * Check if user is eligible to switch modes.
      */
     public function canSwitchRole(): bool
@@ -120,13 +128,20 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Check if user is enrolled in a specific course
+     * Check if user is enrolled in a specific course AND has paid (for paid courses).
      */
     public function enrolledIn($courseId): bool
     {
-        return $this->enrollments()
+        $enrollment = $this->enrollments()
             ->where('course_id', $courseId)
-            ->exists();
+            ->first();
+
+        if (!$enrollment) {
+            return false;
+        }
+
+        // For any enrollment, check if paid (or 'paid' status means free or paid)
+        return $enrollment->payment_status === 'paid';
     }
 
     public function submissions()
@@ -142,5 +157,13 @@ class User extends Authenticatable implements MustVerifyEmail
     public function instructorApplication()
     {
         return $this->hasOne(InstructorApplication::class);
+    }
+
+    /**
+     * Wishlist relationship.
+     */
+    public function wishlist(): BelongsToMany
+    {
+        return $this->belongsToMany(Course::class, 'wishlists', 'user_id', 'course_id')->withTimestamps();
     }
 }
