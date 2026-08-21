@@ -31,8 +31,9 @@ class AdminDashboardController extends Controller
         $recentUsers    = User::latest()->take(5)->get();
         $recentEnrolls  = Enrollment::with(['user', 'course'])->latest()->take(10)->get();
         $recentCourses  = Course::with('instructor')->latest()->take(5)->get();
+        $recentCoupons  = Coupon::with('course')->latest()->get();
 
-        return view('admin.dashboard', compact('stats', 'recentUsers', 'recentEnrolls', 'recentCourses'));
+        return view('admin.dashboard', compact('stats', 'recentUsers', 'recentEnrolls', 'recentCourses', 'recentCoupons'));
     }
 
     /**
@@ -102,6 +103,7 @@ class AdminDashboardController extends Controller
             'discount_type'  => 'required|in:percentage,fixed',
             'discount_value' => 'required|numeric|min:1',
             'course_id'      => 'nullable|exists:courses,id',
+            'max_uses'       => 'nullable|integer|min:1',
             'expires_at'     => 'nullable|date|after:today',
         ]);
 
@@ -110,6 +112,8 @@ class AdminDashboardController extends Controller
             'discount_type'  => $request->discount_type,
             'discount_value' => $request->discount_value,
             'course_id'      => $request->course_id ?: null,
+            'max_uses'       => $request->max_uses ?: null,
+            'used_count'     => 0,
             'active'         => true,
             'expires_at'     => $request->expires_at ?: null,
         ]);

@@ -224,7 +224,21 @@ try {
         $logs[] = array('s' => 'warn', 'm' => '⚠️ Table `cart_items` already exists');
     }
 
-    // 12. Fix image thumbnail paths in courses table
+    // 12. Add max_uses and used_count to coupons table
+    $hasCouponsTable = $pdo->query("SHOW TABLES LIKE 'coupons'")->rowCount() > 0;
+    if ($hasCouponsTable) {
+        $cols = $pdo->query("SHOW COLUMNS FROM coupons")->fetchAll(PDO::FETCH_COLUMN);
+        if (!in_array('max_uses', $cols)) {
+            $pdo->exec("ALTER TABLE `coupons` ADD COLUMN `max_uses` int(11) NULL DEFAULT NULL AFTER `active`;");
+            $logs[] = array('s' => 'ok', 'm' => '✅ Added `max_uses` column to `coupons` table');
+        }
+        if (!in_array('used_count', $cols)) {
+            $pdo->exec("ALTER TABLE `coupons` ADD COLUMN `used_count` int(11) NOT NULL DEFAULT 0 AFTER `max_uses`;");
+            $logs[] = array('s' => 'ok', 'm' => '✅ Added `used_count` column to `coupons` table');
+        }
+    }
+
+    // 13. Fix image thumbnail paths in courses table
     $pdo->exec("UPDATE courses SET thumbnail = REPLACE(thumbnail, 'primary-jlm', '1b2299') WHERE thumbnail LIKE '%primary-jlm%';");
     $courses = $pdo->query("SELECT id, thumbnail FROM courses WHERE thumbnail IS NOT NULL AND thumbnail != ''")->fetchAll(PDO::FETCH_ASSOC);
     $fixedThumbnails = 0;

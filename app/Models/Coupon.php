@@ -16,11 +16,15 @@ class Coupon extends Model
         'discount_value',
         'course_id',
         'active',
+        'max_uses',
+        'used_count',
         'expires_at',
     ];
 
     protected $casts = [
         'active' => 'boolean',
+        'max_uses' => 'integer',
+        'used_count' => 'integer',
         'expires_at' => 'datetime',
     ];
 
@@ -45,12 +49,24 @@ class Coupon extends Model
             return false;
         }
 
+        if ($this->max_uses !== null && $this->used_count >= $this->max_uses) {
+            return false;
+        }
+
         // Must be a global coupon (course_id is null) or specific to this course
-        if ($this->course_id !== null && $this->course_id !== $course->id) {
+        if ($this->course_id !== null && (int)$this->course_id !== (int)$course->id) {
             return false;
         }
 
         return true;
+    }
+
+    /**
+     * Increment coupon usage count.
+     */
+    public function incrementUsage(): void
+    {
+        $this->increment('used_count');
     }
 
     /**

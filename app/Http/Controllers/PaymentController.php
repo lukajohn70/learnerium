@@ -90,6 +90,13 @@ class PaymentController extends Controller
 
         // If final price is 0, enroll student directly
         if ($finalPrice <= 0) {
+            if ($couponCode) {
+                $coupon = Coupon::where('code', $couponCode)->first();
+                if ($coupon) {
+                    $coupon->incrementUsage();
+                }
+            }
+
             Enrollment::updateOrCreate(
                 [
                     'user_id' => $user->id,

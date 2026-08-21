@@ -31,7 +31,14 @@ use App\Http\Middleware\IsInstructor;
 */
 
 // Public Pages
-Route::get('/', function () { return view('home'); });
+Route::get('/', function () {
+    $featuredCourses = \App\Models\Course::whereNotNull('published_at')
+        ->with('instructor')
+        ->latest('published_at')
+        ->take(6)
+        ->get();
+    return view('home', compact('featuredCourses'));
+})->name('home');
 Route::get('/courses', [CourseController::class, 'index'])->name('courses');
 Route::get('/courses/{slug}', [CourseController::class, 'show'])->name('course.detail');
 Route::get('/instructors', function () { return view('instructors'); })->name('instructors');

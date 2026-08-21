@@ -274,7 +274,12 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Expiry Date</label>
+                                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Max Uses Limit (Optional)</label>
+                                    <input type="number" name="max_uses" min="1" placeholder="e.g. 50 (Leave empty for unlimited)"
+                                        class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-pink-500/30">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Expiry Date (Optional)</label>
                                     <input type="date" name="expires_at" class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-xl px-3 py-2 text-sm focus:outline-none">
                                 </div>
                                 <button type="submit" class="w-full bg-gradient-to-r from-blue-800 to-pink-600 text-white py-2.5 rounded-xl font-extrabold text-sm shadow-md hover:opacity-90 transition">
@@ -282,11 +287,44 @@
                                 </button>
                             </form>
                         </div>
-                        <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-                            <h3 class="font-extrabold text-gray-900 text-base mb-4 flex items-center gap-2">
-                                <i class="fas fa-ticket-alt text-amber-500"></i> Active Coupons
-                            </h3>
-                            <a href="{{ route('admin.coupons') }}" class="text-xs text-blue-600 font-bold hover:underline">Manage All Coupons &rarr;</a>
+                        <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col justify-between">
+                            <div>
+                                <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                                    <h3 class="font-extrabold text-gray-900 text-base flex items-center gap-2">
+                                        <i class="fas fa-ticket-alt text-amber-500"></i> Active Coupons
+                                    </h3>
+                                    <a href="{{ route('admin.coupons') }}" class="text-xs text-blue-600 font-bold hover:underline">Manage All Coupons &rarr;</a>
+                                </div>
+                                <div class="divide-y divide-gray-100">
+                                    @forelse($recentCoupons as $coupon)
+                                    <div class="p-5 flex items-center justify-between gap-4 hover:bg-gray-50 transition">
+                                        <div>
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <span class="bg-amber-100 text-amber-800 font-black text-xs px-2.5 py-0.5 rounded-md uppercase tracking-wider">
+                                                    {{ $coupon->code }}
+                                                </span>
+                                                <span class="text-xs font-bold text-gray-800">
+                                                    {{ $coupon->discount_type === 'percentage' ? $coupon->discount_value.'%' : '₦'.number_format($coupon->discount_value,2) }} OFF
+                                                </span>
+                                            </div>
+                                            <p class="text-xs text-gray-500">
+                                                Scope: {{ $coupon->course ? $coupon->course->title : 'All Courses (Global)' }}
+                                                &bull; Uses: <span class="font-bold text-gray-700">{{ $coupon->used_count }} / {{ $coupon->max_uses ?? '∞' }}</span>
+                                                @if($coupon->expires_at)
+                                                    &bull; Expires: {{ $coupon->expires_at->format('d M Y') }}
+                                                @endif
+                                            </p>
+                                        </div>
+                                        <form action="{{ route('admin.coupons.destroy', $coupon) }}" method="POST" onsubmit="return confirm('Delete coupon?')">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="text-xs text-red-600 hover:text-red-800 font-bold hover:underline">Delete</button>
+                                        </form>
+                                    </div>
+                                    @empty
+                                    <div class="p-12 text-center text-gray-400">No coupons created yet.</div>
+                                    @endforelse
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

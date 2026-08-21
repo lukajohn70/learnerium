@@ -58,6 +58,11 @@
                         </select>
                     </div>
                     <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Max Uses Limit (Optional)</label>
+                        <input type="number" name="max_uses" min="1" placeholder="e.g. 50 (Leave empty for unlimited)"
+                            class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-pink-500/30">
+                    </div>
+                    <div>
                         <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Expiry Date (Optional)</label>
                         <input type="date" name="expires_at" class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-xl px-3 py-2 text-sm focus:outline-none">
                     </div>
@@ -80,12 +85,13 @@
                                 <span class="bg-amber-100 text-amber-800 font-black text-xs px-2.5 py-0.5 rounded-md uppercase tracking-wider">
                                     {{ $coupon->code }}
                                 </span>
-                                <span class="text-xs font-bold text-gray-600">
+                                <span class="text-xs font-bold text-gray-800">
                                     {{ $coupon->discount_type === 'percentage' ? $coupon->discount_value.'%' : '₦'.number_format($coupon->discount_value,2) }} OFF
                                 </span>
                             </div>
                             <p class="text-xs text-gray-500">
                                 Scope: {{ $coupon->course ? $coupon->course->title : 'All Courses (Global)' }}
+                                &bull; Uses: <span class="font-bold text-gray-700">{{ $coupon->used_count }} / {{ $coupon->max_uses ?? '∞' }}</span>
                                 @if($coupon->expires_at)
                                     &bull; Expires: {{ $coupon->expires_at->format('d M Y') }}
                                 @endif
