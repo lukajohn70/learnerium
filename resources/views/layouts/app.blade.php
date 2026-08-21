@@ -7,6 +7,9 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
+    <!-- Google Search Console Verification -->
+    <meta name="google-site-verification" content="googlef58fe20d0eef6322">
+
     <title>@yield('title', config('app.name', 'Learnerium') . ' - Elevating Education')</title>
 
     {{-- SEO: Meta Description (override per-page with @section('meta_description')) --}}
