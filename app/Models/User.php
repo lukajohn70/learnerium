@@ -31,26 +31,40 @@ class User extends Authenticatable implements MustVerifyEmail
     public function avatarUrl(): string
     {
         if (!empty($this->avatar)) {
-            $av = str_replace('primary-jlm', '1b2299', $this->avatar);
-            if (str_contains($av, 'ui-avatars.com') || str_contains($av, 'gravatar.com') || str_contains($av, 'placehold.co')) {
-                return $av;
+            $av = trim(str_replace('primary-jlm', '1b2299', $this->avatar));
+            if (str_starts_with($av, 'http://') || str_starts_with($av, 'https://') || str_starts_with($av, 'data:image')) {
+                if (!str_contains($av, 'primary-jlm')) {
+                    return $av;
+                }
             }
             $filename = basename($av);
             if (file_exists(public_path('uploads/avatars/' . $filename))) {
                 return asset('uploads/avatars/' . $filename);
             }
+            if (file_exists(public_path($av))) {
+                return asset($av);
+            }
         }
         if (!empty($this->profile_picture)) {
-            $pic = str_replace('primary-jlm', '1b2299', $this->profile_picture);
-            if (str_contains($pic, 'ui-avatars.com') || str_contains($pic, 'gravatar.com') || str_contains($pic, 'placehold.co')) {
-                return $pic;
+            $pic = trim(str_replace('primary-jlm', '1b2299', $this->profile_picture));
+            if (str_starts_with($pic, 'http://') || str_starts_with($pic, 'https://') || str_starts_with($pic, 'data:image')) {
+                if (!str_contains($pic, 'primary-jlm')) {
+                    return $pic;
+                }
             }
             $filename = basename($pic);
             if (file_exists(public_path('uploads/avatars/' . $filename))) {
                 return asset('uploads/avatars/' . $filename);
             }
+            if (file_exists(public_path($pic))) {
+                return asset($pic);
+            }
         }
-        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=1b2299&color=f7b731&bold=true';
+
+        // Guaranteed SVG Data URI fallback styled with JLM colors
+        $initials = strtoupper(substr($this->name ?? 'U', 0, 2));
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><rect width="128" height="128" rx="64" fill="%231b2299"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="%23f7de7a" font-family="sans-serif" font-size="46" font-weight="bold">'.$initials.'</text></svg>';
+        return 'data:image/svg+xml,' . $svg;
     }
 
     /**

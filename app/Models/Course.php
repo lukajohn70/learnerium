@@ -97,40 +97,28 @@ class Course extends Model
     public function thumbnailUrl(): string
     {
         if (!empty($this->thumbnail)) {
-            $thumb = str_replace('primary-jlm', '1b2299', $this->thumbnail);
+            $thumb = trim(str_replace('primary-jlm', '1b2299', $this->thumbnail));
 
-            // If it's a external image service URL (placehold.co, unsplash, etc.)
-            if (str_contains($thumb, 'placehold.co') || str_contains($thumb, 'unsplash.com') || str_contains($thumb, 'ui-avatars.com') || str_contains($thumb, 'via.placeholder.com')) {
-                return $thumb;
-            }
-
-            // Extract relative filename / path
-            if (preg_match('#uploads/thumbnails/(.+)$#', $thumb, $m)) {
-                $filename = $m[1];
-                if (file_exists(public_path('uploads/thumbnails/' . $filename))) {
-                    return asset('uploads/thumbnails/' . $filename);
+            if (str_starts_with($thumb, 'http://') || str_starts_with($thumb, 'https://') || str_starts_with($thumb, 'data:image')) {
+                if (!str_contains($thumb, 'primary-jlm')) {
+                    return $thumb;
                 }
-                // File physically missing on server disk -> fallback to placehold.co SVG/PNG
-                return 'https://placehold.co/600x400/1b2299/f7de7a?text=' . urlencode($this->title);
             }
 
-            // If HTTP URL pointing elsewhere
-            if (str_starts_with($thumb, 'http://') || str_starts_with($thumb, 'https://')) {
-                return $thumb;
+            $filename = basename($thumb);
+            if (file_exists(public_path('uploads/thumbnails/' . $filename))) {
+                return asset('uploads/thumbnails/' . $filename);
             }
 
-            // Clean relative path check
-            $clean = preg_replace('#^.*uploads/thumbnails/#', 'uploads/thumbnails/', $thumb);
-            $clean = ltrim($clean, '/');
+            $clean = ltrim(preg_replace('#^public/#', '', $thumb), '/');
             if (file_exists(public_path($clean))) {
                 return asset($clean);
             }
-            if (file_exists(public_path('storage/' . $thumb))) {
-                return asset('storage/' . $thumb);
-            }
         }
 
-        // Guaranteed fallback URL
-        return 'https://placehold.co/600x400/1b2299/f7de7a?text=' . urlencode($this->title);
+        // Guaranteed SVG Data URI fallback styled with JLM colors — zero external network dependency!
+        $title = rawurlencode(substr($this->title ?? 'Learnerium Course', 0, 32));
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400"><rect width="600" height="400" fill="%231b2299"/><circle cx="500" cy="80" r="120" fill="%23e4306d" opacity="0.4"/><circle cx="100" cy="320" r="140" fill="%23f7de7a" opacity="0.3"/><text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" fill="%23ffffff" font-family="sans-serif" font-size="26" font-weight="bold">'.$title.'</text><text x="50%" y="62%" dominant-baseline="middle" text-anchor="middle" fill="%23f7de7a" font-family="sans-serif" font-size="16" font-weight="bold">Learnerium Course</text></svg>';
+        return 'data:image/svg+xml,' . $svg;
     }
 }
