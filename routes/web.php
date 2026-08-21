@@ -51,6 +51,12 @@ Route::get('/terms-of-service', function () { return view('eua'); })->name('eua'
 // SEO: Dynamic XML Sitemap
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 
+// Shopping Cart Routes (Publicly accessible; persists across sessions and logouts)
+Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+Route::post('/cart/{course}', [CartController::class, 'store'])->name('cart.store');
+Route::delete('/cart/{course}', [CartController::class, 'destroy'])->name('cart.destroy');
+Route::post('/cart/{course}/wishlist', [CartController::class, 'moveToWishlist'])->name('cart.move-to-wishlist');
+
 // Payment callback - public route (Paystack redirects here)
 Route::get('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
 
@@ -160,12 +166,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Lesson Discussion Routes
     Route::post('/courses/{course}/lessons/{lesson}/discussions', [LessonDiscussionController::class, 'store'])->name('lesson.discussion.store');
     Route::delete('/discussions/{discussion}', [LessonDiscussionController::class, 'destroy'])->name('lesson.discussion.destroy');
-
-    // Cart Routes
-    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-    Route::post('/cart/{course}', [CartController::class, 'store'])->name('cart.store');
-    Route::delete('/cart/{course}', [CartController::class, 'destroy'])->name('cart.destroy');
-    Route::post('/cart/{course}/wishlist', [CartController::class, 'moveToWishlist'])->name('cart.move-to-wishlist');
 
     // Wishlist Routes
     Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');

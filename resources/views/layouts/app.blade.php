@@ -209,14 +209,23 @@
                 </div>
 
                 <!-- Auth/Menu (JLM CTA Style) -->
-                <div class="hidden lg:flex items-center space-x-4">
+                <div class="hidden lg:flex items-center">
                     @guest
-                        <div class="relative" id="signInDropdownWrap">
-                            <button id="signInDropdownBtn" class="bg-gradient-to-r from-[#1b2299] to-[#e4306d] text-white px-6 py-2 rounded-lg font-bold text-sm shadow-md hover:scale-105 transition-all duration-200 flex items-center space-x-2">
+                        <a href="{{ route('cart.index') }}" class="relative text-gray-600 hover:text-primary-jlm p-2 rounded-full hover:bg-blue-50 transition mr-1" title="Shopping Cart">
+                            <i class="fas fa-shopping-cart text-lg text-primary-jlm"></i>
+                            @php $guestCartCount = App\Http\Controllers\CartController::getCartCount(); @endphp
+                            @if($guestCartCount > 0)
+                                <span class="absolute -top-1 -right-1 bg-accent-jlm text-primary-jlm text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-white">
+                                    {{ $guestCartCount }}
+                                </span>
+                            @endif
+                        </a>
+                        <div class="relative inline-block text-left" id="loginDropdownWrap">
+                            <button id="loginDropdownBtn" class="bg-primary-jlm text-white px-5 py-2 rounded-lg font-bold text-sm hover:bg-primary-jlm-dark transition flex items-center gap-1.5 shadow-sm">
                                 <span>Sign In</span>
-                                <i class="fas fa-chevron-down text-xs"></i>
+                                <i class="fas fa-chevron-down text-[10px] opacity-80"></i>
                             </button>
-                            <div id="signInDropdownMenu" class="absolute right-0 mt-2 w-56 bg-white/90 backdrop-blur-md rounded-xl shadow-xl py-2 z-20 hidden border border-gray-100 origin-top-right">
+                            <div id="loginDropdownMenu" class="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-xl py-2 z-20 hidden border border-gray-100 origin-top-right">
                                 <a href="{{ route('login.student') }}" class="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-primary-jlm/5 hover:text-primary-jlm font-medium">
                                     <i class="fas fa-user-graduate mr-2.5 text-primary-jlm text-base"></i>Student Sign In
                                 </a>
@@ -225,7 +234,7 @@
                                 </a>
                             </div>
                         </div>
-                        <a href="{{ route('register') }}" class="border-2 border-[#1b2299] text-[#1b2299] px-6 py-1.5 rounded-lg font-bold text-sm hover:bg-[#1b2299] hover:text-white transition-all duration-200">Register</a>
+                        <a href="{{ route('register') }}" class="ml-3 border-2 border-[#1b2299] text-[#1b2299] px-6 py-1.5 rounded-lg font-bold text-sm hover:bg-[#1b2299] hover:text-white transition-all duration-200">Register</a>
                     @else
                         <!-- Wishlist & Cart Icons -->
                         <div class="flex items-center space-x-3 mr-2">
@@ -240,7 +249,7 @@
                             </a>
                             <a href="{{ route('cart.index') }}" class="relative text-gray-600 hover:text-primary-jlm p-2 rounded-full hover:bg-blue-50 transition" title="Shopping Cart">
                                 <i class="fas fa-shopping-cart text-lg"></i>
-                                @php $cartCount = Auth::user()->cart()->count(); @endphp
+                                @php $cartCount = App\Http\Controllers\CartController::getCartCount(); @endphp
                                 @if($cartCount > 0)
                                     <span class="absolute -top-1 -right-1 bg-accent-jlm text-primary-jlm text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-white">
                                         {{ $cartCount }}
@@ -321,7 +330,7 @@
                         </a>
                         <a href="{{ route('cart.index') }}" class="relative text-gray-600 hover:text-primary-jlm p-2 rounded-full hover:bg-blue-50 transition" title="Shopping Cart">
                             <i class="fas fa-shopping-cart text-lg text-primary-jlm"></i>
-                            @php $mobileCartCount = Auth::user()->cart()->count(); @endphp
+                            @php $mobileCartCount = App\Http\Controllers\CartController::getCartCount(); @endphp
                             @if($mobileCartCount > 0)
                                 <span class="absolute -top-0.5 -right-0.5 bg-accent-jlm text-primary-jlm text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-white">
                                     {{ $mobileCartCount }}
@@ -329,8 +338,14 @@
                             @endif
                         </a>
                     @else
-                        <a href="{{ route('cart.index') }}" class="text-gray-600 hover:text-primary-jlm p-2 rounded-full hover:bg-blue-50 transition" title="Shopping Cart">
+                        <a href="{{ route('cart.index') }}" class="relative text-gray-600 hover:text-primary-jlm p-2 rounded-full hover:bg-blue-50 transition" title="Shopping Cart">
                             <i class="fas fa-shopping-cart text-lg text-primary-jlm"></i>
+                            @php $mobileGuestCartCount = App\Http\Controllers\CartController::getCartCount(); @endphp
+                            @if($mobileGuestCartCount > 0)
+                                <span class="absolute -top-0.5 -right-0.5 bg-accent-jlm text-primary-jlm text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-white">
+                                    {{ $mobileGuestCartCount }}
+                                </span>
+                            @endif
                         </a>
                     @endauth
 
