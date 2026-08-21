@@ -430,7 +430,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     return;
                 }
 
-                // Paystack Inline Modal Launch
+                // If Bank Transfer tab selected, redirect directly to Paystack payment URL
+                if (selectedMethod === 'transfer') {
+                    window.location.href = data.authorization_url;
+                    return;
+                }
+
+                // Paystack Inline Modal Launch for Card Payments
                 const handler = PaystackPop.setup({
                     key: '{{ $publicKey ?? config("services.paystack.public_key") }}',
                     email: '{{ Auth::user()->email }}',
