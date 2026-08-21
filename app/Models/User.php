@@ -166,4 +166,22 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->belongsToMany(Course::class, 'wishlists', 'user_id', 'course_id')->withTimestamps();
     }
+
+    /**
+     * Cart relationship.
+     */
+    public function cart(): BelongsToMany
+    {
+        return $this->belongsToMany(Course::class, 'cart_items', 'user_id', 'course_id')->withTimestamps();
+    }
+
+    public function inWishlist($courseId): bool
+    {
+        return $this->wishlist()->where('course_id', $courseId)->exists();
+    }
+
+    public function inCart($courseId): bool
+    {
+        return $this->cart()->where('course_id', $courseId)->exists();
+    }
 }

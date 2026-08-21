@@ -344,6 +344,20 @@
                                class="block w-full text-center bg-accent-jlm hover:bg-yellow-400 text-primary-jlm px-6 py-3.5 rounded-xl font-extrabold transition shadow-md text-lg">
                                 <i class="fas fa-lock mr-2"></i>Buy &mdash; ₦{{ number_format($course->price, 2) }}
                             </a>
+                            <div class="flex items-center gap-2 mt-3">
+                                <form action="{{ route('cart.store', $course) }}" method="POST" class="flex-1">
+                                    @csrf
+                                    <button type="submit" class="w-full bg-primary-jlm hover:bg-primary-jlm-dark text-white py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow">
+                                        <i class="fas fa-shopping-cart"></i> Add to Cart
+                                    </button>
+                                </form>
+                                <form action="{{ route('wishlist.toggle', $course) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="p-2.5 border border-pink-200 text-pink-600 hover:bg-pink-50 rounded-xl transition" title="Wishlist">
+                                        <i class="fas fa-heart text-sm"></i>
+                                    </button>
+                                </form>
+                            </div>
                         @else
                             <form action="{{ route('courses.enroll', $course) }}" method="POST">
                                 @csrf

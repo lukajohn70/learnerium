@@ -108,6 +108,28 @@
                         </div>
                         <a href="{{ route('register') }}" class="border border-primary-jlm text-primary-jlm px-5 py-2.5 rounded-lg hover:bg-primary-jlm/5 transition duration-300 font-semibold text-sm">Register</a>
                     @else
+                        <!-- Wishlist & Cart Icons -->
+                        <div class="flex items-center space-x-3 mr-2">
+                            <a href="{{ route('wishlist.index') }}" class="relative text-gray-600 hover:text-pink-600 p-2 rounded-full hover:bg-pink-50 transition" title="Wishlist">
+                                <i class="fas fa-heart text-lg"></i>
+                                @php $wishlistCount = Auth::user()->wishlist()->count(); @endphp
+                                @if($wishlistCount > 0)
+                                    <span class="absolute -top-1 -right-1 bg-pink-500 text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-white">
+                                        {{ $wishlistCount }}
+                                    </span>
+                                @endif
+                            </a>
+                            <a href="{{ route('cart.index') }}" class="relative text-gray-600 hover:text-primary-jlm p-2 rounded-full hover:bg-blue-50 transition" title="Shopping Cart">
+                                <i class="fas fa-shopping-cart text-lg"></i>
+                                @php $cartCount = Auth::user()->cart()->count(); @endphp
+                                @if($cartCount > 0)
+                                    <span class="absolute -top-1 -right-1 bg-accent-jlm text-primary-jlm text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-white">
+                                        {{ $cartCount }}
+                                    </span>
+                                @endif
+                            </a>
+                        </div>
+
                         <div class="relative" id="userDropdownWrap">
                             <button id="userDropdownBtn" class="flex items-center text-primary-jlm focus:outline-none hover:text-secondary-jlm font-semibold space-x-2">
                                 <img src="{{ Auth::user()->avatarUrl() }}" alt="{{ Auth::user()->name }}" class="w-8 h-8 rounded-full border-2 border-primary-jlm object-cover">
@@ -120,6 +142,8 @@
                                     <p class="text-sm font-bold text-gray-800 truncate">{{ Auth::user()->email }}</p>
                                 </div>
                                 <a href="{{ route('dashboard') }}" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-jlm transition"><i class="fas fa-th-large mr-3 text-gray-400"></i>Dashboard</a>
+                                <a href="{{ route('cart.index') }}" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-jlm transition"><i class="fas fa-shopping-cart mr-3 text-gray-400"></i>Shopping Cart</a>
+                                <a href="{{ route('wishlist.index') }}" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-jlm transition"><i class="fas fa-heart mr-3 text-pink-400"></i>My Wishlist</a>
 
                                 @if(Auth::user()->canSwitchRole())
                                     <div class="px-2 py-1.5 bg-gray-50 border-y border-gray-100 my-1">

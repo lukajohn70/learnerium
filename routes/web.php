@@ -20,6 +20,8 @@ use App\Http\Controllers\ModuleController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\LessonDiscussionController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\WishlistController;
 use App\Http\Middleware\IsInstructor;
 
 /*
@@ -132,6 +134,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Lesson Discussion Routes
     Route::post('/courses/{course}/lessons/{lesson}/discussions', [LessonDiscussionController::class, 'store'])->name('lesson.discussion.store');
     Route::delete('/discussions/{discussion}', [LessonDiscussionController::class, 'destroy'])->name('lesson.discussion.destroy');
+
+    // Cart Routes
+    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+    Route::post('/cart/{course}', [CartController::class, 'store'])->name('cart.store');
+    Route::delete('/cart/{course}', [CartController::class, 'destroy'])->name('cart.destroy');
+    Route::post('/cart/{course}/wishlist', [CartController::class, 'moveToWishlist'])->name('cart.move-to-wishlist');
+
+    // Wishlist Routes
+    Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
+    Route::post('/wishlist/{course}/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
+    Route::delete('/wishlist/{course}', [WishlistController::class, 'destroy'])->name('wishlist.destroy');
+    Route::post('/wishlist/{course}/cart', [WishlistController::class, 'moveToCart'])->name('wishlist.move-to-cart');
 });
 
 Route::middleware(['auth', 'instructor'])->group(function () {

@@ -121,16 +121,18 @@
                     <div class="bg-white rounded-3xl shadow-sm hover:shadow-xl border border-gray-100 overflow-hidden transition-all duration-300 transform hover:-translate-y-1 flex flex-col justify-between">
                         <div>
                             <div class="relative">
-                                @if($course->thumbnail)
-                                    <img src="{{ asset('storage/' . $course->thumbnail) }}" alt="{{ $course->title }}" class="w-full h-48 object-cover">
-                                @else
-                                    <div class="w-full h-48 bg-gradient-to-br from-primary-jlm to-indigo-900 flex items-center justify-center text-white/40">
-                                        <i class="fas fa-graduation-cap text-5xl text-accent-jlm/40"></i>
-                                    </div>
-                                @endif
-                                <span class="absolute top-3 right-3 bg-white/90 backdrop-blur text-gray-800 font-bold text-xs px-3 py-1 rounded-full shadow-sm capitalize">
+                                <img src="{{ $course->thumbnailUrl() }}" alt="{{ $course->title }}" class="w-full h-48 object-cover">
+                                <span class="absolute top-3 left-3 bg-white/90 backdrop-blur text-gray-800 font-bold text-xs px-3 py-1 rounded-full shadow-sm capitalize">
                                     {{ $course->level ?? 'Beginner' }}
                                 </span>
+                                @auth
+                                    <form action="{{ route('wishlist.toggle', $course) }}" method="POST" class="absolute top-3 right-3">
+                                        @csrf
+                                        <button type="submit" class="w-9 h-9 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow-md transition hover:scale-110 {{ Auth::user()->inWishlist($course->id) ? 'text-pink-600' : 'text-gray-400 hover:text-pink-600' }}" title="Wishlist">
+                                            <i class="fas fa-heart text-sm"></i>
+                                        </button>
+                                    </form>
+                                @endauth
                             </div>
 
                             <div class="p-6">
@@ -146,7 +148,7 @@
                                     {{ \Illuminate\Support\Str::limit($course->description, 110) }}
                                 </p>
                                 <div class="flex items-center gap-2.5 text-xs font-semibold text-gray-600 mb-4">
-                                    <img src="https://placehold.co/24x24/1b2299/f7de7a?text={{ urlencode(substr($course->instructor?->name ?? 'IN', 0, 2)) }}" class="w-6 h-6 rounded-full">
+                                    <img src="{{ $course->instructor ? $course->instructor->avatarUrl() : 'https://placehold.co/24x24' }}" class="w-6 h-6 rounded-full object-cover">
                                     <span>{{ $course->instructor?->name ?? 'Instructor' }}</span>
                                 </div>
                             </div>
@@ -156,8 +158,23 @@
                             <span class="text-2xl font-extrabold text-primary-jlm">
                                 {{ $course->price > 0 ? '₦' . number_format($course->price, 0) : 'Free' }}
                             </span>
-                            <a href="{{ route('course.detail', $course->slug) }}" 
-                               class="bg-secondary-jlm hover:bg-secondary-jlm/90 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition shadow-md hover:shadow-secondary-jlm/30">
+                            <div class="flex items-center gap-2">
+                                @auth
+                                    @if($course->price > 0 && !Auth::user()->enrolledIn($course->id))
+                                        <form action="{{ route('cart.store', $course) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="p-2.5 bg-gray-100 hover:bg-primary-jlm hover:text-white text-gray-700 rounded-xl transition" title="Add to Cart">
+                                                <i class="fas fa-shopping-cart text-sm"></i>
+                                            </button>
+                                        </form>
+                                    @endif
+                                @endauth
+                                <a href="{{ route('course.detail', $course->slug) }}" 
+                                   class="bg-secondary-jlm hover:bg-secondary-jlm/90 text-white px-4 py-2.5 rounded-xl text-sm font-bold transition shadow-md hover:shadow-secondary-jlm/30">
+                                    Details
+                                </a>
+                            </div>
+                        </div>
                                 View Course
                             </a>
                         </div>
