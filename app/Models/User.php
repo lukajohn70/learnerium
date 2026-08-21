@@ -31,19 +31,21 @@ class User extends Authenticatable implements MustVerifyEmail
     public function avatarUrl(): string
     {
         if (!empty($this->avatar)) {
-            if (str_starts_with($this->avatar, 'http://') || str_starts_with($this->avatar, 'https://')) {
-                return $this->avatar;
+            $av = str_replace('primary-jlm', '1b2299', $this->avatar);
+            if (str_starts_with($av, 'http://') || str_starts_with($av, 'https://')) {
+                return $av;
             }
-            $filename = basename($this->avatar);
+            $filename = basename($av);
             if (file_exists(public_path('uploads/avatars/' . $filename))) {
                 return asset('uploads/avatars/' . $filename);
             }
         }
         if (!empty($this->profile_picture)) {
-            if (str_starts_with($this->profile_picture, 'http://') || str_starts_with($this->profile_picture, 'https://')) {
-                return $this->profile_picture;
+            $pic = str_replace('primary-jlm', '1b2299', $this->profile_picture);
+            if (str_starts_with($pic, 'http://') || str_starts_with($pic, 'https://')) {
+                return $pic;
             }
-            $filename = basename($this->profile_picture);
+            $filename = basename($pic);
             if (file_exists(public_path('uploads/avatars/' . $filename))) {
                 return asset('uploads/avatars/' . $filename);
             }

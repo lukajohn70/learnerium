@@ -99,16 +99,18 @@ class Course extends Model
     public function thumbnailUrl(): string
     {
         if (!empty($this->thumbnail)) {
-            if (str_starts_with($this->thumbnail, 'http://') || str_starts_with($this->thumbnail, 'https://')) {
-                return $this->thumbnail;
+            $thumb = str_replace('primary-jlm', '1b2299', $this->thumbnail);
+
+            if (str_starts_with($thumb, 'http://') || str_starts_with($thumb, 'https://')) {
+                return $thumb;
             }
-            $clean = preg_replace('#^.*uploads/thumbnails/#', 'uploads/thumbnails/', $this->thumbnail);
+            $clean = preg_replace('#^.*uploads/thumbnails/#', 'uploads/thumbnails/', $thumb);
             $clean = ltrim($clean, '/');
             if (file_exists(public_path($clean))) {
                 return asset($clean);
             }
-            if (file_exists(public_path('storage/' . $this->thumbnail))) {
-                return asset('storage/' . $this->thumbnail);
+            if (file_exists(public_path('storage/' . $thumb))) {
+                return asset('storage/' . $thumb);
             }
         }
         return 'https://placehold.co/600x400/1b2299/f7de7a?text=' . urlencode($this->title);

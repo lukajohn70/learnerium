@@ -225,6 +225,7 @@ try {
     }
 
     // 12. Fix image thumbnail paths in courses table
+    $pdo->exec("UPDATE courses SET thumbnail = REPLACE(thumbnail, 'primary-jlm', '1b2299') WHERE thumbnail LIKE '%primary-jlm%';");
     $courses = $pdo->query("SELECT id, thumbnail FROM courses WHERE thumbnail IS NOT NULL AND thumbnail != ''")->fetchAll(PDO::FETCH_ASSOC);
     $fixedThumbnails = 0;
     foreach ($courses as $c) {
@@ -246,6 +247,7 @@ try {
     }
 
     // 13. Fix user avatar paths in users table
+    $pdo->exec("UPDATE users SET avatar = REPLACE(avatar, 'primary-jlm', '1b2299') WHERE avatar LIKE '%primary-jlm%';");
     $users = $pdo->query("SELECT id, avatar FROM users WHERE avatar IS NOT NULL AND avatar != ''")->fetchAll(PDO::FETCH_ASSOC);
     $fixedAvatars = 0;
     foreach ($users as $u) {
