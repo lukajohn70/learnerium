@@ -106,7 +106,7 @@ class Course extends Model
             }
 
             $filename = basename($thumb);
-            if (file_exists(public_path('uploads/thumbnails/' . $filename))) {
+            if (file_exists(public_path('uploads/thumbnails/' . $filename)) || file_exists(base_path('public/uploads/thumbnails/' . $filename))) {
                 return asset('uploads/thumbnails/' . $filename);
             }
 

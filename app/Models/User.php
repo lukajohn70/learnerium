@@ -38,7 +38,7 @@ class User extends Authenticatable implements MustVerifyEmail
                 }
             }
             $filename = basename($av);
-            if (file_exists(public_path('uploads/avatars/' . $filename))) {
+            if (file_exists(public_path('uploads/avatars/' . $filename)) || file_exists(base_path('public/uploads/avatars/' . $filename))) {
                 return asset('uploads/avatars/' . $filename);
             }
             if (file_exists(public_path($av))) {
@@ -53,7 +53,7 @@ class User extends Authenticatable implements MustVerifyEmail
                 }
             }
             $filename = basename($pic);
-            if (file_exists(public_path('uploads/avatars/' . $filename))) {
+            if (file_exists(public_path('uploads/avatars/' . $filename)) || file_exists(base_path('public/uploads/avatars/' . $filename))) {
                 return asset('uploads/avatars/' . $filename);
             }
             if (file_exists(public_path($pic))) {
