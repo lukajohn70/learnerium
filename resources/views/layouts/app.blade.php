@@ -581,7 +581,7 @@
             mobileMenuBtn.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
         }
 
-        // Generic sticky-hover dropdown: keeps menu open when moving from trigger to menu
+        // Generic sticky-hover + click dropdown: keeps menu open when moving from trigger to menu
         function stickyDropdown(wrapperId, btnId, menuId) {
             const wrap = document.getElementById(wrapperId);
             const btn  = document.getElementById(btnId);
@@ -595,23 +595,29 @@
                 menu.classList.remove('hidden');
             }
             function hideMenu() {
-                leaveTimer = setTimeout(() => menu.classList.add('hidden'), 120);
+                leaveTimer = setTimeout(() => menu.classList.add('hidden'), 150);
             }
 
-            // Both the button and the menu keep it open
+            // Click toggle
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                menu.classList.toggle('hidden');
+            });
+
+            // Hover interactions
             btn.addEventListener('mouseenter', showMenu);
             btn.addEventListener('mouseleave', hideMenu);
             menu.addEventListener('mouseenter', showMenu);
             menu.addEventListener('mouseleave', hideMenu);
 
-            // Also close on click outside
+            // Close on click outside
             document.addEventListener('click', (e) => {
                 if (!wrap.contains(e.target)) menu.classList.add('hidden');
             });
         }
 
-        stickyDropdown('signInDropdownWrap', 'signInDropdownBtn', 'signInDropdownMenu');
-        stickyDropdown('userDropdownWrap',   'userDropdownBtn',   'userDropdownMenu');
+        stickyDropdown('loginDropdownWrap', 'loginDropdownBtn', 'loginDropdownMenu');
+        stickyDropdown('userDropdownWrap',  'userDropdownBtn',  'userDropdownMenu');
     </script>
 </body>
 </html>
