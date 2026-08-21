@@ -9,7 +9,7 @@
         <div class="flex items-center justify-between mb-8">
             <div>
                 <h1 class="text-3xl font-extrabold text-gray-900 flex items-center gap-3">
-                    <div class="w-10 h-10 bg-pink-600 text-white rounded-xl flex items-center justify-center shadow">
+                    <div class="w-10 h-10 bg-secondary-jlm text-white rounded-xl flex items-center justify-center shadow">
                         <i class="fas fa-heart"></i>
                     </div>
                     My Wishlist

@@ -41,9 +41,9 @@
                 <div class="bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl border border-gray-100 transition-all duration-300 text-center flex flex-col justify-between group">
                     <div>
                         <div class="relative w-28 h-28 mx-auto mb-6">
-                            <img src="https://placehold.co/120x120/1b2299/f7de7a?text={{ urlencode(substr($inst->name, 0, 2)) }}" 
-                                 alt="{{ $inst->name }}" class="w-28 h-28 rounded-full object-cover shadow-md border-4 border-white group-hover:scale-105 transition-transform">
-                            <span class="absolute bottom-0 right-0 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full font-bold border-2 border-white">Active</span>
+                            <img src="{{ $inst->avatarUrl() }}" 
+                                 alt="{{ $inst->name }}" class="w-28 h-28 rounded-full object-cover shadow-md border-4 border-secondary-jlm group-hover:scale-105 transition-transform">
+                            <span class="absolute bottom-0 right-0 bg-emerald-500 text-white text-xs px-2 py-0.5 rounded-full font-bold border-2 border-white">Active</span>
                         </div>
 
                         <h3 class="text-xl font-extrabold text-gray-900 mb-1">{{ $inst->name }}</h3>

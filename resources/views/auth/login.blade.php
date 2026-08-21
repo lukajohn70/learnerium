@@ -49,8 +49,8 @@
         <div class="hero-dot w-32 h-32 bg-secondary-jlm top-1/2 left-1/4"></div>
 
         <div class="relative z-10 text-center max-w-md">
-            <a href="{{ url('/') }}" class="inline-flex items-center gap-3 group">
-                <img src="{{ asset('logo-only.png') }}" alt="Learnerium Logo" class="h-12 w-auto object-contain drop-shadow-lg transition group-hover:scale-105">
+            <a href="{{ url('/') }}" class="inline-flex items-center gap-3 bg-white/90 backdrop-blur-md px-6 py-3 rounded-2xl shadow-xl border border-white/40 mb-8 group transition hover:scale-105">
+                <img src="{{ asset('logo-only.png') }}" alt="Learnerium Logo" class="h-10 w-auto object-contain">
                 <span class="text-3xl font-black bg-gradient-to-r from-[#1b2299] to-[#e4306d] bg-clip-text text-transparent tracking-tight">Learnerium</span>
             </a>
             @if(($role ?? 'student') === 'instructor')
@@ -171,19 +171,7 @@
                     </button>
                 </form>
 
-                <div class="mt-6 relative">
-                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-200"></div></div>
-                    <div class="relative flex justify-center text-xs"><span class="px-3 bg-white text-gray-400 font-medium">or continue with</span></div>
-                </div>
 
-                <div class="mt-5 grid grid-cols-2 gap-3">
-                    <a href="#" class="flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition shadow-sm">
-                        <img class="h-4 w-4" src="https://www.svgrepo.com/show/303108/google-icon-logo.svg" alt="Google"> Google
-                    </a>
-                    <a href="#" class="flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition shadow-sm">
-                        <i class="fab fa-github text-gray-800"></i> GitHub
-                    </a>
-                </div>
 
                 <p class="mt-7 text-center text-sm text-gray-500">
                     Don't have an account?

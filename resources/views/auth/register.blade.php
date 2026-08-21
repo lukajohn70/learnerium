@@ -85,9 +85,9 @@
 
         <!-- Top logo -->
         <div class="relative z-10">
-            <a href="{{ url('/') }}" class="inline-flex items-center gap-3 text-3xl font-black tracking-tight text-white hover:opacity-95 transition group">
-                <img src="{{ asset('logo.png') }}" alt="Learnerium Logo" class="h-11 w-auto object-contain drop-shadow-lg transition group-hover:scale-105">
-                <span>Learnerium</span>
+            <a href="{{ url('/') }}" class="inline-flex items-center gap-3 bg-white/90 backdrop-blur-md px-5 py-2.5 rounded-2xl shadow-xl border border-white/40 group transition hover:scale-105">
+                <img src="{{ asset('logo-only.png') }}" alt="Learnerium Logo" class="h-9 w-auto object-contain">
+                <span class="text-2xl font-black bg-gradient-to-r from-[#1b2299] to-[#e4306d] bg-clip-text text-transparent tracking-tight">Learnerium</span>
             </a>
         </div>
 
@@ -139,7 +139,7 @@
         <!-- Footer watermark -->
         <div class="relative z-10 text-xs text-white/50 flex items-center justify-between border-t border-white/10 pt-6">
             <span>&copy; {{ date('Y') }} Learnerium</span>
-            <span>Powered by <a href="https://jlm.com.ng" target="_blank" rel="noopener" class="inline-flex items-center gap-1 bg-accent-jlm text-primary-jlm px-2 py-0.5 rounded-full text-xs font-extrabold hover:bg-yellow-300 transition"><i class="fas fa-external-link-alt text-[8px]"></i>JLM</a></span>
+            <span>Powered by <a href="https://jlm.com.ng" target="_blank" rel="noopener" class="text-accent-jlm font-extrabold hover:underline">JLM</a></span>
         </div>
     </div>
 
