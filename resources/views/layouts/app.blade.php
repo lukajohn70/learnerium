@@ -441,40 +441,86 @@
         </main>
     </div>
 
-    <!-- Unified Footer -->
-    <footer class="bg-gray-900 text-white py-12 mt-auto">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center md:items-start">
-            <div class="mb-8 md:mb-0 text-center md:text-left">
-                <div class="flex items-center justify-center md:justify-start gap-2.5 mb-3">
-                    <img src="{{ asset('logo-only.png') }}" alt="Learnerium Logo" class="h-9 w-auto object-contain bg-white/10 p-1 rounded-lg">
-                    <h3 class="text-2xl font-extrabold text-white tracking-tight">Learnerium</h3>
+    <!-- Unified Professional Footer -->
+    <footer class="bg-[#0b0f19] text-gray-300 pt-16 pb-12 border-t border-slate-800/80 mt-auto relative overflow-hidden">
+        {{-- Subtle top glow accent line --}}
+        <div class="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-[#1b2299] to-[#e4306d] opacity-50"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-slate-800/80">
+                
+                {{-- Column 1: Brand & Bio (2 cols wide on LG) --}}
+                <div class="lg:col-span-2 space-y-4">
+                    <a href="{{ url('/') }}" class="inline-flex items-center gap-3 group">
+                        <img src="{{ asset('logo-only.png') }}" alt="Learnerium Logo" class="h-10 w-auto object-contain bg-white/10 p-1.5 rounded-xl shadow-inner group-hover:scale-105 transition">
+                        <span class="text-2xl font-black tracking-tight text-white">Learnerium</span>
+                    </a>
+                    <p class="text-gray-400 text-sm leading-relaxed max-w-sm">
+                        Elevating education through creative, interactive, and personalized learning. Empowering students and professionals across Africa and beyond.
+                    </p>
+                    
+                    {{-- Social Media Links --}}
+                    <div class="flex items-center space-x-3 pt-2">
+                        <a href="https://twitter.com/jlmng" target="_blank" rel="noopener" class="w-9 h-9 rounded-xl bg-slate-800/80 text-gray-400 hover:text-white hover:bg-primary-jlm flex items-center justify-center transition-all duration-200" title="Twitter / X">
+                            <i class="fab fa-x-twitter text-sm"></i>
+                        </a>
+                        <a href="https://linkedin.com" target="_blank" rel="noopener" class="w-9 h-9 rounded-xl bg-slate-800/80 text-gray-400 hover:text-white hover:bg-primary-jlm flex items-center justify-center transition-all duration-200" title="LinkedIn">
+                            <i class="fab fa-linkedin-in text-sm"></i>
+                        </a>
+                        <a href="https://facebook.com" target="_blank" rel="noopener" class="w-9 h-9 rounded-xl bg-slate-800/80 text-gray-400 hover:text-white hover:bg-primary-jlm flex items-center justify-center transition-all duration-200" title="Facebook">
+                            <i class="fab fa-facebook-f text-sm"></i>
+                        </a>
+                        <a href="https://instagram.com" target="_blank" rel="noopener" class="w-9 h-9 rounded-xl bg-slate-800/80 text-gray-400 hover:text-white hover:bg-[#e4306d] flex items-center justify-center transition-all duration-200" title="Instagram">
+                            <i class="fab fa-instagram text-sm"></i>
+                        </a>
+                    </div>
                 </div>
-                <p class="text-gray-400 text-sm">&copy; {{ date('Y') }} Learnerium. Powered by <a href="https://jlm.com.ng" target="_blank" rel="noopener" class="inline-flex items-center gap-1 bg-accent-jlm text-primary-jlm px-2 py-0.5 rounded-full text-xs font-extrabold hover:bg-yellow-300 transition"><i class="fas fa-external-link-alt text-[8px]"></i>JLM</a>. All rights reserved.</p>
+
+                {{-- Column 2: Explore --}}
+                <div>
+                    <h4 class="text-sm font-bold tracking-wider text-white uppercase mb-4 border-l-2 border-[#1b2299] pl-2.5">Explore</h4>
+                    <ul class="space-y-2.5 text-sm">
+                        <li><a href="{{ route('courses') }}" class="text-gray-400 hover:text-white transition duration-200 flex items-center gap-1.5"><i class="fas fa-angle-right text-[10px] text-primary-jlm"></i> Browse Courses</a></li>
+                        <li><a href="{{ route('instructors') }}" class="text-gray-400 hover:text-white transition duration-200 flex items-center gap-1.5"><i class="fas fa-angle-right text-[10px] text-primary-jlm"></i> Expert Instructors</a></li>
+                        <li><a href="{{ route('instructor.apply') }}" class="text-gray-400 hover:text-white transition duration-200 flex items-center gap-1.5"><i class="fas fa-angle-right text-[10px] text-primary-jlm"></i> Teach on Learnerium</a></li>
+                    </ul>
+                </div>
+
+                {{-- Column 3: Company --}}
+                <div>
+                    <h4 class="text-sm font-bold tracking-wider text-white uppercase mb-4 border-l-2 border-[#e4306d] pl-2.5">Company</h4>
+                    <ul class="space-y-2.5 text-sm">
+                        <li><a href="{{ route('about') }}" class="text-gray-400 hover:text-white transition duration-200 flex items-center gap-1.5"><i class="fas fa-angle-right text-[10px] text-[#e4306d]"></i> About Us</a></li>
+                        <li><a href="{{ route('contact') }}" class="text-gray-400 hover:text-white transition duration-200 flex items-center gap-1.5"><i class="fas fa-angle-right text-[10px] text-[#e4306d]"></i> Contact Us</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition duration-200 flex items-center gap-1.5"><i class="fas fa-angle-right text-[10px] text-[#e4306d]"></i> Careers</a></li>
+                    </ul>
+                </div>
+
+                {{-- Column 4: Legal & Policy --}}
+                <div>
+                    <h4 class="text-sm font-bold tracking-wider text-white uppercase mb-4 border-l-2 border-accent-jlm pl-2.5">Legal</h4>
+                    <ul class="space-y-2.5 text-sm">
+                        <li><a href="{{ route('privacy') }}" class="text-gray-400 hover:text-white transition duration-200 flex items-center gap-1.5"><i class="fas fa-angle-right text-[10px] text-accent-jlm"></i> Privacy Policy</a></li>
+                        <li><a href="{{ route('eua') }}" class="text-gray-400 hover:text-white transition duration-200 flex items-center gap-1.5"><i class="fas fa-angle-right text-[10px] text-accent-jlm"></i> Terms of Service</a></li>
+                        <li><a href="{{ route('eua') }}" class="text-gray-400 hover:text-white transition duration-200 flex items-center gap-1.5"><i class="fas fa-angle-right text-[10px] text-accent-jlm"></i> Cookie Policy</a></li>
+                    </ul>
+                </div>
 
             </div>
-            <div class="grid grid-cols-2 gap-8 md:grid-cols-3 md:gap-12 text-center md:text-left">
-                <div>
-                    <h4 class="text-lg font-semibold mb-4 text-accent-jlm">Company</h4>
-                    <ul class="space-y-2.5">
-                        <li><a href="{{ route('about') }}" class="text-gray-400 hover:text-white transition duration-200">About Us</a></li>
-                        <li><a href="{{ route('contact') }}" class="text-gray-400 hover:text-white transition duration-200">Contact Us</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white transition duration-200">Careers</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="text-lg font-semibold mb-4 text-accent-jlm">Explore</h4>
-                    <ul class="space-y-2.5">
-                        <li><a href="{{ route('courses') }}" class="text-gray-400 hover:text-white transition duration-200">Courses</a></li>
-                        <li><a href="{{ route('instructors') }}" class="text-gray-400 hover:text-white transition duration-200">Instructors</a></li>
 
-                    </ul>
+            {{-- Bottom Sub-Footer Bar --}}
+            <div class="pt-8 flex flex-col sm:flex-row justify-between items-center text-xs text-gray-400 gap-4">
+                <div class="flex items-center gap-2">
+                    <span>&copy; {{ date('Y') }} Learnerium Inc. All rights reserved.</span>
                 </div>
-                <div>
-                    <h4 class="text-lg font-semibold mb-4 text-accent-jlm">Legal</h4>
-                    <ul class="space-y-2.5">
-                        <li><a href="{{ route('privacy') }}" class="text-gray-400 hover:text-white transition duration-200">Privacy Policy</a></li>
-                        <li><a href="{{ route('eua') }}" class="text-gray-400 hover:text-white transition duration-200">Terms of Service</a></li>
-                    </ul>
+
+                {{-- JLM Partner Pill --}}
+                <div class="flex items-center gap-2">
+                    <span>Powered by</span>
+                    <a href="https://jlm.com.ng" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 bg-accent-jlm text-primary-jlm px-2.5 py-1 rounded-full font-bold hover:bg-yellow-300 transition shadow-sm">
+                        <i class="fas fa-external-link-alt text-[9px]"></i>
+                        <span>JLM</span>
+                    </a>
                 </div>
             </div>
         </div>
