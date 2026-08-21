@@ -17,10 +17,10 @@
                     <span class="text-xs font-bold text-gray-700">✨ Creative &bull; Fast &bull; Personalised Education</span>
                 </div>
                 <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 mb-6 leading-tight tracking-tight">
-                    Learning, <span class="bg-gradient-to-r from-[#1b2299] to-[#e4306d] bg-clip-text text-transparent">Elevated by JLM</span>
+                    Learning, <span class="bg-gradient-to-r from-[#1b2299] to-[#e4306d] bg-clip-text text-transparent">Elevated by Creativity.</span>
                 </h1>
                 <p class="text-lg text-gray-600 mb-8 max-w-2xl leading-relaxed">
-                    Unlock your potential with Learnerium — powered by <a href="https://jlm.com.ng" target="_blank" rel="noopener" class="inline-flex items-center gap-1 bg-accent-jlm text-primary-jlm px-2.5 py-0.5 rounded-full text-xs font-black hover:bg-yellow-300 transition no-underline"><i class="fas fa-external-link-alt text-[8px]"></i>JLM</a>'s innovative approach to skill mastery, interactive lessons, and expert consultancy.
+                    Unlock your potential with Learnerium — powered by <a href="https://jlm.com.ng" target="_blank" rel="noopener" class="text-primary-jlm font-bold hover:underline">JLM</a>'s innovative, personalised approach to education and skill mastery.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                     <a href="{{ url('/courses') }}" class="bg-gradient-to-r from-[#1b2299] to-[#e4306d] text-white px-8 py-3.5 rounded-xl text-base font-bold shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl flex items-center justify-center gap-2">

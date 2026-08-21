@@ -50,10 +50,10 @@
                         <label for="thumbnail_file" class="block text-sm font-semibold text-gray-700 mb-1.5">Upload Thumbnail Image</label>
                         <input type="file" id="thumbnail_file" name="thumbnail_file" accept="image/*"
                                class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-primary-jlm text-sm file:mr-4 file:py-1.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-primary-jlm/10 file:text-primary-jlm hover:file:bg-primary-jlm/20">
-                        <p class="text-xs text-gray-400 mt-1">Or paste URL below:</p>
-                        <input type="url" id="thumbnail" name="thumbnail" value="{{ old('thumbnail') }}"
+                        <p class="text-xs text-gray-400 mt-1">Or paste image URL / relative path below:</p>
+                        <input type="text" id="thumbnail" name="thumbnail" value="{{ old('thumbnail') }}"
                                class="w-full mt-1 px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-primary-jlm text-xs"
-                               placeholder="https://example.com/image.jpg">
+                               placeholder="e.g. uploads/thumbnails/... or https://...">
                     </div>
                     <div>
                         <label for="price" class="block text-sm font-semibold text-gray-700 mb-1.5">Price (₦)</label>

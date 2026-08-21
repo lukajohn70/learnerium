@@ -104,14 +104,14 @@
                                class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-primary-jlm text-sm file:mr-4 file:py-1.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-primary-jlm/10 file:text-primary-jlm hover:file:bg-primary-jlm/20">
                         @if($course->thumbnail)
                             <div class="mt-2 flex items-center gap-2">
-                                <img src="{{ $course->thumbnail }}" alt="Thumbnail" class="w-12 h-12 object-cover rounded-lg border">
+                                <img src="{{ $course->thumbnailUrl() }}" alt="Thumbnail" class="w-12 h-12 object-cover rounded-lg border">
                                 <span class="text-xs text-gray-400">Current Thumbnail</span>
                             </div>
                         @endif
                         <p class="text-xs text-gray-400 mt-1">Or paste direct URL below:</p>
-                        <input id="thumbnail" name="thumbnail" type="url" value="{{ old('thumbnail', $course->thumbnail) }}"
+                        <input id="thumbnail" name="thumbnail" type="text" value="{{ old('thumbnail', $course->thumbnail) }}"
                                class="w-full mt-1 px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:border-primary-jlm text-xs"
-                               placeholder="https://images.unsplash.com/photo-...">
+                               placeholder="e.g. uploads/thumbnails/... or https://...">
                     </div>
                     <div>
                         <label for="price" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Course Price (₦ Naira)</label>
