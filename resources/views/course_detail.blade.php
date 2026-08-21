@@ -48,7 +48,7 @@
 
 @section('content')
 
-{{-- ===== HERO SECTION (dark, like old design) ===== --}}
+{{-- ===== HERO SECTION ===== --}}
 <section class="bg-gray-900 text-white py-14 px-4">
     <div class="container mx-auto flex flex-col lg:flex-row items-center lg:items-start gap-10">
 
@@ -62,16 +62,66 @@
 
         {{-- Info right --}}
         <div class="lg:w-7/12 w-full">
-            @if($course->category)
-                <span class="inline-block bg-accent-jlm text-primary-jlm font-black text-xs uppercase tracking-widest px-3.5 py-1 rounded-full mb-3 shadow-sm">
-                    {{ $course->category }}
-                </span>
-            @endif
+            <div class="flex flex-wrap items-center gap-3 mb-3">
+                @if($course->category)
+                    <span class="inline-block bg-accent-jlm text-primary-jlm font-black text-xs uppercase tracking-widest px-3.5 py-1 rounded-full shadow-sm">
+                        {{ $course->category }}
+                    </span>
+                @endif
+
+                {{-- Currency converter dropdown in Hero --}}
+                @if($course->price > 0)
+                    <div class="relative inline-block text-left" id="currencyDropdownWrap">
+                        <button id="currencyDropdownBtn"
+                                class="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-full transition shadow-sm">
+                            <i class="fas fa-globe-africa text-accent-jlm"></i>
+                            <span id="currencyLabel">NGN — Nigerian Naira</span>
+                            <i class="fas fa-chevron-down text-[10px] text-white/60" id="currencyChevron"></i>
+                        </button>
+
+                        <div id="currencyDropdownMenu"
+                             class="hidden absolute left-0 top-full mt-2 w-64 bg-gray-800 border border-white/10 rounded-xl shadow-2xl z-30 py-2 max-h-72 overflow-y-auto">
+                            @php
+                                $currencies = [
+                                    ['code' => 'NGN', 'symbol' => '₦',   'name' => 'Nigerian Naira',     'rate' => 1],
+                                    ['code' => 'GHS', 'symbol' => 'GH₵', 'name' => 'Ghanaian Cedi',      'rate' => 0.00495],
+                                    ['code' => 'KES', 'symbol' => 'KSh', 'name' => 'Kenyan Shilling',    'rate' => 0.105],
+                                    ['code' => 'ZAR', 'symbol' => 'R',   'name' => 'South African Rand', 'rate' => 0.015],
+                                    ['code' => 'EGP', 'symbol' => 'E£',  'name' => 'Egyptian Pound',     'rate' => 0.05],
+                                    ['code' => 'TZS', 'symbol' => 'TSh', 'name' => 'Tanzanian Shilling', 'rate' => 2.12],
+                                    ['code' => 'XOF', 'symbol' => 'CFA', 'name' => 'West African CFA',   'rate' => 0.49],
+                                    ['code' => 'USD', 'symbol' => '$',   'name' => 'US Dollar',          'rate' => 0.000625],
+                                    ['code' => 'GBP', 'symbol' => '£',   'name' => 'British Pound',      'rate' => 0.000495],
+                                    ['code' => 'EUR', 'symbol' => '€',   'name' => 'Euro',               'rate' => 0.00057],
+                                    ['code' => 'CAD', 'symbol' => 'C$',  'name' => 'Canadian Dollar',    'rate' => 0.00085],
+                                    ['code' => 'AED', 'symbol' => 'د.إ', 'name' => 'UAE Dirham',         'rate' => 0.0023],
+                                ];
+                            @endphp
+                            @foreach($currencies as $c)
+                                <button class="currency-option w-full text-left px-4 py-2.5 text-sm hover:bg-white/10 transition flex items-center justify-between group
+                                               {{ $c['code'] === 'NGN' ? 'text-accent-jlm font-semibold' : 'text-gray-300' }}"
+                                        data-code="{{ $c['code'] }}"
+                                        data-symbol="{{ $c['symbol'] }}"
+                                        data-name="{{ $c['name'] }}"
+                                        data-rate="{{ $c['rate'] }}"
+                                        data-base="{{ $course->price }}">
+                                    <span>
+                                        <span class="font-mono text-xs mr-2 {{ $c['code'] === 'NGN' ? 'text-accent-jlm' : 'text-gray-500 group-hover:text-gray-300' }}">{{ $c['code'] }}</span>
+                                        {{ $c['name'] }}
+                                    </span>
+                                    <span class="text-gray-500 text-xs">{{ $c['symbol'] }}</span>
+                                </button>
+                            @endforeach
+                            <p class="text-xs text-gray-600 px-4 py-2 border-t border-white/5 mt-1">* Approximate rates</p>
+                        </div>
+                    </div>
+                @endif
+            </div>
 
             <h1 class="text-3xl md:text-4xl font-extrabold leading-tight mb-4">{{ $course->title }}</h1>
 
             @if($course->description)
-                <p class="text-lg text-gray-300 mb-5 leading-relaxed">{{ $course->description }}</p>
+                <p class="text-base md:text-lg text-gray-300 mb-5 leading-relaxed">{{ $course->description }}</p>
             @endif
 
             {{-- Stats row --}}
@@ -98,7 +148,7 @@
             </div>
 
             {{-- Instructor line --}}
-            <div class="flex items-center gap-2.5 mb-5">
+            <div class="flex items-center gap-2.5 mb-2">
                 <img src="{{ $course->instructor ? $course->instructor->avatarUrl() : 'https://ui-avatars.com/api/?name=Instructor' }}"
                      alt="{{ $course->instructor?->name }}"
                      class="w-9 h-9 rounded-full border-2 border-secondary-jlm object-cover">
@@ -108,109 +158,11 @@
             </div>
 
             @if($course->published_at)
-                <p class="text-gray-500 text-xs mb-5">
+                <p class="text-gray-500 text-xs">
                     <i class="fas fa-calendar-alt mr-1"></i>
                     Last updated: {{ $course->published_at->format('M Y') }}
                 </p>
             @endif
-
-            {{-- ===== PRICE + CURRENCY ===== --}}
-            <div class="mb-6">
-                @if($course->price > 0)
-                    <div class="flex flex-wrap items-end gap-4">
-                        {{-- Price display --}}
-                        <span id="heroPriceDisplay" class="text-4xl font-extrabold text-accent-jlm">
-                            ₦{{ number_format($course->price, 0) }}
-                        </span>
-
-                        {{-- Currency dropdown --}}
-                        <div class="relative" id="currencyDropdownWrap">
-                            <button id="currencyDropdownBtn"
-                                    class="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
-                                <i class="fas fa-globe-africa text-accent-jlm"></i>
-                                <span id="currencyLabel">NGN — Nigerian Naira</span>
-                                <i class="fas fa-chevron-down text-xs text-white/60" id="currencyChevron"></i>
-                            </button>
-
-                            <div id="currencyDropdownMenu"
-                                 class="hidden absolute left-0 top-full mt-2 w-64 bg-gray-800 border border-white/10 rounded-xl shadow-2xl z-30 py-2 max-h-72 overflow-y-auto">
-                                @php
-                                    $currencies = [
-                                        ['code' => 'NGN', 'symbol' => '₦',   'name' => 'Nigerian Naira',     'rate' => 1],
-                                        ['code' => 'GHS', 'symbol' => 'GH₵', 'name' => 'Ghanaian Cedi',      'rate' => 0.00495],
-                                        ['code' => 'KES', 'symbol' => 'KSh', 'name' => 'Kenyan Shilling',    'rate' => 0.105],
-                                        ['code' => 'ZAR', 'symbol' => 'R',   'name' => 'South African Rand', 'rate' => 0.015],
-                                        ['code' => 'EGP', 'symbol' => 'E£',  'name' => 'Egyptian Pound',     'rate' => 0.05],
-                                        ['code' => 'TZS', 'symbol' => 'TSh', 'name' => 'Tanzanian Shilling', 'rate' => 2.12],
-                                        ['code' => 'XOF', 'symbol' => 'CFA', 'name' => 'West African CFA',   'rate' => 0.49],
-                                        ['code' => 'USD', 'symbol' => '$',   'name' => 'US Dollar',          'rate' => 0.000625],
-                                        ['code' => 'GBP', 'symbol' => '£',   'name' => 'British Pound',      'rate' => 0.000495],
-                                        ['code' => 'EUR', 'symbol' => '€',   'name' => 'Euro',               'rate' => 0.00057],
-                                        ['code' => 'CAD', 'symbol' => 'C$',  'name' => 'Canadian Dollar',    'rate' => 0.00085],
-                                        ['code' => 'AED', 'symbol' => 'د.إ', 'name' => 'UAE Dirham',         'rate' => 0.0023],
-                                    ];
-                                @endphp
-                                @foreach($currencies as $c)
-                                    <button class="currency-option w-full text-left px-4 py-2.5 text-sm hover:bg-white/10 transition flex items-center justify-between group
-                                                   {{ $c['code'] === 'NGN' ? 'text-accent-jlm font-semibold' : 'text-gray-300' }}"
-                                            data-code="{{ $c['code'] }}"
-                                            data-symbol="{{ $c['symbol'] }}"
-                                            data-name="{{ $c['name'] }}"
-                                            data-rate="{{ $c['rate'] }}"
-                                            data-base="{{ $course->price }}">
-                                        <span>
-                                            <span class="font-mono text-xs mr-2 {{ $c['code'] === 'NGN' ? 'text-accent-jlm' : 'text-gray-500 group-hover:text-gray-300' }}">{{ $c['code'] }}</span>
-                                            {{ $c['name'] }}
-                                        </span>
-                                        <span class="text-gray-500 text-xs">{{ $c['symbol'] }}</span>
-                                    </button>
-                                @endforeach
-                                <p class="text-xs text-gray-600 px-4 py-2 border-t border-white/5 mt-1">* Approximate rates</p>
-                            </div>
-                        </div>
-                    </div>
-                @else
-                    <span class="text-4xl font-extrabold text-green-400">Free</span>
-                @endif
-            </div>
-
-            {{-- Enrol button --}}
-            @auth
-                @php
-                    $isEnrolled = auth()->user()->enrolledIn($course->id);
-                    $isPaid     = (float) $course->price > 0;
-                @endphp
-                @if($isEnrolled)
-                    @if($course->lessons->count() > 0)
-                        <a href="{{ route('lesson.show', [$course, $course->lessons->first()]) }}"
-                           class="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-8 py-3.5 rounded-full text-lg font-bold transition shadow-xl">
-                            <i class="fas fa-play-circle"></i> Continue Learning
-                        </a>
-                    @else
-                        <span class="inline-flex items-center gap-2 bg-green-500 text-white px-8 py-3.5 rounded-full text-lg font-bold shadow-xl">
-                            <i class="fas fa-check-circle"></i> Enrolled
-                        </span>
-                    @endif
-                @elseif($isPaid)
-                    <a href="{{ route('courses.checkout', $course) }}"
-                       class="inline-flex items-center gap-2 bg-secondary-jlm hover:bg-secondary-jlm/90 text-white px-8 py-3.5 rounded-full text-lg font-bold transition shadow-xl hover:shadow-secondary-jlm/30 hover:scale-105 transform duration-200">
-                        <i class="fas fa-lock"></i> Buy Now &mdash; ₦{{ number_format($course->price, 2) }}
-                    </a>
-                @else
-                    <form action="{{ route('courses.enroll', $course) }}" method="POST" class="inline">
-                        @csrf
-                        <button type="submit"
-                                class="inline-flex items-center gap-2 bg-secondary-jlm hover:bg-secondary-jlm/90 text-white px-8 py-3.5 rounded-full text-lg font-bold transition shadow-xl hover:shadow-secondary-jlm/30 hover:scale-105 transform duration-200">
-                            Enrol Free
-                        </button>
-                    </form>
-                @endif
-            @else
-                <a href="{{ route('login.student') }}"
-                   class="inline-flex items-center gap-2 bg-secondary-jlm hover:bg-secondary-jlm/90 text-white px-8 py-3.5 rounded-full text-lg font-bold transition shadow-xl hover:scale-105 transform duration-200">
-                    Login to Enrol
-                </a>
-            @endauth
 
             @if(session('status'))
                 <div class="mt-4 flex items-center gap-2 bg-green-500/20 border border-green-400/30 text-green-300 px-4 py-2.5 rounded-xl text-sm">
@@ -228,7 +180,7 @@
         {{-- LEFT COLUMN --}}
         <div class="lg:w-2/3 w-full space-y-10">
 
-            {{-- What you'll learn (lesson titles as learning points) --}}
+            {{-- What you'll learn --}}
             @if($course->lessons->count() > 0)
             <section class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
                 <h2 class="text-2xl font-extrabold text-primary-jlm mb-6">What you'll learn</h2>
@@ -250,56 +202,57 @@
             @endif
 
             {{-- Course Content Accordion --}}
-            @if($course->modules->count() > 0 || $course->lessons->count() > 0)
+            @if($course->lessons->count() > 0)
             <section class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-                <h2 class="text-2xl font-extrabold text-primary-jlm mb-2">Course Curriculum</h2>
+                <h2 class="text-2xl font-extrabold text-primary-jlm mb-2">Course Content</h2>
                 <p class="text-gray-500 text-sm mb-6">
-                    @if($course->modules->count() > 0)
-                        <span class="font-semibold text-gray-700">{{ $course->modules->count() }}</span> {{ Str::plural('module', $course->modules->count()) }} &nbsp;·&nbsp;
+                    {{ $course->lessons->count() }} {{ Str::plural('lesson', $course->lessons->count()) }}
+                    @if($course->duration_minutes)
+                        &bull; {{ floor($course->duration_minutes / 60) }}h {{ $course->duration_minutes % 60 }}m total duration
                     @endif
-                    <span class="font-semibold text-gray-700">{{ $course->lessons->count() }}</span> {{ Str::plural('lesson', $course->lessons->count()) }}
                 </p>
 
-                <div class="space-y-4">
-                    @if($course->modules->count() > 0)
-                        @foreach($course->modules as $modIndex => $module)
-                            <div class="border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
-                                <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                                    <div>
-                                        <span class="text-xs font-bold uppercase tracking-wider text-secondary-jlm">Module {{ $modIndex + 1 }}</span>
-                                        <h3 class="text-base font-extrabold text-gray-900">{{ $module->title }}</h3>
-                                        @if($module->description)
-                                            <p class="text-xs text-gray-500 mt-0.5">{{ $module->description }}</p>
-                                        @endif
-                                    </div>
-                                    <span class="text-xs font-semibold bg-white border border-gray-200 text-gray-600 px-3 py-1 rounded-full">
-                                        {{ $module->lessons->count() }} {{ Str::plural('lesson', $module->lessons->count()) }}
+                <div class="divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden">
+                    @php $grouped = $course->lessons->groupBy('section_title'); @endphp
+                    @if($grouped->count() > 1 || $grouped->keys()->first() !== '')
+                        @foreach($grouped as $sectionTitle => $sectionLessons)
+                            <div class="bg-gray-50">
+                                <button onclick="toggleAccordion('sec-{{ $loop->index }}', 'icon-sec-{{ $loop->index }}')"
+                                        class="w-full flex items-center justify-between p-4 text-left font-bold text-gray-800 hover:bg-gray-100 transition">
+                                    <span class="flex items-center gap-2">
+                                        <i class="fas fa-layer-group text-primary-jlm text-xs"></i>
+                                        {{ $sectionTitle ?: 'General Lessons' }}
                                     </span>
-                                </div>
-                                <div class="divide-y divide-gray-100 bg-white">
-                                    @forelse($module->lessons as $lesson)
-                                        <div class="px-6 py-3.5 flex items-center justify-between hover:bg-gray-50/80 transition text-sm">
+                                    <span class="flex items-center gap-3 text-xs text-gray-500">
+                                        <span>{{ $sectionLessons->count() }} {{ Str::plural('lesson', $sectionLessons->count()) }}</span>
+                                        <i id="icon-sec-{{ $loop->index }}" class="fas fa-chevron-down transition-transform duration-200"></i>
+                                    </span>
+                                </button>
+                                <div id="sec-{{ $loop->index }}" class="bg-white divide-y divide-gray-50">
+                                    @foreach($sectionLessons as $lesson)
+                                        <div class="px-5 py-3 flex items-center justify-between text-sm">
                                             <div class="flex items-center gap-3">
                                                 <i class="fas fa-play-circle text-primary-jlm"></i>
                                                 <span class="font-medium text-gray-800">{{ $lesson->title }}</span>
                                             </div>
-                                            @if($lesson->is_free)
-                                                <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 rounded-full">Free Preview</span>
+                                            @if($lesson->duration_minutes)
+                                                <span class="text-xs text-gray-400">{{ $lesson->duration_minutes }} min</span>
                                             @endif
                                         </div>
-                                    @empty
-                                        <div class="p-4 text-xs text-gray-400 italic">No lessons in this module yet.</div>
-                                    @endforelse
+                                    @endforeach
                                 </div>
                             </div>
                         @endforeach
                     @else
                         @foreach($course->lessons as $lesson)
-                            <div class="p-4 border border-gray-200 rounded-xl flex items-center justify-between text-sm">
+                            <div class="p-4 flex items-center justify-between text-sm bg-white hover:bg-gray-50 transition">
                                 <div class="flex items-center gap-3">
                                     <i class="fas fa-play-circle text-primary-jlm"></i>
                                     <span class="font-medium text-gray-800">{{ $lesson->title }}</span>
                                 </div>
+                                @if($lesson->duration_minutes)
+                                    <span class="text-xs text-gray-400">{{ $lesson->duration_minutes }} min</span>
+                                @endif
                             </div>
                         @endforeach
                     @endif
@@ -344,22 +297,22 @@
 
         </div>
 
-        {{-- RIGHT SIDEBAR --}}
+        {{-- RIGHT SIDEBAR CARD (Single Authoritative Price + CTA) --}}
         <aside class="lg:w-1/3 w-full">
             <div class="bg-white rounded-2xl shadow-xl sticky top-24 border border-gray-100 overflow-hidden">
 
                 {{-- Sidebar price --}}
-                <div class="border-b border-gray-100 px-6 py-5 text-center">
+                <div class="border-b border-gray-100 px-6 py-6 text-center bg-gray-50/50">
                     @if($course->price > 0)
-                        <p id="sidebarPrice" class="text-4xl font-extrabold text-primary-jlm mb-0.5">₦{{ number_format($course->price, 0) }}</p>
-                        <p id="sidebarCurrencyLabel" class="text-xs text-gray-400">Displayed in Nigerian Naira (NGN)</p>
+                        <p id="sidebarPrice" class="text-4xl font-extrabold text-primary-jlm mb-1">₦{{ number_format($course->price, 2) }}</p>
+                        <p id="sidebarCurrencyLabel" class="text-xs text-gray-500 font-medium">Displayed in Nigerian Naira (NGN)</p>
                     @else
-                        <p class="text-4xl font-extrabold text-green-600">Free</p>
+                        <p class="text-4xl font-extrabold text-emerald-600">Free</p>
                     @endif
                 </div>
 
-                <div class="px-6 py-5 space-y-4">
-                        {{-- CTA --}}
+                <div class="px-6 py-6 space-y-5">
+                    {{-- CTA --}}
                     @auth
                         @php
                             $isEnrolled = auth()->user()->enrolledIn($course->id);
@@ -368,29 +321,29 @@
                         @if($isEnrolled)
                             @if($course->lessons->count() > 0)
                                 <a href="{{ route('lesson.show', [$course, $course->lessons->first()]) }}"
-                                   class="block w-full text-center bg-green-500 hover:bg-green-600 text-white px-6 py-3.5 rounded-xl font-bold transition shadow-md">
+                                   class="block w-full text-center bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-4 rounded-xl font-bold transition shadow-md">
                                     <i class="fas fa-play-circle mr-2"></i>Continue Learning
                                 </a>
                             @else
-                                <div class="block w-full text-center bg-green-500 text-white px-6 py-3.5 rounded-xl font-bold">
+                                <div class="block w-full text-center bg-emerald-500 text-white px-6 py-4 rounded-xl font-bold">
                                     <i class="fas fa-check-circle mr-2"></i>You're Enrolled
                                 </div>
                             @endif
                         @elseif($isPaid)
                             <a href="{{ route('courses.checkout', $course) }}"
-                               class="block w-full text-center bg-accent-jlm hover:bg-yellow-400 text-primary-jlm px-6 py-3.5 rounded-xl font-extrabold transition shadow-md text-lg">
-                                <i class="fas fa-lock mr-2"></i>Buy &mdash; ₦{{ number_format($course->price, 2) }}
+                               class="block w-full text-center bg-secondary-jlm hover:bg-secondary-jlm/90 text-white px-6 py-4 rounded-xl font-extrabold transition shadow-md text-base tracking-wide">
+                                <i class="fas fa-lock mr-2"></i>Buy Now &mdash; <span class="buy-btn-price">₦{{ number_format($course->price, 2) }}</span>
                             </a>
                             <div class="flex items-center gap-2 mt-3">
                                 <form action="{{ route('cart.store', $course) }}" method="POST" class="flex-1">
                                     @csrf
-                                    <button type="submit" class="w-full bg-primary-jlm hover:bg-primary-jlm-dark text-white py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow">
+                                    <button type="submit" class="w-full bg-primary-jlm hover:bg-primary-jlm-dark text-white py-3 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow">
                                         <i class="fas fa-shopping-cart"></i> Add to Cart
                                     </button>
                                 </form>
                                 <form action="{{ route('wishlist.toggle', $course) }}" method="POST">
                                     @csrf
-                                    <button type="submit" class="p-2.5 border border-pink-200 text-pink-600 hover:bg-pink-50 rounded-xl transition" title="Wishlist">
+                                    <button type="submit" class="p-3 border border-pink-200 text-pink-600 hover:bg-pink-50 rounded-xl transition" title="Wishlist">
                                         <i class="fas fa-heart text-sm"></i>
                                     </button>
                                 </form>
@@ -399,20 +352,20 @@
                             <form action="{{ route('courses.enroll', $course) }}" method="POST">
                                 @csrf
                                 <button type="submit"
-                                        class="w-full bg-accent-jlm hover:bg-yellow-400 text-primary-jlm px-6 py-3.5 rounded-xl font-extrabold transition shadow-md text-lg">
+                                        class="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-4 rounded-xl font-extrabold transition shadow-md text-base">
                                     Enrol Free
                                 </button>
                             </form>
                         @endif
                     @else
                         <a href="{{ route('login.student') }}"
-                           class="block w-full text-center bg-accent-jlm hover:bg-yellow-400 text-primary-jlm px-6 py-3.5 rounded-xl font-extrabold transition shadow-md text-lg">
+                           class="block w-full text-center bg-secondary-jlm hover:bg-secondary-jlm/90 text-white px-6 py-4 rounded-xl font-extrabold transition shadow-md text-base">
                             Login to Enrol
                         </a>
                     @endauth
 
-                    {{-- Course Includes --}}
-                    <div>
+                    {{-- Course Includes Checklist --}}
+                    <div class="pt-2 border-t border-gray-100">
                         <h3 class="font-bold text-gray-800 text-sm mb-3">Course Includes:</h3>
                         <ul class="space-y-3 text-gray-600 text-sm">
                             @if($course->lessons->count() > 0)
@@ -460,7 +413,7 @@ function toggleAccordion(contentId, iconId) {
     if (icon) icon.classList.toggle('rotate-180');
 }
 
-// --- Currency dropdown (sticky hover same approach as nav) ---
+// --- Currency dropdown script ---
 (function() {
     const wrap  = document.getElementById('currencyDropdownWrap');
     const btn   = document.getElementById('currencyDropdownBtn');
@@ -475,9 +428,10 @@ function toggleAccordion(contentId, iconId) {
     btn.addEventListener('mouseleave', close);
     menu.addEventListener('mouseenter', open);
     menu.addEventListener('mouseleave', close);
+    btn.addEventListener('click', (e) => { e.stopPropagation(); menu.classList.toggle('hidden'); });
     document.addEventListener('click', e => { if (!wrap.contains(e.target)) { menu.classList.add('hidden'); } });
 
-    // Currency selection
+    // Currency selection listener
     document.querySelectorAll('.currency-option').forEach(opt => {
         opt.addEventListener('click', () => {
             const rate   = parseFloat(opt.dataset.rate);
@@ -491,15 +445,18 @@ function toggleAccordion(contentId, iconId) {
                 ? converted.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                 : Math.round(converted).toLocaleString();
 
-            // Update hero price
-            const heroPrice = document.getElementById('heroPriceDisplay');
-            if (heroPrice) heroPrice.textContent = symbol + formatted;
+            const fullPriceText = symbol + formatted;
 
-            // Update sidebar price + label
+            // Update sidebar price + currency label
             const sidebarPrice = document.getElementById('sidebarPrice');
             const sidebarLabel = document.getElementById('sidebarCurrencyLabel');
-            if (sidebarPrice) sidebarPrice.textContent = symbol + formatted;
+            if (sidebarPrice) sidebarPrice.textContent = fullPriceText;
             if (sidebarLabel) sidebarLabel.textContent = 'Displayed in ' + name + ' (' + code + ')';
+
+            // Update all Buy button price tags dynamically
+            document.querySelectorAll('.buy-btn-price').forEach(el => {
+                el.textContent = fullPriceText;
+            });
 
             // Update dropdown button label
             const label = document.getElementById('currencyLabel');
