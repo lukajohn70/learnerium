@@ -124,32 +124,53 @@
 </head>
 <body class="antialiased text-gray-800 min-h-screen flex flex-col justify-between">
     <div id="app" class="flex-grow flex flex-col">
-        <!-- Unified Navbar -->
-        <nav class="bg-white shadow-md p-4 sticky top-0 z-50">
-            <div class="container mx-auto flex justify-between items-center">
+        <!-- Unified JLM Glassmorphic Navbar -->
+        <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200/60 shadow-sm">
+            <div class="container mx-auto px-4 lg:px-8 flex justify-between items-center h-16">
                 <a href="{{ url('/') }}" class="flex items-center gap-2.5 group">
-                    <img src="{{ asset('logo.png') }}" alt="Learnerium Logo" class="h-9 w-auto object-contain transition group-hover:scale-105">
-                    <span class="text-2xl font-extrabold text-primary-jlm tracking-tight">Learnerium</span>
+                    <img src="{{ asset('logo.png') }}" alt="Learnerium Logo" class="h-10 w-auto object-contain transition group-hover:scale-105">
+                    <span class="text-2xl font-black bg-gradient-to-r from-[#1b2299] to-[#e4306d] bg-clip-text text-transparent tracking-tight">Learnerium</span>
                 </a>
                 
-                <!-- Desktop Nav Links -->
-                <div class="hidden lg:flex items-center space-x-6">
-                    <a href="{{ url('/') }}" class="text-primary-jlm hover:text-secondary-jlm font-medium transition duration-300">Home</a>
-                    <a href="{{ route('courses') }}" class="text-primary-jlm hover:text-secondary-jlm font-medium transition duration-300">Courses</a>
-                    <a href="{{ route('instructors') }}" class="text-primary-jlm hover:text-secondary-jlm font-medium transition duration-300">Instructors</a>
+                <!-- Desktop Nav Links (JLM Style) -->
+                <div class="hidden lg:flex items-center space-x-8">
+                    <a href="{{ url('/') }}" class="text-gray-700 hover:text-[#1b2299] font-semibold text-sm transition-colors duration-200 relative group py-1">
+                        Home
+                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#1b2299] to-[#e4306d] group-hover:w-full transition-all duration-300"></span>
+                    </a>
+                    <a href="{{ route('courses') }}" class="text-gray-700 hover:text-[#1b2299] font-semibold text-sm transition-colors duration-200 relative group py-1">
+                        Courses
+                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#1b2299] to-[#e4306d] group-hover:w-full transition-all duration-300"></span>
+                    </a>
+                    <a href="{{ route('instructors') }}" class="text-gray-700 hover:text-[#1b2299] font-semibold text-sm transition-colors duration-200 relative group py-1">
+                        Instructors
+                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#1b2299] to-[#e4306d] group-hover:w-full transition-all duration-300"></span>
+                    </a>
                     @auth
                         @if(Auth::user()->isInstructor())
-                            <a href="{{ route('instructor.dashboard') }}" class="text-secondary-jlm font-bold hover:text-secondary-jlm/80 transition duration-300 flex items-center gap-1.5">
+                            <a href="{{ route('instructor.dashboard') }}" class="text-secondary-jlm font-bold text-sm hover:text-secondary-jlm/80 transition duration-300 flex items-center gap-1.5">
                                 <i class="fas fa-chalkboard-teacher text-xs"></i>Instructor
                             </a>
                         @else
-                            <a href="{{ route('instructor.apply') }}" class="text-secondary-jlm font-bold hover:text-secondary-jlm/80 transition duration-300">Teach on Learnerium</a>
+                            <a href="{{ route('instructor.apply') }}" class="text-gray-700 hover:text-[#1b2299] font-semibold text-sm transition-colors duration-200 relative group py-1">
+                                Teach on Learnerium
+                                <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#1b2299] to-[#e4306d] group-hover:w-full transition-all duration-300"></span>
+                            </a>
                         @endif
                     @else
-                        <a href="{{ route('instructor.apply') }}" class="text-secondary-jlm font-bold hover:text-secondary-jlm/80 transition duration-300">Teach on Learnerium</a>
+                        <a href="{{ route('instructor.apply') }}" class="text-gray-700 hover:text-[#1b2299] font-semibold text-sm transition-colors duration-200 relative group py-1">
+                            Teach on Learnerium
+                            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#1b2299] to-[#e4306d] group-hover:w-full transition-all duration-300"></span>
+                        </a>
                     @endauth
-                    <a href="{{ route('about') }}" class="text-primary-jlm hover:text-secondary-jlm font-medium transition duration-300">About Us</a>
-                    <a href="{{ route('contact') }}" class="text-primary-jlm hover:text-secondary-jlm font-medium transition duration-300">Contact</a>
+                    <a href="{{ route('about') }}" class="text-gray-700 hover:text-[#1b2299] font-semibold text-sm transition-colors duration-200 relative group py-1">
+                        About
+                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#1b2299] to-[#e4306d] group-hover:w-full transition-all duration-300"></span>
+                    </a>
+                    <a href="{{ route('contact') }}" class="text-gray-700 hover:text-[#1b2299] font-semibold text-sm transition-colors duration-200 relative group py-1">
+                        Contact
+                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#1b2299] to-[#e4306d] group-hover:w-full transition-all duration-300"></span>
+                    </a>
                     @auth
                         @if(Auth::user()->isAdmin() || Auth::user()->role === 'admin')
                             <a href="{{ route('admin.dashboard') }}" class="bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl transition inline-flex items-center gap-1.5 shadow-md">
@@ -159,15 +180,15 @@
                     @endauth
                 </div>
 
-                <!-- Auth/Menu -->
+                <!-- Auth/Menu (JLM CTA Style) -->
                 <div class="hidden lg:flex items-center space-x-4">
                     @guest
                         <div class="relative" id="signInDropdownWrap">
-                            <button id="signInDropdownBtn" class="bg-primary-jlm text-white px-5 py-2.5 rounded-lg hover:bg-primary-jlm-dark transition duration-300 shadow-md font-semibold text-sm flex items-center space-x-2">
+                            <button id="signInDropdownBtn" class="bg-gradient-to-r from-[#1b2299] to-[#e4306d] text-white px-6 py-2 rounded-lg font-bold text-sm shadow-md hover:scale-105 transition-all duration-200 flex items-center space-x-2">
                                 <span>Sign In</span>
                                 <i class="fas fa-chevron-down text-xs"></i>
                             </button>
-                            <div id="signInDropdownMenu" class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl py-2 z-20 hidden border border-gray-100 origin-top-right">
+                            <div id="signInDropdownMenu" class="absolute right-0 mt-2 w-56 bg-white/90 backdrop-blur-md rounded-xl shadow-xl py-2 z-20 hidden border border-gray-100 origin-top-right">
                                 <a href="{{ route('login.student') }}" class="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-primary-jlm/5 hover:text-primary-jlm font-medium">
                                     <i class="fas fa-user-graduate mr-2.5 text-primary-jlm text-base"></i>Student Sign In
                                 </a>
@@ -176,7 +197,7 @@
                                 </a>
                             </div>
                         </div>
-                        <a href="{{ route('register') }}" class="border border-primary-jlm text-primary-jlm px-5 py-2.5 rounded-lg hover:bg-primary-jlm/5 transition duration-300 font-semibold text-sm">Register</a>
+                        <a href="{{ route('register') }}" class="border-2 border-[#1b2299] text-[#1b2299] px-6 py-1.5 rounded-lg font-bold text-sm hover:bg-[#1b2299] hover:text-white transition-all duration-200">Register</a>
                     @else
                         <!-- Wishlist & Cart Icons -->
                         <div class="flex items-center space-x-3 mr-2">

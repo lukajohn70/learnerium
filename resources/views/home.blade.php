@@ -4,140 +4,121 @@
 
 @section('content')
 
-<!-- Hero Header Section -->
-<header class="bg-gradient-to-br from-primary-jlm via-indigo-900 to-secondary-jlm text-white py-16 md:py-24 px-4 text-center relative overflow-hidden">
-    <div class="absolute inset-0 opacity-10" style="background-image: url('https://image.pollinations.ai/prompt/minimalistic%20abstract%20pattern%20soft%20gradients%20blue%20pink'); background-size: cover; background-position: center;"></div>
-    
-    <div class="relative z-10 max-w-5xl mx-auto">
-        <span class="inline-block px-4 py-1.5 rounded-full bg-white/10 backdrop-blur border border-white/20 text-accent-jlm font-bold text-xs uppercase tracking-wider mb-6">
-            ✨ Creative · Fast · Personalised
-        </span>
-        <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight mb-6 tracking-tight">
-            Learning, Elevated by Creativity.
-        </h1>
-        <p class="text-lg sm:text-xl md:text-2xl mb-10 opacity-90 max-w-3xl mx-auto font-light leading-relaxed">
-            Unlock your potential with Learnerium — powered by <a href="https://jlm.com.ng" target="_blank" rel="noopener" class="inline-flex items-center gap-1 bg-accent-jlm text-primary-jlm px-2.5 py-0.5 rounded-full text-sm font-extrabold hover:bg-yellow-300 transition no-underline"><i class="fas fa-external-link-alt text-[9px]"></i>JLM</a>'s innovative, personalised approach to education and skill mastery.
-        </p>
-        <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
-            <a href="{{ url('/courses') }}" class="w-full sm:w-auto bg-accent-jlm text-primary-jlm px-8 py-4 rounded-full text-lg font-bold hover:bg-yellow-300 transition duration-300 shadow-xl transform hover:scale-105">
-                <i class="fas fa-compass mr-2"></i>Explore Courses
-            </a>
-            <a href="{{ route('instructor.apply') }}" class="w-full sm:w-auto border-2 border-white/80 text-white px-8 py-4 rounded-full text-lg font-bold hover:bg-white hover:text-primary-jlm transition duration-300 transform hover:scale-105">
-                <i class="fas fa-chalkboard-teacher mr-2"></i>Become an Instructor
-            </a>
+<!-- Hero Section (JLM Layout Replica) -->
+<section id="home" class="relative min-h-[85vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-gray-50 via-white to-gray-50 py-16 lg:py-24">
+    <div class="absolute inset-0 bg-gradient-to-r from-[#1b2299]/5 to-[#e4306d]/5 pointer-events-none"></div>
+    <div class="absolute top-20 left-10 w-40 h-40 bg-[#f7de7a]/30 rounded-full blur-2xl animate-pulse pointer-events-none"></div>
+    <div class="absolute bottom-20 right-10 w-60 h-60 bg-[#e4306d]/20 rounded-full blur-2xl animate-pulse pointer-events-none"></div>
+
+    <div class="container mx-auto px-4 lg:px-8 relative z-10">
+        <div class="grid lg:grid-cols-2 gap-12 items-center">
+            <div class="text-center lg:text-left">
+                <div class="inline-flex items-center space-x-2 bg-white/80 backdrop-blur-md border border-[#1b2299]/20 rounded-full px-4 py-2 mb-6 shadow-sm">
+                    <span class="text-xs font-bold text-gray-700">✨ Creative &bull; Fast &bull; Personalised Education</span>
+                </div>
+                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 mb-6 leading-tight tracking-tight">
+                    Learning, <span class="bg-gradient-to-r from-[#1b2299] to-[#e4306d] bg-clip-text text-transparent">Elevated by JLM</span>
+                </h1>
+                <p class="text-lg text-gray-600 mb-8 max-w-2xl leading-relaxed">
+                    Unlock your potential with Learnerium — powered by <a href="https://jlm.com.ng" target="_blank" rel="noopener" class="inline-flex items-center gap-1 bg-accent-jlm text-primary-jlm px-2.5 py-0.5 rounded-full text-xs font-black hover:bg-yellow-300 transition no-underline"><i class="fas fa-external-link-alt text-[8px]"></i>JLM</a>'s innovative approach to skill mastery, interactive lessons, and expert consultancy.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                    <a href="{{ url('/courses') }}" class="bg-gradient-to-r from-[#1b2299] to-[#e4306d] text-white px-8 py-3.5 rounded-xl text-base font-bold shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl flex items-center justify-center gap-2">
+                        <i class="fas fa-compass"></i> Explore Courses
+                    </a>
+                    <a href="{{ route('instructor.apply') }}" class="border-2 border-[#1b2299] text-[#1b2299] px-8 py-3.5 text-base rounded-xl font-bold transition-all duration-200 hover:scale-105 hover:shadow-xl hover:bg-[#1b2299] hover:text-white flex items-center justify-center gap-2">
+                        <i class="fas fa-chalkboard-teacher"></i> Teach on Learnerium
+                    </a>
+                </div>
+            </div>
+            <div class="relative">
+                <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&auto=format&fit=crop&q=80" alt="Learnerium online learning platform" class="w-full h-[450px] object-cover rounded-3xl shadow-2xl border border-gray-100" />
+                <div class="absolute inset-0 bg-gradient-to-tr from-[#1b2299]/20 to-[#e4306d]/20 rounded-3xl pointer-events-none"></div>
+                <div class="absolute top-4 left-4 bg-white/80 backdrop-blur-md border border-white/40 p-4 rounded-2xl shadow-xl flex items-center gap-3">
+                    <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
+                    <div>
+                        <p class="text-xs font-bold text-gray-900">Interactive Lessons</p>
+                        <p class="text-[10px] text-gray-500">Self-paced learning</p>
+                    </div>
+                </div>
+                <div class="absolute bottom-6 right-6 bg-white/90 backdrop-blur-md border border-white/40 p-4 rounded-2xl shadow-xl flex items-center gap-3">
+                    <div class="w-10 h-10 bg-primary-jlm text-accent-jlm rounded-xl flex items-center justify-center text-lg font-bold">
+                        <i class="fas fa-certificate"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-extrabold text-gray-900">Verified Certificates</p>
+                        <p class="text-[10px] text-gray-500">Recognized worldwide</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-</header>
+</section>
 
 <!-- Search Bar Section -->
 <section class="py-8 bg-white border-b border-gray-100 shadow-sm">
     <div class="max-w-4xl mx-auto px-4">
         <form action="{{ route('courses') }}" method="GET" class="relative flex items-center">
             <input type="text" name="search" placeholder="Search for courses, skills, or topics..." 
-                   class="w-full pl-12 pr-28 py-3.5 border-2 border-gray-200 rounded-full focus:outline-none focus:border-primary-jlm transition text-base shadow-sm">
+                   class="w-full pl-12 pr-32 py-3.5 border-2 border-gray-200 rounded-full focus:outline-none focus:border-primary-jlm transition text-base shadow-sm">
             <i class="fas fa-search absolute left-4 text-gray-400 text-lg"></i>
-            <button type="submit" class="absolute right-2 bg-primary-jlm text-white px-6 py-2 rounded-full font-semibold text-sm hover:bg-primary-jlm-dark transition shadow">
+            <button type="submit" class="absolute right-2 bg-gradient-to-r from-[#1b2299] to-[#e4306d] text-white px-6 py-2 rounded-full font-bold text-sm hover:scale-105 transition shadow">
                 Search
             </button>
         </form>
     </div>
 </section>
 
-<!-- Popular Categories Section -->
+<!-- Featured Courses Section -->
 <section class="py-16 px-4 bg-gray-50">
     <div class="max-w-7xl mx-auto">
         <div class="text-center mb-12">
-            <h2 class="text-3xl md:text-4xl font-extrabold text-primary-jlm mb-3">Popular Categories</h2>
-            <p class="text-gray-500 text-base max-w-xl mx-auto">Discover top-rated subjects curated by leading industry experts.</p>
+            <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-3">
+                Featured <span class="bg-gradient-to-r from-[#1b2299] to-[#e4306d] bg-clip-text text-transparent">Courses</span>
+            </h2>
+            <p class="text-gray-600 text-base max-w-2xl mx-auto">Master high-demand skills with expert-led courses designed for your career growth.</p>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
-            <a href="{{ url('/courses') }}" class="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition text-center border border-gray-100 group">
-                <div class="w-16 h-16 rounded-2xl bg-yellow-100 text-yellow-700 mx-auto flex items-center justify-center text-xl font-bold mb-4 group-hover:scale-110 transition-transform">
-                    Tech
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            @forelse($featuredCourses as $course)
+                <div class="bg-white/80 backdrop-blur-md rounded-3xl border border-gray-100 shadow-sm hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 overflow-hidden flex flex-col justify-between group">
+                    <div>
+                        <div class="relative">
+                            <img src="{{ $course->thumbnailUrl() }}" alt="{{ $course->title }}" class="w-full h-48 object-cover group-hover:scale-105 transition duration-300" onerror="this.onerror=null;this.src='https://placehold.co/600x400/1b2299/f7de7a?text={{ urlencode($course->title) }}';">
+                            <span class="absolute top-3 left-3 bg-white/90 backdrop-blur text-gray-800 font-bold text-xs px-3 py-1 rounded-full shadow-sm capitalize">
+                                {{ $course->level ?? 'Beginner' }}
+                            </span>
+                        </div>
+                        <div class="p-6">
+                            @if($course->category)
+                                <span class="inline-block bg-[#1b2299]/10 text-[#1b2299] font-extrabold text-[11px] uppercase tracking-wider px-2.5 py-0.5 rounded-full mb-2">
+                                    {{ $course->category }}
+                                </span>
+                            @endif
+                            <h3 class="font-extrabold text-xl text-gray-900 mb-2 leading-snug hover:text-primary-jlm transition">
+                                <a href="{{ route('course.detail', $course->slug) }}">{{ $course->title }}</a>
+                            </h3>
+                            <p class="text-gray-500 text-sm mb-4 leading-relaxed line-clamp-2">
+                                {{ \Illuminate\Support\Str::limit($course->description, 110) }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="px-6 pb-6 pt-0 flex justify-between items-center border-t border-gray-50 pt-4">
+                        <span class="text-2xl font-black bg-gradient-to-r from-[#1b2299] to-[#e4306d] bg-clip-text text-transparent">
+                            {{ $course->price > 0 ? '₦' . number_format($course->price, 0) : 'Free' }}
+                        </span>
+                        <a href="{{ route('course.detail', $course->slug) }}" 
+                           class="bg-gradient-to-r from-[#1b2299] to-[#e4306d] text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md hover:scale-105 transition">
+                            Details
+                        </a>
+                    </div>
                 </div>
-                <h3 class="font-bold text-gray-800 text-base">Technology</h3>
-            </a>
-
-            <a href="{{ url('/courses') }}" class="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition text-center border border-gray-100 group">
-                <div class="w-16 h-16 rounded-2xl bg-pink-100 text-pink-600 mx-auto flex items-center justify-center text-xl font-bold mb-4 group-hover:scale-110 transition-transform">
-                    Biz
+            @empty
+                <div class="col-span-full bg-white rounded-3xl p-12 text-center border border-gray-100 shadow-sm">
+                    <p class="text-gray-500">No featured courses available at the moment.</p>
                 </div>
-                <h3 class="font-bold text-gray-800 text-base">Business</h3>
-            </a>
-
-            <a href="{{ url('/courses') }}" class="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition text-center border border-gray-100 group">
-                <div class="w-16 h-16 rounded-2xl bg-blue-100 text-blue-700 mx-auto flex items-center justify-center text-xl font-bold mb-4 group-hover:scale-110 transition-transform">
-                    Arts
-                </div>
-                <h3 class="font-bold text-gray-800 text-base">Arts & Design</h3>
-            </a>
-
-            <a href="{{ url('/courses') }}" class="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition text-center border border-gray-100 group">
-                <div class="w-16 h-16 rounded-2xl bg-amber-100 text-amber-700 mx-auto flex items-center justify-center text-xl font-bold mb-4 group-hover:scale-110 transition-transform">
-                    Media
-                </div>
-                <h3 class="font-bold text-gray-800 text-base">Media Production</h3>
-            </a>
-
-            <a href="{{ url('/courses') }}" class="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition text-center border border-gray-100 group col-span-2 sm:col-span-1">
-                <div class="w-16 h-16 rounded-2xl bg-rose-100 text-rose-600 mx-auto flex items-center justify-center text-xl font-bold mb-4 group-hover:scale-110 transition-transform">
-                    Sci
-                </div>
-                <h3 class="font-bold text-gray-800 text-base">Science & Data</h3>
-            </a>
-        </div>
-    </div>
-</section>
-
-<!-- Core Values Section -->
-<section class="py-16 px-4 bg-white">
-    <div class="max-w-7xl mx-auto text-center">
-        <h2 class="text-3xl md:text-4xl font-extrabold text-primary-jlm mb-4">
-            Our Core Values <span class="text-secondary-jlm">(Powered by <a href="https://jlm.com.ng" target="_blank" rel="noopener" class="inline-flex items-center gap-1 bg-accent-jlm text-primary-jlm px-2 py-0.5 rounded-full text-sm font-extrabold hover:bg-yellow-300 transition"><i class="fas fa-external-link-alt text-[9px]"></i>JLM</a>)</span>
-        </h2>
-        <p class="text-gray-500 text-base max-w-2xl mx-auto mb-12">Building a future where learning is accessible, engaging, and directly impactful.</p>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="p-8 rounded-3xl bg-gray-50 border border-gray-100 text-center">
-                <div class="w-16 h-16 rounded-2xl bg-primary-jlm/10 text-primary-jlm mx-auto flex items-center justify-center text-2xl mb-5">
-                    <i class="fas fa-palette"></i>
-                </div>
-                <h3 class="text-xl font-bold text-gray-800 mb-3">Creative</h3>
-                <p class="text-gray-600 text-sm leading-relaxed">Inspiring practical innovation through hands-on projects and interactive task gates.</p>
-            </div>
-
-            <div class="p-8 rounded-3xl bg-gray-50 border border-gray-100 text-center">
-                <div class="w-16 h-16 rounded-2xl bg-secondary-jlm/10 text-secondary-jlm mx-auto flex items-center justify-center text-2xl mb-5">
-                    <i class="fas fa-bolt"></i>
-                </div>
-                <h3 class="text-xl font-bold text-gray-800 mb-3">Fast</h3>
-                <p class="text-gray-600 text-sm leading-relaxed">Streamlined, responsive learning environment optimized for rapid skill acquisition.</p>
-            </div>
-
-            <div class="p-8 rounded-3xl bg-gray-50 border border-gray-100 text-center">
-                <div class="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-600 mx-auto flex items-center justify-center text-2xl mb-5">
-                    <i class="fas fa-user-check"></i>
-                </div>
-                <h3 class="text-xl font-bold text-gray-800 mb-3">Personalised</h3>
-                <p class="text-gray-600 text-sm leading-relaxed">Tailored progress tracking, peer review feedback, and flexible course paths.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Call to Action Banner -->
-<section class="py-16 px-4 bg-gradient-to-r from-primary-jlm to-primary-jlm-dark text-white text-center">
-    <div class="max-w-4xl mx-auto">
-        <h2 class="text-3xl sm:text-4xl font-extrabold mb-4">Ready to Start Learning?</h2>
-        <p class="text-lg text-white/80 mb-8 max-w-2xl mx-auto">Join thousands of students building real-world skills today.</p>
-        <div class="flex flex-col sm:flex-row justify-center gap-4">
-            <a href="{{ route('register') }}" class="bg-secondary-jlm text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-secondary-jlm/90 transition shadow-lg transform hover:scale-105">
-                Get Started Free
-            </a>
-            <a href="{{ route('courses') }}" class="border border-white/40 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white/10 transition">
-                Browse All Courses
-            </a>
+            @endforelse
         </div>
     </div>
 </section>
