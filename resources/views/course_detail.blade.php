@@ -9,18 +9,10 @@
 
         {{-- Thumbnail left --}}
         <div class="lg:w-5/12 w-full flex-shrink-0">
-            @if($course->thumbnail)
-                <img src="{{ asset('storage/' . $course->thumbnail) }}"
-                     alt="{{ $course->title }}"
-                     class="rounded-xl shadow-2xl w-full object-cover aspect-video">
-            @else
-                <div class="rounded-xl bg-primary-jlm/60 border border-white/10 w-full aspect-video flex items-center justify-center shadow-2xl">
-                    <div class="text-center">
-                        <i class="fas fa-graduation-cap text-6xl text-accent-jlm mb-3"></i>
-                        <p class="text-white/50 text-sm">{{ $course->title }}</p>
-                    </div>
-                </div>
-            @endif
+            <img src="{{ $course->thumbnailUrl() }}"
+                 alt="{{ $course->title }}"
+                 class="rounded-xl shadow-2xl w-full object-cover aspect-video"
+                 onerror="this.onerror=null;this.src='https://placehold.co/600x400/1b2299/f7de7a?text={{ urlencode($course->title) }}';">
         </div>
 
         {{-- Info right --}}
@@ -62,9 +54,9 @@
 
             {{-- Instructor line --}}
             <div class="flex items-center gap-2.5 mb-5">
-                <img src="https://placehold.co/36x36/e4306d/ffffff?text={{ urlencode(substr($course->instructor?->name ?? 'IN', 0, 2)) }}"
+                <img src="{{ $course->instructor ? $course->instructor->avatarUrl() : 'https://ui-avatars.com/api/?name=Instructor' }}"
                      alt="{{ $course->instructor?->name }}"
-                     class="w-9 h-9 rounded-full border-2 border-secondary-jlm">
+                     class="w-9 h-9 rounded-full border-2 border-secondary-jlm object-cover">
                 <span class="text-sm text-gray-400">Created by
                     <span class="text-secondary-jlm font-semibold">{{ $course->instructor?->name ?? 'Learnerium Instructor' }}</span>
                 </span>
@@ -274,9 +266,9 @@
             <section class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
                 <h2 class="text-2xl font-extrabold text-primary-jlm mb-6">About the Instructor</h2>
                 <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-                    <img src="https://placehold.co/120x120/e4306d/ffffff?text={{ urlencode(substr($course->instructor?->name ?? 'IN', 0, 2)) }}"
+                    <img src="{{ $course->instructor ? $course->instructor->avatarUrl() : 'https://ui-avatars.com/api/?name=Instructor' }}"
                          alt="{{ $course->instructor?->name }}"
-                         class="rounded-full w-28 h-28 object-cover shadow-lg flex-shrink-0">
+                         class="rounded-full w-28 h-28 object-cover shadow-lg flex-shrink-0 border-4 border-secondary-jlm">
                     <div class="text-center sm:text-left">
                         <h3 class="text-xl font-bold text-gray-800 mb-1">{{ $course->instructor?->name ?? 'Learnerium Instructor' }}</h3>
                         <p class="text-secondary-jlm font-semibold text-sm mb-3">Course Instructor</p>
