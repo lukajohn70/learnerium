@@ -42,7 +42,7 @@ class PaymentController extends Controller
     public function applyCoupon(Request $request, Course $course)
     {
         $request->validate([
-            'coupon_code' => 'required|string',
+            'coupon_code' => 'nullable|string',
         ]);
 
         $code = strtoupper(trim($request->input('coupon_code')));
@@ -115,7 +115,7 @@ class PaymentController extends Controller
         }
 
         // Check if Paystack is configured
-        $secretKey = config('services.paystack.secret_key');
+        $secretKey = config('services.paystack.secret_key') ?: env('PAYSTACK_SECRET_KEY');
         if (empty($secretKey)) {
             return back()->with('error', 'Payment gateway is currently not configured.');
         }

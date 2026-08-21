@@ -34,18 +34,27 @@
                     </div>
                 </div>
 
-                <!-- Coupon Box -->
-                <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-100 space-y-4">
-                    <h3 class="font-bold text-gray-800 flex items-center gap-2">
-                        <i class="fas fa-tag text-secondary-jlm"></i> Have a Coupon Code?
-                    </h3>
-                    <div class="flex gap-3">
-                        <input type="text" id="coupon_input" placeholder="ENTER CODE" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-secondary-jlm/30 focus:border-secondary-jlm text-gray-800 font-bold tracking-widest uppercase text-sm">
-                        <button type="button" id="apply_coupon_btn" class="bg-gray-800 hover:bg-gray-900 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition flex-shrink-0">
-                            Apply
-                        </button>
+                <!-- Togglable Coupon Box (Optional) -->
+                <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-100">
+                    <button type="button" id="toggle_coupon_btn" class="w-full flex items-center justify-between text-left font-bold text-gray-800 focus:outline-none group">
+                        <span class="flex items-center gap-2 text-sm">
+                            <i class="fas fa-tag text-secondary-jlm"></i> Have a Coupon Code?
+                        </span>
+                        <span class="text-xs font-semibold text-primary-jlm group-hover:underline flex items-center gap-1">
+                            <span id="coupon_toggle_label">Enter code</span>
+                            <i class="fas fa-chevron-down text-[10px] transition-transform duration-200" id="coupon_chevron"></i>
+                        </span>
+                    </button>
+
+                    <div id="coupon_container" class="hidden pt-4 border-t border-gray-100 mt-4">
+                        <div class="flex gap-3">
+                            <input type="text" id="coupon_input" placeholder="ENTER CODE" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-secondary-jlm/30 focus:border-secondary-jlm text-gray-800 font-bold tracking-widest uppercase text-sm">
+                            <button type="button" id="apply_coupon_btn" class="bg-gray-800 hover:bg-gray-900 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition flex-shrink-0">
+                                Apply
+                            </button>
+                        </div>
+                        <div id="coupon_msg" class="text-xs font-semibold hidden mt-2"></div>
                     </div>
-                    <div id="coupon_msg" class="text-xs font-semibold hidden"></div>
                 </div>
             </div>
 
@@ -70,7 +79,7 @@
                             <span class="text-primary-jlm text-xl" id="total_val">₦{{ number_format($course->price, 2) }}</span>
                         </div>
 
-                        <!-- Checkout Forms -->
+                        <!-- Checkout Forms (Optional Coupon) -->
                         <form action="{{ route('courses.checkout.initialize', $course) }}" method="POST" class="pt-4">
                             @csrf
                             <input type="hidden" name="coupon_code" id="applied_coupon_code">
@@ -91,6 +100,10 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    const toggleBtn = document.getElementById('toggle_coupon_btn');
+    const couponContainer = document.getElementById('coupon_container');
+    const couponChevron = document.getElementById('coupon_chevron');
+    const couponToggleLabel = document.getElementById('coupon_toggle_label');
     const couponInput = document.getElementById('coupon_input');
     const applyBtn = document.getElementById('apply_coupon_btn');
     const couponMsg = document.getElementById('coupon_msg');
@@ -99,6 +112,21 @@ document.addEventListener('DOMContentLoaded', function () {
     const totalVal = document.getElementById('total_val');
     const appliedCouponInput = document.getElementById('applied_coupon_code');
     const checkoutBtnText = document.getElementById('checkout_btn_text');
+
+    // Toggle Coupon Drawer
+    toggleBtn.addEventListener('click', function () {
+        const isHidden = couponContainer.classList.contains('hidden');
+        if (isHidden) {
+            couponContainer.classList.remove('hidden');
+            couponChevron.style.transform = 'rotate(180deg)';
+            couponToggleLabel.textContent = 'Hide code';
+            couponInput.focus();
+        } else {
+            couponContainer.classList.add('hidden');
+            couponChevron.style.transform = 'rotate(0deg)';
+            couponToggleLabel.textContent = 'Enter code';
+        }
+    });
 
     applyBtn.addEventListener('click', function () {
         const code = couponInput.value.trim();
