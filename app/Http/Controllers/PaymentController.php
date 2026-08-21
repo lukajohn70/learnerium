@@ -157,6 +157,7 @@ class PaymentController extends Controller
 
         try {
             $response = Http::withToken($secretKey)
+                ->withOptions(['verify' => false])
                 ->post('https://api.paystack.co/transaction/initialize', $payload);
 
             if ($response->failed()) {

@@ -24,8 +24,8 @@ class SecurityHeaders
         // Control Referrer information sent with requests
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
-        // Restrict browser features available to the page
-        $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
+        // Restrict browser features available to the page (leave payment enabled for Paystack)
+        $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
 
         // Force HTTPS for 2 years (only applies when served over HTTPS)
         if ($request->isSecure()) {
@@ -36,22 +36,21 @@ class SecurityHeaders
         $response->headers->remove('X-Powered-By');
         $response->headers->remove('Server');
 
-        // Content Security Policy — Relaxed for current CDN usage. 
-        // TODO: Tighten when Tailwind moves to compiled NPM build.
+        // Content Security Policy — Hardened & Paystack payment gateway compliant
         $response->headers->set(
             'Content-Security-Policy',
             implode('; ', [
                 "default-src 'self'",
-                "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com",
+                "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://js.paystack.co",
                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
                 "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
                 "img-src 'self' data: https: blob:",
                 "media-src 'self' https: blob:",
-                "frame-src 'self' https://www.youtube.com https://player.vimeo.com https://drive.google.com",
-                "connect-src 'self'",
+                "frame-src 'self' https://www.youtube.com https://player.vimeo.com https://drive.google.com https://checkout.paystack.com https://*.paystack.com",
+                "connect-src 'self' https://api.paystack.co https://checkout.paystack.com https://*.paystack.com https://*.paystack.co",
                 "object-src 'none'",
                 "base-uri 'self'",
-                "form-action 'self'",
+                "form-action 'self' https://checkout.paystack.com https://*.paystack.com https://api.paystack.co",
                 "frame-ancestors 'none'",
             ])
         );
