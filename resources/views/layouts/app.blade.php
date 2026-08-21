@@ -87,6 +87,13 @@
                     @endauth
                     <a href="{{ route('about') }}" class="text-primary-jlm hover:text-secondary-jlm font-medium transition duration-300">About Us</a>
                     <a href="{{ route('contact') }}" class="text-primary-jlm hover:text-secondary-jlm font-medium transition duration-300">Contact</a>
+                    @auth
+                        @if(Auth::user()->isAdmin() || Auth::user()->role === 'admin')
+                            <a href="{{ route('admin.dashboard') }}" class="bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl transition inline-flex items-center gap-1.5 shadow-md">
+                                <i class="fas fa-shield-alt text-amber-300"></i> Admin Panel
+                            </a>
+                        @endif
+                    @endauth
                 </div>
 
                 <!-- Auth/Menu -->

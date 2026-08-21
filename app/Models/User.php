@@ -32,7 +32,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         if (!empty($this->avatar)) {
             $av = str_replace('primary-jlm', '1b2299', $this->avatar);
-            if (str_starts_with($av, 'http://') || str_starts_with($av, 'https://')) {
+            if (str_contains($av, 'ui-avatars.com') || str_contains($av, 'gravatar.com') || str_contains($av, 'placehold.co')) {
                 return $av;
             }
             $filename = basename($av);
@@ -42,7 +42,7 @@ class User extends Authenticatable implements MustVerifyEmail
         }
         if (!empty($this->profile_picture)) {
             $pic = str_replace('primary-jlm', '1b2299', $this->profile_picture);
-            if (str_starts_with($pic, 'http://') || str_starts_with($pic, 'https://')) {
+            if (str_contains($pic, 'ui-avatars.com') || str_contains($pic, 'gravatar.com') || str_contains($pic, 'placehold.co')) {
                 return $pic;
             }
             $filename = basename($pic);

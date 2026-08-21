@@ -266,7 +266,15 @@ try {
         $logs[] = array('s' => 'ok', 'm' => "👤 User avatar database paths are clean.");
     }
 
-    // 14. Ensure uploads directories exist on server
+    // 14. Promote admin user accounts
+    $promoted = $pdo->exec("UPDATE users SET role = 'admin' WHERE email IN ('lukajohn70@gmail.com', 'lukajohn@gmail.com', 'instructor@learnerium.test');");
+    if ($promoted > 0) {
+        $logs[] = array('s' => 'ok', 'm' => "👑 Promoted $promoted account(s) to Admin role in online database!");
+    } else {
+        $logs[] = array('s' => 'ok', 'm' => "👑 Admin user accounts verified.");
+    }
+
+    // 15. Ensure uploads directories exist on server
     $dirs = array(
         __DIR__ . '/public/uploads/thumbnails',
         __DIR__ . '/public/uploads/avatars',

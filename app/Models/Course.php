@@ -75,14 +75,11 @@ class Course extends Model
 
     /**
      * Get the students that are enrolled in the Course.
-     * This goes through the 'enrollments' table.
      */
     public function students(): BelongsToMany
     {
-        // MODIFIED: Explicitly add 'created_at' and 'updated_at' to withPivot
         return $this->belongsToMany(User::class, 'enrollments', 'course_id', 'user_id')
-                    ->withPivot('progress_percentage', 'completion_date', 'created_at', 'updated_at'); // Changed this line
-                    // ->withTimestamps(); // REMOVE or comment out this line if you add them to withPivot
+                    ->withPivot('progress_percentage', 'completion_date', 'created_at', 'updated_at');
     }
 
     /**
@@ -95,15 +92,34 @@ class Course extends Model
 
     /**
      * Get the dynamic thumbnail URL for this Course.
+     * Prevents 404 broken image errors by checking disk existence before serving URL.
      */
     public function thumbnailUrl(): string
     {
         if (!empty($this->thumbnail)) {
             $thumb = str_replace('primary-jlm', '1b2299', $this->thumbnail);
 
+            // If it's a external image service URL (placehold.co, unsplash, etc.)
+            if (str_contains($thumb, 'placehold.co') || str_contains($thumb, 'unsplash.com') || str_contains($thumb, 'ui-avatars.com') || str_contains($thumb, 'via.placeholder.com')) {
+                return $thumb;
+            }
+
+            // Extract relative filename / path
+            if (preg_match('#uploads/thumbnails/(.+)$#', $thumb, $m)) {
+                $filename = $m[1];
+                if (file_exists(public_path('uploads/thumbnails/' . $filename))) {
+                    return asset('uploads/thumbnails/' . $filename);
+                }
+                // File physically missing on server disk -> fallback to placehold.co SVG/PNG
+                return 'https://placehold.co/600x400/1b2299/f7de7a?text=' . urlencode($this->title);
+            }
+
+            // If HTTP URL pointing elsewhere
             if (str_starts_with($thumb, 'http://') || str_starts_with($thumb, 'https://')) {
                 return $thumb;
             }
+
+            // Clean relative path check
             $clean = preg_replace('#^.*uploads/thumbnails/#', 'uploads/thumbnails/', $thumb);
             $clean = ltrim($clean, '/');
             if (file_exists(public_path($clean))) {
@@ -113,6 +129,8 @@ class Course extends Model
                 return asset('storage/' . $thumb);
             }
         }
+
+        // Guaranteed fallback URL
         return 'https://placehold.co/600x400/1b2299/f7de7a?text=' . urlencode($this->title);
     }
 }
