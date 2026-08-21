@@ -121,7 +121,7 @@
                     <div class="bg-white rounded-3xl shadow-sm hover:shadow-xl border border-gray-100 overflow-hidden transition-all duration-300 transform hover:-translate-y-1 flex flex-col justify-between">
                         <div>
                             <div class="relative">
-                                <img src="{{ $course->thumbnailUrl() }}" alt="{{ $course->title }}" class="w-full h-48 object-cover">
+                                <img src="{{ $course->thumbnailUrl() }}" alt="{{ $course->title }}" class="w-full h-48 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/600x400/1b2299/f7de7a?text={{ urlencode($course->title) }}';">
                                 <span class="absolute top-3 left-3 bg-white/90 backdrop-blur text-gray-800 font-bold text-xs px-3 py-1 rounded-full shadow-sm capitalize">
                                     {{ $course->level ?? 'Beginner' }}
                                 </span>
@@ -148,7 +148,7 @@
                                     {{ \Illuminate\Support\Str::limit($course->description, 110) }}
                                 </p>
                                 <div class="flex items-center gap-2.5 text-xs font-semibold text-gray-600 mb-4">
-                                    <img src="{{ $course->instructor ? $course->instructor->avatarUrl() : 'https://placehold.co/24x24' }}" class="w-6 h-6 rounded-full object-cover">
+                                    <img src="{{ $course->instructor ? $course->instructor->avatarUrl() : 'https://ui-avatars.com/api/?name=Instructor' }}" class="w-6 h-6 rounded-full object-cover" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Instructor';">
                                     <span>{{ $course->instructor?->name ?? 'Instructor' }}</span>
                                 </div>
                             </div>
@@ -170,13 +170,10 @@
                                     @endif
                                 @endauth
                                 <a href="{{ route('course.detail', $course->slug) }}" 
-                                   class="bg-secondary-jlm hover:bg-secondary-jlm/90 text-white px-4 py-2.5 rounded-xl text-sm font-bold transition shadow-md hover:shadow-secondary-jlm/30">
+                                   class="bg-secondary-jlm hover:bg-secondary-jlm/90 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition shadow-md hover:shadow-secondary-jlm/30">
                                     Details
                                 </a>
                             </div>
-                        </div>
-                                View Course
-                            </a>
                         </div>
                     </div>
                 @empty
