@@ -1,0 +1,10 @@
+# Prevent execution of any scripts in upload directories
+<FilesMatch "(?i)\.(php|phtml|php3|php4|php5|php7|phps|cgi|pl|py|exe|sh)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Force default handler (serve as static plain files only)
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .phps
+RemoveType .php .phtml .php3 .php4 .php5 .php7 .phps
+php_flag engine off

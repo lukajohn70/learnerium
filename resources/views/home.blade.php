@@ -1,6 +1,11 @@
 @extends('layouts.app')
+@section('title', 'Learnerium — Learning, Elevated by Creativity')
+@section('meta_description', 'Learnerium is Nigeria\'s premier online learning platform. Discover expert-led courses in technology, business, design, and more — powered by JLM\'s innovative, personalised education approach.')
+@section('og_title', 'Learnerium — Learning, Elevated by Creativity')
+@section('og_description', 'Discover expert-led online courses in tech, business, and design. Earn verified certificates and unlock your potential with Learnerium — powered by JLM.')
+@section('og_image', asset('logo-only.png'))
 
-@section('title', 'Learnerium - Elevating Education with JLM')
+
 
 @section('content')
 

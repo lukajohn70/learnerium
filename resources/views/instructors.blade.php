@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Instructors — Learnerium')
+@section('title', 'Meet Our Instructors — Learnerium')
+@section('meta_description', 'Meet the expert instructors on Learnerium. Learn from industry professionals, creative minds, and passionate educators across technology, design, and business.')
+@section('og_title', 'Meet Our Expert Instructors \u2014 Learnerium')
+@section('og_description', 'Learn from the best. Our verified instructors bring real-world expertise to every course on Learnerium \u2014 powered by JLM.')
 
 @section('content')
 

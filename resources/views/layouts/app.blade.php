@@ -9,6 +9,31 @@
 
     <title>@yield('title', config('app.name', 'Learnerium') . ' - Elevating Education')</title>
 
+    {{-- SEO: Meta Description (override per-page with @section('meta_description')) --}}
+    <meta name="description" content="@yield('meta_description', 'Learnerium is an innovative online learning platform by JLM — offering expert-led courses, interactive lessons, and verified certificates to learners across Africa and beyond.')">
+
+    {{-- SEO: Canonical URL (auto-resolves to current page URL) --}}
+    <link rel="canonical" href="@yield('canonical', url()->current())">
+
+    {{-- SEO: Open Graph (Facebook, WhatsApp, LinkedIn) --}}
+    <meta property="og:type" content="@yield('og_type', 'website')">
+    <meta property="og:site_name" content="Learnerium">
+    <meta property="og:title" content="@yield('og_title', 'Learnerium - Elevating Education')">
+    <meta property="og:description" content="@yield('og_description', 'Expert-led online courses, interactive lessons, and verified certificates — powered by JLM.')">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:image" content="@yield('og_image', asset('logo-only.png'))">
+    <meta property="og:locale" content="en_NG">
+
+    {{-- SEO: Twitter / X Card --}}
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@jlmng">
+    <meta name="twitter:title" content="@yield('og_title', 'Learnerium - Elevating Education')">
+    <meta name="twitter:description" content="@yield('og_description', 'Expert-led online courses, interactive lessons, and verified certificates — powered by JLM.')">
+    <meta name="twitter:image" content="@yield('og_image', asset('logo-only.png'))">
+
+    {{-- Per-page JSON-LD Structured Data slot --}}
+    @stack('structured_data')
+
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="{{ asset('logo-only.png') }}">
     <link rel="shortcut icon" href="{{ asset('logo-only.png') }}">

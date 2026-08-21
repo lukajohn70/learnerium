@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
 @section('title', 'About Us — Learnerium')
+@section('meta_description', 'Learn about Learnerium — a JLM-powered e-learning platform built to democratise quality education across Africa and beyond through creative, fast, and personalised learning.')
+@section('og_title', 'About Learnerium \u2014 Our Mission & Story')
+@section('og_description', 'Learnerium is on a mission to make quality education accessible to everyone. Discover who we are, what we stand for, and how we\u2019re transforming learning across Africa.')
 
 @section('content')
 

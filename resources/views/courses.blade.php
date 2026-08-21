@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
 @section('title', 'Explore Courses — Learnerium')
+@section('meta_description', 'Browse all available courses on Learnerium. Find expert-led courses in web development, design, business, and more — with verified certificates upon completion.')
+@section('og_title', 'Explore Courses — Learnerium')
+@section('og_description', 'Discover and enrol in top-quality online courses across technology, business, and creative skills. Earn verified certificates on Learnerium.')
 
 @section('content')
 

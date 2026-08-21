@@ -1,5 +1,50 @@
 @extends('layouts.app')
 @section('title', $course->title . ' — Learnerium')
+@section('meta_description', Str::limit(strip_tags($course->description ?? 'Enrol in ' . $course->title . ' on Learnerium. Expert-led online course with interactive lessons and a verified certificate upon completion.'), 155))
+@section('og_type', 'article')
+@section('og_title', $course->title . ' — Learnerium Course')
+@section('og_description', Str::limit(strip_tags($course->description ?? 'Enrol in ' . $course->title . ' — an expert-led online course on Learnerium with interactive lessons and a verified certificate.'), 155))
+@section('og_image', $course->thumbnailUrl())
+@section('canonical', url('/courses/' . $course->slug))
+
+@push('structured_data')
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Course",
+  "name": "{{ addslashes($course->title) }}",
+  "description": "{{ addslashes(Str::limit(strip_tags($course->description ?? ''), 250)) }}",
+  "url": "{{ url('/courses/' . $course->slug) }}",
+  "image": "{{ $course->thumbnailUrl() }}",
+  "provider": {
+    "@type": "Organization",
+    "name": "Learnerium",
+    "url": "{{ url('/') }}",
+    "logo": "{{ asset('logo-only.png') }}"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "{{ number_format($course->price, 2) }}",
+    "priceCurrency": "NGN",
+    "availability": "https://schema.org/InStock",
+    "url": "{{ url('/courses/' . $course->slug) }}"
+  },
+  @if($course->instructor)
+  "instructor": {
+    "@type": "Person",
+    "name": "{{ addslashes($course->instructor->name) }}"
+  },
+  @endif
+  @if($course->level)
+  "educationalLevel": "{{ ucfirst($course->level) }}",
+  @endif
+  @if($course->duration_minutes)
+  "timeRequired": "PT{{ floor($course->duration_minutes / 60) }}H{{ $course->duration_minutes % 60 }}M",
+  @endif
+  "inLanguage": "en"
+}
+</script>
+@endpush
 
 @section('content')
 

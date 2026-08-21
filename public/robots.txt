@@ -1,2 +1,31 @@
 User-agent: *
-Disallow:
+
+# Disallow private, auth, and admin areas
+Disallow: /admin/
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /login
+Disallow: /register
+Disallow: /logout
+Disallow: /profile
+Disallow: /settings
+Disallow: /password/
+Disallow: /email/verify
+Disallow: /uploads/
+Disallow: /storage/
+Disallow: /payment/
+Disallow: /cart/
+Disallow: /checkout/
+Disallow: /instructor/
+Disallow: /switch-role
+
+# Allow public content
+Allow: /courses
+Allow: /instructors
+Allow: /about
+Allow: /contact
+Allow: /privacy-policy
+Allow: /terms-of-service
+
+# Sitemap location
+Sitemap: https://learnerium.jlm.com.ng/sitemap.xml

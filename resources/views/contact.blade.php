@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
 @section('title', 'Contact Us — Learnerium')
+@section('meta_description', 'Get in touch with the Learnerium team. Have a question about courses, instructor applications, or partnerships? We\u2019re here to help.')
+@section('og_title', 'Contact Learnerium')
+@section('og_description', 'Reach out to the Learnerium support team. We\u2019d love to hear from you — whether you\u2019re a student, instructor, or potential partner.')
 
 @section('content')
 

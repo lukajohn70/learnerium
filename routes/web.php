@@ -22,6 +22,7 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\LessonDiscussionController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\WishlistController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Middleware\IsInstructor;
 
 /*
@@ -47,6 +48,9 @@ Route::get('/contact', function () { return view('contact'); })->name('contact')
 Route::get('/privacy-policy', function () { return view('privacy'); })->name('privacy');
 Route::get('/terms-of-service', function () { return view('eua'); })->name('eua');
 
+// SEO: Dynamic XML Sitemap
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+
 // Payment callback - public route (Paystack redirects here)
 Route::get('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
 
@@ -69,18 +73,18 @@ Auth::routes(['verify' => true]);
 // Dedicated Student Login Routes
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::get('/login/student', [LoginController::class, 'showLoginForm'])->name('login.student');
-Route::post('/login/student', [LoginController::class, 'loginStudent'])->name('login.student.post');
+Route::post('/login/student', [LoginController::class, 'loginStudent'])->middleware('throttle:5,1')->name('login.student.post');
 
 // Dedicated Instructor Login Routes
 Route::get('/login/instructor', [LoginController::class, 'showInstructorLoginForm'])->name('login.instructor');
-Route::post('/login/instructor', [LoginController::class, 'loginInstructor'])->name('login.instructor.post');
+Route::post('/login/instructor', [LoginController::class, 'loginInstructor'])->middleware('throttle:5,1')->name('login.instructor.post');
 
 // Instructor Application & Verification Routes
 Route::get('/apply-instructor', [InstructorApplicationController::class, 'showForm'])->name('instructor.apply');
-Route::post('/apply-instructor', [InstructorApplicationController::class, 'submit'])->name('instructor.apply.submit');
+Route::post('/apply-instructor', [InstructorApplicationController::class, 'submit'])->middleware('throttle:5,1')->name('instructor.apply.submit');
 
 Route::get('/register/instructor', [InstructorApplicationController::class, 'showForm'])->name('register.instructor');
-Route::post('/register/instructor', [InstructorApplicationController::class, 'submit'])->name('register.instructor.post');
+Route::post('/register/instructor', [InstructorApplicationController::class, 'submit'])->middleware('throttle:5,1')->name('register.instructor.post');
 
 // --- ADMIN ROUTES ---
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -98,10 +102,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/instructor-applications/{application}/reject', [InstructorApplicationController::class, 'reject'])->name('instructor.applications.reject');
 });
 
-// Legacy admin routes (keep backward compatible until we update all views)
-Route::get('/admin/instructor-applications', [InstructorApplicationController::class, 'index'])->name('admin.instructor.applications');
-Route::post('/admin/instructor-applications/{application}/approve', [InstructorApplicationController::class, 'approve'])->name('admin.instructor.applications.approve');
-Route::post('/admin/instructor-applications/{application}/reject', [InstructorApplicationController::class, 'reject'])->name('admin.instructor.applications.reject');
+// Legacy admin routes — secured with auth + admin middleware
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/admin/instructor-applications', [InstructorApplicationController::class, 'index'])->name('admin.instructor.applications');
+    Route::post('/admin/instructor-applications/{application}/approve', [InstructorApplicationController::class, 'approve'])->name('admin.instructor.applications.approve');
+    Route::post('/admin/instructor-applications/{application}/reject', [InstructorApplicationController::class, 'reject'])->name('admin.instructor.applications.reject');
+});
 
 // Dashboard Routes (Protected & Email Verified)
 Route::middleware(['auth', 'verified'])->group(function () {
