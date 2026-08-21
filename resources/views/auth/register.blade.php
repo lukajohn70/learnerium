@@ -149,10 +149,10 @@
 
             <!-- Mobile Header Logo -->
             <div class="lg:hidden text-center mb-8">
-                <a href="{{ url('/') }}" class="inline-flex items-center gap-2.5 text-3xl font-black text-primary-jlm group">
-                    <img src="{{ asset('logo.png') }}" alt="Learnerium Logo" class="h-9 w-auto object-contain transition group-hover:scale-105">
-                    <span>Learnerium</span>
-                </a>
+                <a href="{{ url('/') }}" class="inline-flex items-center gap-3 group">
+                <img src="{{ asset('logo-only.png') }}" alt="Learnerium Logo" class="h-11 w-auto object-contain drop-shadow-lg transition group-hover:scale-105">
+                <span class="text-3xl font-black bg-gradient-to-r from-[#1b2299] to-[#e4306d] bg-clip-text text-transparent tracking-tight">Learnerium</span>
+            </a>
             </div>
 
             <!-- Role Selector Tabs -->

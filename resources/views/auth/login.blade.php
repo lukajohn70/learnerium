@@ -49,9 +49,9 @@
         <div class="hero-dot w-32 h-32 bg-secondary-jlm top-1/2 left-1/4"></div>
 
         <div class="relative z-10 text-center max-w-md">
-            <a href="{{ url('/') }}" class="flex items-center justify-center gap-3 mb-6 group">
-                <img src="{{ asset('logo.png') }}" alt="Learnerium Logo" class="h-12 w-auto object-contain drop-shadow-lg transition group-hover:scale-105">
-                <span class="text-4xl font-black tracking-tight">Learnerium</span>
+            <a href="{{ url('/') }}" class="inline-flex items-center gap-3 group">
+                <img src="{{ asset('logo-only.png') }}" alt="Learnerium Logo" class="h-12 w-auto object-contain drop-shadow-lg transition group-hover:scale-105">
+                <span class="text-3xl font-black bg-gradient-to-r from-[#1b2299] to-[#e4306d] bg-clip-text text-transparent tracking-tight">Learnerium</span>
             </a>
             @if(($role ?? 'student') === 'instructor')
                 <p class="text-xl font-light text-white/80 mb-10 leading-relaxed">

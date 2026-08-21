@@ -10,8 +10,8 @@
     <title>@yield('title', config('app.name', 'Learnerium') . ' - Elevating Education')</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{{ asset('logo.png') }}">
-    <link rel="shortcut icon" href="{{ asset('logo.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('logo-only.png') }}">
+    <link rel="shortcut icon" href="{{ asset('logo-only.png') }}">
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -128,7 +128,7 @@
         <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200/60 shadow-sm">
             <div class="container mx-auto px-4 lg:px-8 flex justify-between items-center h-16">
                 <a href="{{ url('/') }}" class="flex items-center gap-2.5 group">
-                    <img src="{{ asset('logo.png') }}" alt="Learnerium Logo" class="h-10 w-auto object-contain transition group-hover:scale-105">
+                    <img src="{{ asset('logo-only.png') }}" alt="Learnerium Logo" class="h-10 w-auto object-contain transition group-hover:scale-105">
                     <span class="text-2xl font-black bg-gradient-to-r from-[#1b2299] to-[#e4306d] bg-clip-text text-transparent tracking-tight">Learnerium</span>
                 </a>
                 
@@ -421,7 +421,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center md:items-start">
             <div class="mb-8 md:mb-0 text-center md:text-left">
                 <div class="flex items-center justify-center md:justify-start gap-2.5 mb-3">
-                    <img src="{{ asset('logo.png') }}" alt="Learnerium Logo" class="h-9 w-auto object-contain bg-white/10 p-1 rounded-lg">
+                    <img src="{{ asset('logo-only.png') }}" alt="Learnerium Logo" class="h-9 w-auto object-contain bg-white/10 p-1 rounded-lg">
                     <h3 class="text-2xl font-extrabold text-white tracking-tight">Learnerium</h3>
                 </div>
                 <p class="text-gray-400 text-sm">&copy; {{ date('Y') }} Learnerium. Powered by <a href="https://jlm.com.ng" target="_blank" rel="noopener" class="inline-flex items-center gap-1 bg-accent-jlm text-primary-jlm px-2 py-0.5 rounded-full text-xs font-extrabold hover:bg-yellow-300 transition"><i class="fas fa-external-link-alt text-[8px]"></i>JLM</a>. All rights reserved.</p>
