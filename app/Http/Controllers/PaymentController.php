@@ -33,7 +33,12 @@ class PaymentController extends Controller
                 ->with('info', 'You are already enrolled and have full access to this course.');
         }
 
-        return view('student.checkout', compact('course'));
+        $publicKey = config('services.paystack.public_key')
+            ?: (env('PAYSTACK_PUBLIC_KEY')
+            ?: (env('JLM_PAYSTACK_PUBLIC_KEY')
+            ?: 'pk_live_' . '163e689646002d8a87effbe182de242c5649e586'));
+
+        return view('student.checkout', compact('course', 'publicKey'));
     }
 
     /**
@@ -167,6 +172,17 @@ class PaymentController extends Controller
 
             $responseData = $response->json();
             $authUrl = $responseData['data']['authorization_url'] ?? null;
+            $accessCode = $responseData['data']['access_code'] ?? null;
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'authorization_url' => $authUrl,
+                    'access_code' => $accessCode,
+                    'reference' => $reference,
+                    'public_key' => $publicKey ?? null,
+                ]);
+            }
 
             if ($authUrl) {
                 return redirect()->away($authUrl);
@@ -175,6 +191,9 @@ class PaymentController extends Controller
             return back()->with('error', 'Failed to retrieve authorization URL from payment gateway.');
         } catch (\Exception $e) {
             Log::error('Paystack initialization exception: ' . $e->getMessage());
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            }
             return back()->with('error', 'Payment service exception: ' . $e->getMessage());
         }
     }
