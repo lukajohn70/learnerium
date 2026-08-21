@@ -307,10 +307,37 @@
                     @endguest
                 </div>
 
-                <!-- Mobile Menu Button -->
-                <button id="mobileMenuBtn" class="lg:hidden text-primary-jlm focus:outline-none p-2 rounded-lg hover:bg-gray-100 transition">
-                    <i class="fas fa-bars text-2xl"></i>
-                </button>
+                <!-- Mobile Wishlist, Cart & Hamburger Button -->
+                <div class="flex items-center space-x-1 lg:hidden">
+                    @auth
+                        <a href="{{ route('wishlist.index') }}" class="relative text-gray-600 hover:text-pink-600 p-2 rounded-full hover:bg-pink-50 transition" title="Wishlist">
+                            <i class="fas fa-heart text-lg text-pink-500"></i>
+                            @php $mobileWishlistCount = Auth::user()->wishlist()->count(); @endphp
+                            @if($mobileWishlistCount > 0)
+                                <span class="absolute -top-0.5 -right-0.5 bg-pink-500 text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-white">
+                                    {{ $mobileWishlistCount }}
+                                </span>
+                            @endif
+                        </a>
+                        <a href="{{ route('cart.index') }}" class="relative text-gray-600 hover:text-primary-jlm p-2 rounded-full hover:bg-blue-50 transition" title="Shopping Cart">
+                            <i class="fas fa-shopping-cart text-lg text-primary-jlm"></i>
+                            @php $mobileCartCount = Auth::user()->cart()->count(); @endphp
+                            @if($mobileCartCount > 0)
+                                <span class="absolute -top-0.5 -right-0.5 bg-accent-jlm text-primary-jlm text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-white">
+                                    {{ $mobileCartCount }}
+                                </span>
+                            @endif
+                        </a>
+                    @else
+                        <a href="{{ route('cart.index') }}" class="text-gray-600 hover:text-primary-jlm p-2 rounded-full hover:bg-blue-50 transition" title="Shopping Cart">
+                            <i class="fas fa-shopping-cart text-lg text-primary-jlm"></i>
+                        </a>
+                    @endauth
+
+                    <button id="mobileMenuBtn" class="text-primary-jlm focus:outline-none p-2 rounded-lg hover:bg-gray-100 transition ml-1">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- Mobile Nav Links -->
@@ -322,6 +349,22 @@
                     </a>
                     <a href="{{ route('courses') }}" class="block px-3.5 py-2 text-primary-jlm hover:text-secondary-jlm hover:bg-white rounded-xl transition font-medium text-sm">
                         <i class="fas fa-book mr-2 text-primary-jlm"></i>Courses
+                    </a>
+                    <a href="{{ route('cart.index') }}" class="block px-3.5 py-2 text-primary-jlm hover:text-secondary-jlm hover:bg-white rounded-xl transition font-medium text-sm">
+                        <i class="fas fa-shopping-cart mr-2 text-primary-jlm"></i>Cart
+                        @auth
+                            @if(Auth::user()->cart()->count() > 0)
+                                <span class="ml-2 bg-accent-jlm text-primary-jlm text-xs font-extrabold px-2 py-0.5 rounded-full">{{ Auth::user()->cart()->count() }}</span>
+                            @endif
+                        @endauth
+                    </a>
+                    <a href="{{ route('wishlist.index') }}" class="block px-3.5 py-2 text-primary-jlm hover:text-secondary-jlm hover:bg-white rounded-xl transition font-medium text-sm">
+                        <i class="fas fa-heart mr-2 text-pink-500"></i>Wishlist
+                        @auth
+                            @if(Auth::user()->wishlist()->count() > 0)
+                                <span class="ml-2 bg-pink-500 text-white text-xs font-extrabold px-2 py-0.5 rounded-full">{{ Auth::user()->wishlist()->count() }}</span>
+                            @endif
+                        @endauth
                     </a>
                     <a href="{{ route('instructors') }}" class="block px-3.5 py-2 text-primary-jlm hover:text-secondary-jlm hover:bg-white rounded-xl transition font-medium text-sm">
                         <i class="fas fa-user-tie mr-2 text-primary-jlm"></i>Instructors
