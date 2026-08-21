@@ -39,24 +39,87 @@
     </script>
     
     <style>
+        :root {
+            --primary-jlm: #1b2299;
+            --primary-jlm-dark: #141a73;
+            --secondary-jlm: #e4306d;
+            --secondary-jlm-dark: #c22055;
+            --accent-jlm: #f7de7a;
+            --accent-jlm-hover: #f5d454;
+        }
+        
         body {
-            background-color: #f8f8f8;
+            background-color: #f8fafc;
+            color: #1e293b;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
         }
+
+        /* JLM Global Utility Overrides */
+        .bg-primary-jlm { background-color: #1b2299 !important; }
+        .bg-primary-jlm-dark { background-color: #141a73 !important; }
+        .text-primary-jlm { color: #1b2299 !important; }
+        .border-primary-jlm { border-color: #1b2299 !important; }
+
+        .bg-secondary-jlm { background-color: #e4306d !important; }
+        .bg-secondary-jlm-dark { background-color: #c22055 !important; }
+        .text-secondary-jlm { color: #e4306d !important; }
+        .border-secondary-jlm { border-color: #e4306d !important; }
+
+        .bg-accent-jlm { background-color: #f7de7a !important; color: #1b2299 !important; }
+        .text-accent-jlm { color: #f7de7a !important; }
+        .border-accent-jlm { border-color: #f7de7a !important; }
+
+        .bg-jlm-gradient { background: linear-gradient(135deg, #1b2299 0%, #7b1fa2 50%, #e4306d 100%) !important; }
+        .bg-jlm-header { background: linear-gradient(90deg, #1b2299 0%, #e4306d 100%) !important; }
+
+        /* JLM Button System */
+        .btn-jlm-primary {
+            background-color: #1b2299 !important;
+            color: #ffffff !important;
+            font-weight: 700 !important;
+            border-radius: 0.75rem !important;
+            transition: all 0.2s ease-in-out !important;
+            box-shadow: 0 4px 12px rgba(27, 34, 153, 0.2) !important;
+        }
+        .btn-jlm-primary:hover {
+            background-color: #141a73 !important;
+            color: #ffffff !important;
+            box-shadow: 0 6px 16px rgba(27, 34, 153, 0.35) !important;
+        }
+
+        .btn-jlm-secondary {
+            background-color: #e4306d !important;
+            color: #ffffff !important;
+            font-weight: 700 !important;
+            border-radius: 0.75rem !important;
+            transition: all 0.2s ease-in-out !important;
+            box-shadow: 0 4px 12px rgba(228, 48, 109, 0.2) !important;
+        }
+        .btn-jlm-secondary:hover {
+            background-color: #c22055 !important;
+            color: #ffffff !important;
+            box-shadow: 0 6px 16px rgba(228, 48, 109, 0.35) !important;
+        }
+
+        .btn-jlm-accent {
+            background-color: #f7de7a !important;
+            color: #1b2299 !important;
+            font-weight: 800 !important;
+            border-radius: 0.75rem !important;
+            transition: all 0.2s ease-in-out !important;
+            box-shadow: 0 4px 12px rgba(247, 222, 122, 0.3) !important;
+        }
+        .btn-jlm-accent:hover {
+            background-color: #f5d454 !important;
+            color: #141a73 !important;
+            box-shadow: 0 6px 16px rgba(247, 222, 122, 0.45) !important;
+        }
+
         /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #1b2299; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #141a73; }
     </style>
 </head>
 <body class="antialiased text-gray-800 min-h-screen flex flex-col justify-between">
