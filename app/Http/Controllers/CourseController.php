@@ -79,8 +79,11 @@ class CourseController extends Controller
         if ($request->hasFile('thumbnail_file')) {
             $file = $request->file('thumbnail_file');
             $filename = time() . '_' . preg_replace('/[^A-Za-z0-9\._-]/', '_', $file->getClientOriginalName());
+            if (!is_dir(public_path('uploads/thumbnails'))) {
+                mkdir(public_path('uploads/thumbnails'), 0775, true);
+            }
             $file->move(public_path('uploads/thumbnails'), $filename);
-            $data['thumbnail'] = asset('uploads/thumbnails/' . $filename);
+            $data['thumbnail'] = 'uploads/thumbnails/' . $filename;
         }
         unset($data['thumbnail_file']);
 
@@ -123,8 +126,11 @@ class CourseController extends Controller
         if ($request->hasFile('thumbnail_file')) {
             $file = $request->file('thumbnail_file');
             $filename = time() . '_' . preg_replace('/[^A-Za-z0-9\._-]/', '_', $file->getClientOriginalName());
+            if (!is_dir(public_path('uploads/thumbnails'))) {
+                mkdir(public_path('uploads/thumbnails'), 0775, true);
+            }
             $file->move(public_path('uploads/thumbnails'), $filename);
-            $data['thumbnail'] = asset('uploads/thumbnails/' . $filename);
+            $data['thumbnail'] = 'uploads/thumbnails/' . $filename;
         }
         unset($data['thumbnail_file']);
 
