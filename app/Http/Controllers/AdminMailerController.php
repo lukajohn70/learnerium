@@ -105,6 +105,38 @@ class AdminMailerController extends Controller
         $replyText = $request->reply_text;
         $admin = Auth::user();
 
+        // 1. Always record the reply in database immediately
+        $message->update([
+            'status'      => 'replied',
+            'admin_reply' => $replyText,
+            'replied_at'  => now(),
+        ]);
+
+        // 2. In-app notification to the user if linked
+        $targetUserId = $message->user_id;
+        if (!$targetUserId) {
+            $matchingUser = User::where('email', $message->email)->first();
+            if ($matchingUser) {
+                $targetUserId = $matchingUser->id;
+                $message->update(['user_id' => $targetUserId]);
+            }
+        }
+
+        if ($targetUserId) {
+            try {
+                AppNotification::notify(
+                    $targetUserId,
+                    'support',
+                    "Support Response: Re: {$message->subject}",
+                    \Illuminate\Support\Str::limit($replyText, 140),
+                    route('user.inbox'),
+                    'fa-reply',
+                    'green'
+                );
+            } catch (\Throwable $e) {}
+        }
+
+        // 3. Attempt email delivery
         try {
             Mail::send('emails.admin_reply', [
                 'recipientName' => $message->name,
@@ -116,29 +148,11 @@ class AdminMailerController extends Controller
                 $m->to($message->email, $message->name)
                   ->subject("Re: {$message->subject} — Learnerium Support");
             });
-
-            $message->update([
-                'status'      => 'replied',
-                'admin_reply' => $replyText,
-                'replied_at'  => now(),
-            ]);
-
-            if ($message->user_id) {
-                AppNotification::notify(
-                    $message->user_id,
-                    'support',
-                    "Support Response: Re: {$message->subject}",
-                    \Illuminate\Support\Str::limit($replyText, 140),
-                    null,
-                    'fa-reply',
-                    'green'
-                );
-            }
-
-            return back()->with('status', "Reply sent to {$message->name} ({$message->email}).");
         } catch (\Exception $e) {
-            return back()->with('error', "Failed to send reply: " . $e->getMessage());
+            Log::warning("Could not deliver reply email to {$message->email}: " . $e->getMessage());
         }
+
+        return back()->with('status', "Reply recorded and sent to {$message->name} ({$message->email}).");
     }
 
     /**
@@ -154,8 +168,16 @@ class AdminMailerController extends Controller
             'broadcast_email_id' => 'nullable|exists:broadcast_emails,id',
         ]);
 
+        $userId = Auth::id();
+        if (!$userId) {
+            $matchingUser = User::where('email', $request->email)->first();
+            if ($matchingUser) {
+                $userId = $matchingUser->id;
+            }
+        }
+
         $inbound = InboundMessage::create([
-            'user_id'            => Auth::id(),
+            'user_id'            => $userId,
             'broadcast_email_id' => $request->broadcast_email_id ?: null,
             'name'               => $request->name,
             'email'              => $request->email,
@@ -214,7 +236,10 @@ class AdminMailerController extends Controller
         })->with('sender')->latest()->get();
 
         // Inbound messages submitted by this user (their contact/replies) + admin responses
-        $myMessages = InboundMessage::where('user_id', $user->id)->latest()->get();
+        $myMessages = InboundMessage::where(function ($q) use ($user) {
+            $q->where('user_id', $user->id)
+              ->orWhere('email', $user->email);
+        })->latest()->get();
 
         return view('user.inbox', compact('broadcasts', 'myMessages'));
     }

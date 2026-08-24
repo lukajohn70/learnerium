@@ -73,26 +73,27 @@
                     </div>
                 @endif
 
-                <form action="{{ route('contact') }}" method="GET" class="space-y-5">
+                <form action="{{ route('contact.submit') }}" method="POST" class="space-y-5">
+                    @csrf
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Your Name</label>
-                            <input type="text" required placeholder="Enter your full name" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-primary-jlm text-sm">
+                            <label for="name" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Your Name <span class="text-secondary-jlm">*</span></label>
+                            <input id="name" name="name" type="text" value="{{ old('name', auth()->user()?->name) }}" required placeholder="Enter your full name" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-primary-jlm text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Your Email</label>
-                            <input type="email" required placeholder="Enter your email address" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-primary-jlm text-sm">
+                            <label for="email" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Your Email <span class="text-secondary-jlm">*</span></label>
+                            <input id="email" name="email" type="email" value="{{ old('email', auth()->user()?->email) }}" required placeholder="Enter your email address" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-primary-jlm text-sm">
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Subject</label>
-                        <input type="text" required placeholder="How can we help?" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-primary-jlm text-sm">
+                        <label for="subject" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Subject <span class="text-secondary-jlm">*</span></label>
+                        <input id="subject" name="subject" type="text" value="{{ old('subject') }}" required placeholder="How can we help?" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-primary-jlm text-sm">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Message</label>
-                        <textarea rows="5" required placeholder="Write your message here..." class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-primary-jlm text-sm"></textarea>
+                        <label for="message" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Message <span class="text-secondary-jlm">*</span></label>
+                        <textarea id="message" name="message" rows="5" required placeholder="Write your message here..." class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-primary-jlm text-sm leading-relaxed">{{ old('message') }}</textarea>
                     </div>
 
                     <button type="submit" class="w-full bg-secondary-jlm text-white py-3.5 rounded-2xl font-bold text-sm hover:bg-secondary-jlm/90 transition shadow-lg hover:shadow-secondary-jlm/30">

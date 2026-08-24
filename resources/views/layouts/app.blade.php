@@ -36,6 +36,8 @@
 
     {{-- Per-page JSON-LD Structured Data slot --}}
     @stack('structured_data')
+    @stack('head')
+    @stack('styles')
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="{{ asset('logo-only.png') }}">
@@ -871,6 +873,9 @@
 
     <!-- Global Toast Container -->
     <div id="toastContainer" class="fixed bottom-5 right-5 z-[99999] flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+
+    @stack('scripts')
+    @yield('scripts')
 </body>
 </html>
 

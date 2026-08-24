@@ -130,7 +130,7 @@ class LessonTaskController extends Controller
                 'grading',
                 'Task Approved! 🎉',
                 "Your submission for \"{$task->title}\" in {$task->lesson->title} was approved by your instructor.",
-                $course ? route('courses.lessons.show', [$course->slug, $task->lesson_id]) : null,
+                $course ? route('lesson.show', [$course->slug, $task->lesson_id]) : null,
                 'fa-check-circle',
                 'green'
             );
@@ -170,7 +170,7 @@ class LessonTaskController extends Controller
                 'grading',
                 'Task Needs Revision ⚠️',
                 "Your submission for \"{$task->title}\" in {$task->lesson->title} was reviewed and requires revision. Please resubmit your work.",
-                $course ? route('courses.lessons.show', [$course->slug, $task->lesson_id]) : null,
+                $course ? route('lesson.show', [$course->slug, $task->lesson_id]) : null,
                 'fa-exclamation-circle',
                 'red'
             );

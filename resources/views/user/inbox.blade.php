@@ -169,25 +169,31 @@
 
 @push('scripts')
 <script>
-function switchInboxTab(tab) {
+window.switchInboxTab = function(tab) {
     ['announcements', 'my-replies'].forEach(t => {
         const panel = document.getElementById('inbox-panel-' + t);
         const btn = document.getElementById('inbox-tab-' + t);
-        if (t === tab) {
-            panel.classList.remove('hidden');
-            btn.classList.add('bg-gradient-to-r', 'from-blue-800', 'to-pink-600', 'text-white', 'shadow-md');
-            btn.classList.remove('text-gray-600', 'hover:bg-gray-100');
-        } else {
-            panel.classList.add('hidden');
-            btn.classList.remove('bg-gradient-to-r', 'from-blue-800', 'to-pink-600', 'text-white', 'shadow-md');
-            btn.classList.add('text-gray-600', 'hover:bg-gray-100');
+        if (panel && btn) {
+            if (t === tab) {
+                panel.classList.remove('hidden');
+                btn.className = 'inbox-tab flex-1 py-2.5 text-xs font-bold rounded-xl transition-all duration-200 bg-gradient-to-r from-blue-800 to-pink-600 text-white shadow-md flex items-center justify-center gap-2';
+            } else {
+                panel.classList.add('hidden');
+                btn.className = 'inbox-tab flex-1 py-2.5 text-xs font-bold rounded-xl transition-all duration-200 text-gray-600 hover:bg-gray-100 flex items-center justify-center gap-2';
+            }
         }
     });
-}
+};
 
-function toggleBroadcastReply(id) {
+window.toggleBroadcastReply = function(id) {
     const el = document.getElementById(id);
-    if (el) el.classList.toggle('hidden');
-}
+    if (el) {
+        el.classList.toggle('hidden');
+        if (!el.classList.contains('hidden')) {
+            const textarea = el.querySelector('textarea');
+            if (textarea) textarea.focus();
+        }
+    }
+};
 </script>
 @endpush
