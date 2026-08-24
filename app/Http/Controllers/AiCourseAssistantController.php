@@ -59,30 +59,58 @@ class AiCourseAssistantController extends Controller
         };
 
 
-        try {
-            $response = Http::withoutVerifying()
-                ->timeout(30)
-                ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}", [
-                    'contents' => [
-                        [
-                            'parts' => [
-                                ['text' => $prompt],
+        $modelsToTry = array_unique([
+            $model,
+            'gemini-1.5-flash',
+            'gemini-1.5-flash-latest',
+            'gemini-2.0-flash',
+            'gemini-1.5-pro',
+            'gemini-pro',
+        ]);
+
+        $apiVersions = ['v1beta', 'v1'];
+        $lastError = 'Unable to connect to Gemini API.';
+        $successResponse = null;
+
+        foreach ($apiVersions as $version) {
+            foreach ($modelsToTry as $tryModel) {
+                try {
+                    $endpoint = "https://generativelanguage.googleapis.com/{$version}/models/{$tryModel}:generateContent?key={$apiKey}";
+                    $res = Http::withoutVerifying()
+                        ->timeout(30)
+                        ->post($endpoint, [
+                            'contents' => [
+                                [
+                                    'parts' => [
+                                        ['text' => $prompt],
+                                    ],
+                                ],
                             ],
-                        ],
-                    ],
-                    'generationConfig' => [
-                        'temperature'     => 0.7,
-                        'maxOutputTokens' => 1024,
-                    ],
-                ]);
+                            'generationConfig' => [
+                                'temperature'     => 0.7,
+                                'maxOutputTokens' => 1200,
+                            ],
+                        ]);
 
-            if ($response->failed()) {
-                $errMsg = $response->json()['error']['message'] ?? 'Gemini API request failed.';
-                Log::error("Gemini API error: {$errMsg}");
-                return response()->json(['success' => false, 'message' => $errMsg], 502);
+                    if ($res->successful()) {
+                        $successResponse = $res;
+                        break 2; // Found working model and version!
+                    } else {
+                        $lastError = $res->json()['error']['message'] ?? 'API error: ' . $res->status();
+                    }
+                } catch (\Throwable $ex) {
+                    $lastError = $ex->getMessage();
+                }
             }
+        }
 
-            $text = $response->json()['candidates'][0]['content']['parts'][0]['text'] ?? '';
+        if (!$successResponse) {
+            Log::error("Gemini API all models failed. Last error: {$lastError}");
+            return response()->json(['success' => false, 'message' => $lastError], 502);
+        }
+
+        $text = $successResponse->json()['candidates'][0]['content']['parts'][0]['text'] ?? '';
+
 
             // For JSON actions, parse and return clean array
             if (in_array($action, ['outcomes', 'requirements', 'outline'])) {

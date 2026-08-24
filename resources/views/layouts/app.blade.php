@@ -751,6 +751,124 @@
         }
         @endauth
 
+        // ================= UNIVERSAL MODAL & TOAST SYSTEM =================
+        const universalModal = document.getElementById('universalModal');
+        const modalBackdrop = document.getElementById('modalBackdrop');
+        const modalDialog = document.getElementById('modalDialog');
+        const modalIconWrap = document.getElementById('modalIconWrap');
+        const modalIcon = document.getElementById('modalIcon');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+        const toastContainer = document.getElementById('toastContainer');
+
+        let currentModalResolve = null;
+
+        window.showModal = function(options = {}) {
+            return new Promise((resolve) => {
+                currentModalResolve = resolve;
+                const type = options.type || 'info';
+                const title = options.title || (type === 'error' ? 'Notice' : (type === 'success' ? 'Success' : 'Information'));
+                const message = options.message || '';
+                const confirmText = options.confirmText || 'OK';
+                const cancelText = options.cancelText || null;
+                const isConfirm = Boolean(cancelText || options.isConfirm);
+
+                modalTitle.textContent = title;
+                modalMessage.innerHTML = message;
+                modalConfirmBtn.textContent = confirmText;
+
+                // Configure Icon & Color
+                const typeStyles = {
+                    info: { icon: 'fa-info-circle', color: 'text-primary-jlm', bg: 'bg-blue-50 border-blue-100', btn: 'bg-primary-jlm hover:bg-primary-jlm-dark text-white' },
+                    success: { icon: 'fa-check-circle', color: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-100', btn: 'bg-emerald-600 hover:bg-emerald-700 text-white' },
+                    warning: { icon: 'fa-exclamation-triangle', color: 'text-amber-600', bg: 'bg-amber-50 border-amber-100', btn: 'bg-amber-600 hover:bg-amber-700 text-white' },
+                    error: { icon: 'fa-times-circle', color: 'text-rose-600', bg: 'bg-rose-50 border-rose-100', btn: 'bg-rose-600 hover:bg-rose-700 text-white' },
+                    ai: { icon: 'fa-wand-magic-sparkles', color: 'text-purple-600', bg: 'bg-purple-50 border-purple-100', btn: 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white' }
+                };
+
+                const style = typeStyles[type] || typeStyles.info;
+                modalIconWrap.className = `w-12 h-12 rounded-2xl flex items-center justify-center text-xl border mx-auto mb-3.5 shadow-sm ${style.bg}`;
+                modalIcon.className = `fas ${style.icon} ${style.color}`;
+                modalConfirmBtn.className = `px-6 py-2.5 rounded-xl font-bold text-xs shadow-md transition ${style.btn}`;
+
+                if (isConfirm) {
+                    modalCancelBtn.classList.remove('hidden');
+                    modalCancelBtn.textContent = cancelText || 'Cancel';
+                } else {
+                    modalCancelBtn.classList.add('hidden');
+                }
+
+                universalModal.classList.remove('hidden');
+                setTimeout(() => {
+                    modalDialog.classList.remove('scale-95', 'opacity-0');
+                    modalDialog.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            });
+        };
+
+        window.closeUniversalModal = function(confirmed = false) {
+            modalDialog.classList.remove('scale-100', 'opacity-100');
+            modalDialog.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                universalModal.classList.add('hidden');
+                if (currentModalResolve) {
+                    currentModalResolve(confirmed);
+                    currentModalResolve = null;
+                }
+            }, 150);
+        };
+
+        modalConfirmBtn.addEventListener('click', () => closeUniversalModal(true));
+        modalCancelBtn.addEventListener('click', () => closeUniversalModal(false));
+
+        window.showAlert = function(message, title = '', type = 'info') {
+            return showModal({ title, message, type, confirmText: 'Got It' });
+        };
+
+        window.showToast = function(message, type = 'success', duration = 4000) {
+            if (!toastContainer) return;
+            const toast = document.createElement('div');
+            const colorClass = type === 'error' ? 'bg-rose-900/90 text-rose-100 border-rose-700' : (type === 'warning' ? 'bg-amber-900/90 text-amber-100 border-amber-700' : 'bg-slate-900/90 text-white border-slate-700');
+            const icon = type === 'error' ? 'fa-exclamation-circle text-rose-400' : (type === 'warning' ? 'fa-exclamation-triangle text-amber-400' : 'fa-check-circle text-emerald-400');
+
+            toast.className = `flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl backdrop-blur-md border text-xs font-semibold transform transition-all duration-300 translate-y-3 opacity-0 ${colorClass}`;
+            toast.innerHTML = `<i class="fas ${icon} text-sm flex-shrink-0"></i><span class="flex-1 leading-snug">${message}</span>`;
+
+            toastContainer.appendChild(toast);
+            setTimeout(() => toast.classList.remove('translate-y-3', 'opacity-0'), 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-3');
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        };
+
+        // Standardize browser native alert() to call beautiful modal
+        window.alert = function(msg) {
+            showAlert(msg, 'Notice', 'info');
+        };
+
     </script>
+
+    <!-- Global Responsive Universal Modal Dialog -->
+    <div id="universalModal" class="fixed inset-0 z-[9999] hidden overflow-y-auto bg-slate-900/60 backdrop-blur-sm p-4 sm:p-6 flex items-center justify-center">
+        <div id="modalDialog" class="bg-white rounded-3xl max-w-sm sm:max-w-md w-full p-6 sm:p-8 shadow-2xl border border-gray-100 text-center transform transition-all duration-200 scale-95 opacity-0 my-auto">
+            <div id="modalIconWrap" class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl border mx-auto mb-3.5 shadow-sm bg-blue-50 border-blue-100">
+                <i id="modalIcon" class="fas fa-info-circle text-primary-jlm"></i>
+            </div>
+            <h3 id="modalTitle" class="text-base font-extrabold text-gray-900 mb-1.5 leading-snug">Information</h3>
+            <div id="modalMessage" class="text-xs text-gray-600 leading-relaxed mb-6"></div>
+            <div class="flex items-center justify-center gap-2.5">
+                <button id="modalCancelBtn" type="button" class="hidden px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-xs font-bold hover:bg-gray-50 transition">Cancel</button>
+                <button id="modalConfirmBtn" type="button" class="px-6 py-2.5 rounded-xl font-bold text-xs shadow-md transition bg-primary-jlm text-white hover:bg-primary-jlm-dark">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Toast Container -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-[99999] flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
 </body>
 </html>
+
