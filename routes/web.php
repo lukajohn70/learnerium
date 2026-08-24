@@ -111,6 +111,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/instructor-applications', [InstructorApplicationController::class, 'index'])->name('instructor.applications');
     Route::post('/instructor-applications/{application}/approve', [InstructorApplicationController::class, 'approve'])->name('instructor.applications.approve');
     Route::post('/instructor-applications/{application}/reject', [InstructorApplicationController::class, 'reject'])->name('instructor.applications.reject');
+    Route::post('/payouts/{instructor}/mark-paid', [AdminDashboardController::class, 'markInstructorPaid'])->name('payouts.mark-paid');
+    Route::post('/settings', [AdminDashboardController::class, 'updateSettings'])->name('settings.update');
 });
 
 // Legacy admin routes — secured with auth + admin middleware

@@ -242,9 +242,20 @@ class PaymentController extends Controller
                 }
 
                 if ($enrollment) {
+                    $amountPaid = ((float) ($result['data']['amount'] ?? 0)) / 100;
+
+                    // Calculate revenue split from live platform settings
+                    $instructorSharePct = (float) \App\Models\PlatformSetting::get('instructor_revenue_share', 70);
+                    $platformSharePct   = (float) \App\Models\PlatformSetting::get('platform_revenue_share', 30);
+                    $instructorShare    = round($amountPaid * ($instructorSharePct / 100), 2);
+                    $platformShare      = round($amountPaid * ($platformSharePct / 100), 2);
+
                     $enrollment->update([
-                        'payment_status' => 'paid',
-                        'amount_paid' => ((float) ($result['data']['amount'] ?? 0)) / 100,
+                        'payment_status'   => 'paid',
+                        'amount_paid'      => $amountPaid,
+                        'instructor_share' => $instructorShare,
+                        'platform_share'   => $platformShare,
+                        'payout_status'    => 'pending',
                     ]);
 
                     $course = Course::find($enrollment->course_id);

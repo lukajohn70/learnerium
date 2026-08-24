@@ -199,13 +199,7 @@
                         Contact
                         <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#1b2299] to-[#e4306d] group-hover:w-full transition-all duration-300"></span>
                     </a>
-                    @auth
-                        @if(Auth::user()->isAdmin() || Auth::user()->role === 'admin')
-                            <a href="{{ route('admin.dashboard') }}" class="bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl transition inline-flex items-center gap-1.5 shadow-md">
-                                <i class="fas fa-shield-alt text-amber-300"></i> Admin Panel
-                            </a>
-                        @endif
-                    @endauth
+
                 </div>
 
                 <!-- Auth/Menu (JLM CTA Style) -->
@@ -270,7 +264,7 @@
                                     <p class="text-sm font-bold text-gray-800 truncate">{{ Auth::user()->email }}</p>
                                 </div>
                                 @if(Auth::user()->role === 'admin' || Auth::user()->isAdmin())
-                                    <a href="{{ route('admin.dashboard') }}" class="block px-4 py-2.5 text-sm font-extrabold text-red-600 hover:bg-red-50 transition border-b border-gray-100"><i class="fas fa-shield-alt mr-3 text-red-500"></i>Admin Dashboard</a>
+                                    {{-- Admin link is intentionally not shown here; access via footer shield icon --}}
                                 @endif
                                 <a href="{{ route('dashboard') }}" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-jlm transition"><i class="fas fa-th-large mr-3 text-gray-400"></i>Dashboard</a>
                                 <a href="{{ route('cart.index') }}" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-jlm transition"><i class="fas fa-shopping-cart mr-3 text-gray-400"></i>Shopping Cart</a>
@@ -559,6 +553,24 @@
                 <div class="flex items-center gap-2">
                     <span>&copy; {{ date('Y') }} Learnerium Inc. All rights reserved.</span>
                 </div>
+
+                {{-- Subtle Admin Portal Access (shield icon, low-key) --}}
+                @auth
+                    @if(Auth::user()->isAdmin())
+                        <a href="{{ route('admin.dashboard') }}"
+                           title="Admin Portal"
+                           class="inline-flex items-center gap-1 text-gray-600/40 hover:text-amber-500/80 transition-colors duration-300 group">
+                            <i class="fas fa-shield-halved text-sm group-hover:scale-110 transition-transform"></i>
+                        </a>
+                    @endif
+                @endauth
+                @guest
+                    <a href="{{ route('login.admin') }}"
+                       title="Admin Portal"
+                       class="inline-flex items-center gap-1 text-gray-700/20 hover:text-amber-500/60 transition-colors duration-300 group">
+                        <i class="fas fa-shield-halved text-sm group-hover:scale-110 transition-transform"></i>
+                    </a>
+                @endguest
 
                 {{-- JLM Partner Pill --}}
                 <div class="flex items-center gap-2">

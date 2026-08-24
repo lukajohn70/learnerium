@@ -29,9 +29,13 @@ class Enrollment extends Model
         'completion_date',
         'payment_status',
         'amount_paid',
+        'instructor_share',
+        'platform_share',
+        'payout_status',
         'coupon_code',
         'payment_reference',
     ];
+
 
     /**
      * The attributes that should be cast.

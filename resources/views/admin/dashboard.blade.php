@@ -42,7 +42,9 @@
                         ['courses', 'fa-book-open', 'Courses'],
                         ['coupons', 'fa-ticket-alt', 'Coupons'],
                         ['payments', 'fa-credit-card', 'Payments'],
+                        ['payouts', 'fa-wallet', 'Payouts'],
                         ['applications', 'fa-user-check', 'Instructor Apps'],
+                        ['settings', 'fa-sliders-h', 'Settings'],
                     ] as [$tab, $icon, $label])
                     <button onclick="switchTab('{{ $tab }}')" id="tab-btn-{{ $tab }}"
                         class="tab-btn flex items-center gap-2.5 px-4 py-3 text-sm font-bold rounded-xl whitespace-nowrap transition-all duration-200 min-w-[9rem] lg:min-w-0
@@ -95,6 +97,38 @@
                             </div>
                             <div class="text-3xl font-black">₦{{ number_format($stats['total_revenue'], 2) }}</div>
                             <p class="text-[11px] text-amber-100 mt-1">Paystack Online Payments</p>
+                        </div>
+                    </div>
+
+                    {{-- Revenue Split Summary --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-university text-emerald-600"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 font-semibold uppercase tracking-wide">Platform Net</p>
+                                <p class="text-xl font-black text-gray-900">₦{{ number_format($stats['platform_revenue'], 2) }}</p>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-chalkboard-teacher text-blue-600"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 font-semibold uppercase tracking-wide">Instructor Earnings</p>
+                                <p class="text-xl font-black text-gray-900">₦{{ number_format($stats['instructor_payouts'], 2) }}</p>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-2xl border border-orange-100 shadow-sm p-5 flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-clock text-orange-500"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 font-semibold uppercase tracking-wide">Pending Payouts</p>
+                                <p class="text-xl font-black text-orange-600">₦{{ number_format($stats['pending_payouts'], 2) }}</p>
+                                <button onclick="switchTab('payouts')" class="text-[10px] text-orange-500 hover:underline font-bold">View Payouts →</button>
+                            </div>
                         </div>
                     </div>
 
@@ -367,6 +401,76 @@
                     </div>
                 </div>
 
+                <!-- ============= PAYOUTS TAB ============= -->
+                <div id="tab-payouts" class="tab-panel hidden space-y-5">
+                    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                            <div>
+                                <h2 class="font-bold text-gray-800 text-base flex items-center gap-2"><i class="fas fa-wallet text-emerald-600"></i> Instructor Payouts Ledger</h2>
+                                <p class="text-xs text-gray-500 mt-0.5">Track earnings owed to each instructor. Mark as paid once you've manually transferred funds.</p>
+                            </div>
+                            <span class="bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1.5 rounded-xl">₦{{ number_format($stats['pending_payouts'], 2) }} Pending</span>
+                        </div>
+
+                        @if($instructorPayoutSummary->isEmpty())
+                            <div class="p-12 text-center text-gray-400">
+                                <i class="fas fa-wallet text-4xl mb-3 block text-gray-200"></i>
+                                No instructor sales recorded yet.
+                            </div>
+                        @else
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs">
+                                <thead class="bg-gray-50 text-gray-600 uppercase font-semibold">
+                                    <tr>
+                                        <th class="px-6 py-3.5 text-left">Instructor</th>
+                                        <th class="px-6 py-3.5 text-right">Sales</th>
+                                        <th class="px-6 py-3.5 text-right">Total Earned</th>
+                                        <th class="px-6 py-3.5 text-right">Pending Payout</th>
+                                        <th class="px-6 py-3.5 text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    @foreach($instructorPayoutSummary as $instructor)
+                                    <tr class="hover:bg-gray-50 transition">
+                                        <td class="px-6 py-4">
+                                            <div class="flex items-center gap-3">
+                                                <img src="{{ $instructor->avatarUrl() }}" class="w-9 h-9 rounded-full object-cover border border-gray-200">
+                                                <div>
+                                                    <p class="font-bold text-gray-900">{{ $instructor->name }}</p>
+                                                    <p class="text-gray-400 text-[11px]">{{ $instructor->email }}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 text-right font-bold text-gray-700">{{ number_format($instructor->sales_count) }}</td>
+                                        <td class="px-6 py-4 text-right font-extrabold text-gray-900">₦{{ number_format($instructor->total_earned ?? 0, 2) }}</td>
+                                        <td class="px-6 py-4 text-right">
+                                            @if(($instructor->pending_payout ?? 0) > 0)
+                                                <span class="font-extrabold text-orange-600">₦{{ number_format($instructor->pending_payout, 2) }}</span>
+                                            @else
+                                                <span class="text-emerald-600 font-bold"><i class="fas fa-check-circle mr-1"></i>Up to date</span>
+                                            @endif
+                                        </td>
+                                        <td class="px-6 py-4 text-center">
+                                            @if(($instructor->pending_payout ?? 0) > 0)
+                                                <form action="{{ route('admin.payouts.mark-paid', $instructor) }}" method="POST" onsubmit="return confirm('Mark all pending earnings for {{ $instructor->name }} as paid?')">
+                                                    @csrf
+                                                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 rounded-xl text-[11px] font-bold transition shadow">
+                                                        <i class="fas fa-check mr-1"></i>Mark Paid
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <span class="text-gray-300 text-[11px]">—</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+
                 <!-- ============= INSTRUCTOR APPS TAB ============= -->
                 <div id="tab-applications" class="tab-panel hidden space-y-4">
                     <div class="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm text-center">
@@ -376,6 +480,57 @@
                         <a href="{{ route('admin.instructor.applications') }}" class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-800 to-pink-600 text-white px-6 py-2.5 rounded-xl font-bold text-xs shadow hover:opacity-90 transition">
                             <i class="fas fa-external-link-alt"></i> Open Applications Page
                         </a>
+                    </div>
+                </div>
+
+                <!-- ============= SETTINGS TAB ============= -->
+                <div id="tab-settings" class="tab-panel hidden space-y-5">
+
+                    @if($errors->has('revenue_split'))
+                        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2">
+                            <i class="fas fa-exclamation-circle text-red-500"></i>{{ $errors->first('revenue_split') }}
+                        </div>
+                    @endif
+
+                    <!-- Revenue Split Settings -->
+                    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                        <h3 class="font-extrabold text-gray-900 text-base flex items-center gap-2 mb-1">
+                            <i class="fas fa-chart-pie text-blue-600"></i> Revenue Split Configuration
+                        </h3>
+                        <p class="text-xs text-gray-500 mb-6">Define how course revenue is split between instructors and the platform. Must total 100%.</p>
+
+                        <form action="{{ route('admin.settings.update') }}" method="POST">
+                            @csrf
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1.5">
+                                        <i class="fas fa-chalkboard-teacher mr-1 text-blue-500"></i> Instructor Share (%)
+                                    </label>
+                                    <input type="number" name="instructor_revenue_share" min="0" max="100" step="0.1" required
+                                        value="{{ $platformSettings['instructor_revenue_share']->value ?? 70 }}"
+                                        class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/30">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1.5">
+                                        <i class="fas fa-university mr-1 text-emerald-500"></i> Platform Share (%)
+                                    </label>
+                                    <input type="number" name="platform_revenue_share" min="0" max="100" step="0.1" required
+                                        value="{{ $platformSettings['platform_revenue_share']->value ?? 30 }}"
+                                        class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/30">
+                                </div>
+                            </div>
+
+                            <div class="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-700 flex items-start gap-2">
+                                <i class="fas fa-info-circle mt-0.5 flex-shrink-0"></i>
+                                <span>Changes apply to <strong>all future payments</strong>. Past enrollments retain their original split amounts. Instructor + Platform must equal 100%.</span>
+                            </div>
+
+                            <div class="mt-5">
+                                <button type="submit" class="bg-gradient-to-r from-blue-800 to-pink-600 text-white px-6 py-3 rounded-xl font-extrabold text-sm shadow hover:opacity-90 transition">
+                                    <i class="fas fa-save mr-2"></i>Save Revenue Split
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
 

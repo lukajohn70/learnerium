@@ -118,6 +118,22 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Enrollments for courses this user teaches (as instructor).
+     * Used for earnings/payout calculations.
+     */
+    public function instructorEnrollments(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
+    {
+        return $this->hasManyThrough(
+            Enrollment::class,
+            Course::class,
+            'user_id',    // FK on courses (instructor)
+            'course_id',  // FK on enrollments
+            'id',         // local key on users
+            'id'          // local key on courses
+        );
+    }
+
+    /**
      * Helper method to check if the user is an instructor.
      */
     public function isInstructor(): bool
