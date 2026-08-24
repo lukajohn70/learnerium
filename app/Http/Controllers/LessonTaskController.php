@@ -150,18 +150,34 @@ class LessonTaskController extends Controller
         try {
             $task = $submission->task;
             $course = $task?->lesson?->course;
+
+            // Revoke completion for this lesson until student corrects and resubmits
+            \App\Models\LessonProgress::where('user_id', $submission->user_id)
+                ->where('lesson_id', $task->lesson_id)
+                ->update(['completed' => false]);
+
+            if ($course) {
+                $enrollment = \App\Models\Enrollment::where('user_id', $submission->user_id)
+                    ->where('course_id', $course->id)
+                    ->first();
+                if ($enrollment) {
+                    $enrollment->updateProgress();
+                }
+            }
+
             \App\Models\AppNotification::notify(
                 $submission->user_id,
                 'grading',
                 'Task Needs Revision ⚠️',
-                "Your submission for \"{$task->title}\" in {$task->lesson->title} was reviewed and requires revision.",
+                "Your submission for \"{$task->title}\" in {$task->lesson->title} was reviewed and requires revision. Please resubmit your work.",
                 $course ? route('courses.lessons.show', [$course->slug, $task->lesson_id]) : null,
                 'fa-exclamation-circle',
                 'red'
             );
         } catch (\Throwable $e) {}
 
-        return back()->with('status', 'Submission marked for revision and student notified.');
+        return back()->with('status', 'Submission marked for revision and student progress updated.');
     }
 }
+
 

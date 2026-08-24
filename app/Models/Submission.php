@@ -18,7 +18,10 @@ class Submission extends Model
         'feedback',
         'graded_by',
         'grade',
+        'attempts_count',
+        'max_attempts',
     ];
+
 
     public function task()
     {

@@ -17,13 +17,17 @@ class StudentTaskController extends Controller
      */
     public function store(Request $request, $taskId)
     {
-        $task = Task::with('lesson')->findOrFail($taskId);
+        $task = Task::with('lesson.course')->findOrFail($taskId);
         $user = Auth::user();
 
-        // Check if already submitted
         $existing = Submission::where('task_id', $task->id)->where('user_id', $user->id)->first();
         if ($existing) {
-            return back()->with('error', 'You have already submitted this task.');
+            if ($existing->status === 'approved') {
+                return back()->with('status', '✅ This task has already been approved by your instructor.');
+            }
+            if ($existing->status === 'rejected' && $existing->attempts_count >= ($existing->max_attempts ?? 3)) {
+                return back()->with('error', "Maximum submission attempts ({$existing->max_attempts}) reached for this task. Please contact your instructor.");
+            }
         }
 
         // Validate depending on task type
@@ -44,13 +48,29 @@ class StudentTaskController extends Controller
             return back()->with('error', 'Invalid task type.');
         }
 
-        Submission::create([
-            'task_id' => $task->id,
-            'user_id' => $user->id,
-            'submission_value' => $submissionValue,
-            'file_name' => $fileName,
-            'status' => 'submitted',
-        ]);
+        $isResubmission = false;
+        if ($existing) {
+            $isResubmission = true;
+            $existing->update([
+                'submission_value' => $submissionValue,
+                'file_name'        => $fileName,
+                'status'           => 'submitted',
+                'feedback'         => null,
+                'attempts_count'   => $existing->attempts_count + 1,
+            ]);
+            $submission = $existing;
+        } else {
+            $submission = Submission::create([
+                'task_id'          => $task->id,
+                'user_id'          => $user->id,
+                'submission_value' => $submissionValue,
+                'file_name'        => $fileName,
+                'status'           => 'submitted',
+                'attempts_count'   => 1,
+                'max_attempts'     => 3,
+            ]);
+        }
+
 
         // Send notifications to instructor and student
         try {
