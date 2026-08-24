@@ -423,6 +423,7 @@
                                 <thead class="bg-gray-50 text-gray-600 uppercase font-semibold">
                                     <tr>
                                         <th class="px-6 py-3.5 text-left">Instructor</th>
+                                        <th class="px-6 py-3.5 text-left">Bank Account Details</th>
                                         <th class="px-6 py-3.5 text-right">Sales</th>
                                         <th class="px-6 py-3.5 text-right">Total Earned</th>
                                         <th class="px-6 py-3.5 text-right">Pending Payout</th>
@@ -438,8 +439,24 @@
                                                 <div>
                                                     <p class="font-bold text-gray-900">{{ $instructor->name }}</p>
                                                     <p class="text-gray-400 text-[11px]">{{ $instructor->email }}</p>
+                                                    @if($instructor->payout_requested_at)
+                                                        <span class="inline-flex items-center gap-1 text-[10px] text-amber-700 bg-amber-100 font-bold px-2 py-0.5 rounded-full mt-1">
+                                                            <i class="fas fa-bell animate-pulse"></i> Withdrawal Requested
+                                                        </span>
+                                                    @endif
                                                 </div>
                                             </div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            @if($instructor->bank_name && $instructor->account_number)
+                                                <div class="space-y-0.5">
+                                                    <p class="font-bold text-gray-900">{{ $instructor->bank_name }}</p>
+                                                    <p class="font-mono text-xs text-primary-jlm font-bold tracking-wide">{{ $instructor->account_number }}</p>
+                                                    <p class="text-[11px] text-gray-500 uppercase">{{ $instructor->account_name }}</p>
+                                                </div>
+                                            @else
+                                                <span class="text-xs text-gray-400 italic"><i class="fas fa-exclamation-circle mr-1 text-amber-400"></i>No bank info added</span>
+                                            @endif
                                         </td>
                                         <td class="px-6 py-4 text-right font-bold text-gray-700">{{ number_format($instructor->sales_count) }}</td>
                                         <td class="px-6 py-4 text-right font-extrabold text-gray-900">₦{{ number_format($instructor->total_earned ?? 0, 2) }}</td>

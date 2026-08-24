@@ -39,7 +39,87 @@ class DashboardController extends Controller
         $user = Auth::user();
         $courses = $user->coursesTaught()->with(['lessons', 'enrollments'])->get();
         $totalStudents = $courses->sum(fn($c) => $c->enrollments->count());
-        return view('instructor-dashboard', compact('user', 'courses', 'totalStudents'));
+
+        $totalEarned = \App\Models\Enrollment::whereIn('course_id', $courses->pluck('id'))
+            ->where('payment_status', 'paid')
+            ->sum('instructor_share');
+
+        $pendingPayout = \App\Models\Enrollment::whereIn('course_id', $courses->pluck('id'))
+            ->where('payment_status', 'paid')
+            ->where('payout_status', 'pending')
+            ->sum('instructor_share');
+
+        $pendingSubmissionsCount = \App\Models\Submission::whereHas('task.lesson.course', function($q) use ($user) {
+            $q->where('instructor_id', $user->id);
+        })->where('status', 'pending')->count();
+
+        return view('instructor-dashboard', compact('user', 'courses', 'totalStudents', 'totalEarned', 'pendingPayout', 'pendingSubmissionsCount'));
+    }
+
+    /**
+     * Update instructor payout bank details.
+     */
+    public function updateBankDetails(Request $request)
+    {
+        $request->validate([
+            'bank_name'      => 'required|string|max:100',
+            'account_number' => 'required|string|max:30',
+            'account_name'   => 'required|string|max:150',
+        ]);
+
+        $user = Auth::user();
+        $user->update([
+            'bank_name'      => $request->bank_name,
+            'account_number' => $request->account_number,
+            'account_name'   => $request->account_name,
+        ]);
+
+        return back()->with('status', 'Bank details updated successfully!');
+    }
+
+    /**
+     * Instructor requests a payout.
+     */
+    public function requestPayout()
+    {
+        $user = Auth::user();
+
+        if (empty($user->bank_name) || empty($user->account_number) || empty($user->account_name)) {
+            return back()->with('error', 'Please update your bank details first before requesting a payout.');
+        }
+
+        $user->update(['payout_requested_at' => now()->toDateTimeString()]);
+
+        // Notify admins
+        $admins = User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            \App\Models\AppNotification::notify(
+                $admin->id,
+                'payout',
+                'Payout Requested 💳',
+                "Instructor {$user->name} has requested a payout to {$user->bank_name} ({$user->account_number}).",
+                route('admin.dashboard'),
+                'fa-wallet',
+                'green'
+            );
+        }
+
+        return back()->with('status', 'Payout request submitted to platform administration!');
+    }
+
+    /**
+     * Consolidated student submissions grading inbox for instructors.
+     */
+    public function instructorSubmissions()
+    {
+        $user = Auth::user();
+        $submissions = \App\Models\Submission::whereHas('task.lesson.course', function($q) use ($user) {
+            $q->where('instructor_id', $user->id);
+        })->with(['task.lesson.course', 'user'])
+          ->latest()
+          ->paginate(25);
+
+        return view('instructor.submissions-inbox', compact('submissions'));
     }
 
     /**

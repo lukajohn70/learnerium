@@ -26,6 +26,10 @@ class User extends Authenticatable implements MustVerifyEmail
         'role',
         'avatar',
         'profile_picture',
+        'bank_name',
+        'account_number',
+        'account_name',
+        'payout_requested_at',
     ];
 
     public function avatarUrl(): string

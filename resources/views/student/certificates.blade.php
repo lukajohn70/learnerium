@@ -34,10 +34,10 @@
                             <p class="text-sm font-semibold text-gray-700">Course Completed</p>
                             <p class="text-xs text-gray-400">by {{ $course->instructor?->name ?? 'Instructor' }}</p>
                         </div>
-                        <button onclick="alert('Certificate download feature coming soon!')" 
-                                class="bg-yellow-400 text-gray-900 px-4 py-2 rounded-xl font-semibold hover:bg-yellow-300 transition text-sm">
-                            <i class="fas fa-download mr-1"></i>Download
-                        </button>
+                        <a href="{{ route('student.certificate.view', $course) }}" 
+                           class="bg-yellow-400 text-gray-900 px-4 py-2 rounded-xl font-semibold hover:bg-yellow-300 transition text-sm inline-flex items-center gap-1.5 shadow-sm">
+                            <i class="fas fa-eye"></i> View & Print
+                        </a>
                     </div>
                 </div>
             @endforeach

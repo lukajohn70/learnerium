@@ -61,6 +61,24 @@ Route::post('/cart/{course}/wishlist', [CartController::class, 'moveToWishlist']
 // Payment callback - public route (Paystack redirects here)
 Route::get('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
 
+// Database Schema Migration Web Route (Accessible for deployment updates)
+Route::any('/updatedb.php', function () {
+    $output = '';
+    $status = 'running';
+    try {
+        $exitCode = \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        $output = \Illuminate\Support\Facades\Artisan::output();
+        $status = ($exitCode === 0) ? 'success' : 'error';
+    } catch (\Throwable $e) {
+        $status = 'error';
+        $output = $e->getMessage() . "\n" . $e->getTraceAsString();
+    }
+    return response()->view('updatedb-view', compact('status', 'output'));
+});
+Route::any('/updatedb', function () {
+    return redirect('/updatedb.php');
+});
+
 // Media / Uploads file serving route (Guarantees online image delivery on cPanel shared hosting)
 Route::get('/uploads/{folder}/{filename}', function ($folder, $filename) {
     $path = public_path("uploads/{$folder}/{$filename}");
@@ -154,6 +172,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         $courses = auth()->user()->coursesEnrolled()->withPivot('progress_percentage')->get();
         return view('student.certificates', compact('courses'));
     })->name('student.certificates');
+    Route::get('/courses/{course}/certificate', function(\App\Models\Course $course) {
+        $user = auth()->user();
+        $enrollment = $user->enrollments()->where('course_id', $course->id)->first();
+        if (!$enrollment || $enrollment->progress_percentage < 100) {
+            return redirect()->route('course.detail', $course->slug)->with('error', 'You must reach 100% course completion to generate your certificate.');
+        }
+        return view('student.certificate-view', compact('course', 'user', 'enrollment'));
+    })->name('student.certificate.view');
 
     Route::get('/instructor/dashboard', [DashboardController::class, 'instructorDashboard'])
          ->middleware(IsInstructor::class)
@@ -165,6 +191,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return view('instructor.student-analytics');
     })->middleware(IsInstructor::class)
       ->name('instructor.student.analytics');
+    Route::post('/instructor/bank-details', [DashboardController::class, 'updateBankDetails'])
+         ->middleware(IsInstructor::class)
+         ->name('instructor.bank-details.update');
+    Route::post('/instructor/payout/request', [DashboardController::class, 'requestPayout'])
+         ->middleware(IsInstructor::class)
+         ->name('instructor.payout.request');
+    Route::get('/instructor/submissions', [DashboardController::class, 'instructorSubmissions'])
+         ->middleware(IsInstructor::class)
+         ->name('instructor.submissions');
 
     // Checkout & Payment Routes
     Route::get('/courses/{course}/checkout', [PaymentController::class, 'checkout'])->name('courses.checkout');

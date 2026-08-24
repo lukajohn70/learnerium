@@ -179,12 +179,32 @@ class AdminDashboardController extends Controller
      */
     public function markInstructorPaid(Request $request, User $instructor)
     {
+        $pendingAmount = Enrollment::whereHas('course', fn($q) => $q->where('user_id', $instructor->id))
+            ->where('payment_status', 'paid')
+            ->where('payout_status', 'pending')
+            ->sum('instructor_share');
+
         Enrollment::whereHas('course', fn($q) => $q->where('user_id', $instructor->id))
             ->where('payment_status', 'paid')
             ->where('payout_status', 'pending')
             ->update(['payout_status' => 'paid']);
 
-        return back()->with('status', "Payout marked as paid for {$instructor->name}.");
+        $instructor->update(['payout_requested_at' => null]);
+
+        // Notify instructor
+        try {
+            \App\Models\AppNotification::notify(
+                $instructor->id,
+                'payout',
+                'Payout Processed! 🎉',
+                "Your payout of ₦" . number_format($pendingAmount, 2) . " has been sent to your bank account.",
+                route('instructor.dashboard'),
+                'fa-check-circle',
+                'green'
+            );
+        } catch (\Throwable $e) {}
+
+        return back()->with('status', "Payout of ₦" . number_format($pendingAmount, 2) . " marked as paid for {$instructor->name}.");
     }
 
     /**
