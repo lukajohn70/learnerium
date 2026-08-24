@@ -37,7 +37,10 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             
             @php
-                $instructors = \App\Models\User::where('role', 'instructor')->with('coursesTaught')->get();
+                $instructors = \App\Models\User::whereIn('role', ['instructor', 'admin'])
+                    ->whereHas('coursesTaught', fn($q) => $q->whereNotNull('published_at'))
+                    ->with(['coursesTaught' => fn($q) => $q->whereNotNull('published_at')])
+                    ->get();
             @endphp
 
             @forelse($instructors as $inst)

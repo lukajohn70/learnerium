@@ -111,10 +111,10 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function coursesEnrolled(): BelongsToMany
     {
-        // MODIFIED: Explicitly add 'created_at' and 'updated_at' to withPivot
+        // Only return PAID enrollments — pending (pre-payment) should not show as enrolled
         return $this->belongsToMany(Course::class, 'enrollments', 'user_id', 'course_id')
-                    ->withPivot('progress_percentage', 'completion_date', 'created_at', 'updated_at'); // Changed this line
-                    // ->withTimestamps(); // REMOVE or comment out this line if you add them to withPivot
+                    ->wherePivot('payment_status', 'paid')
+                    ->withPivot('progress_percentage', 'completion_date', 'created_at', 'updated_at');
     }
 
     /**

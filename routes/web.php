@@ -23,6 +23,7 @@ use App\Http\Controllers\LessonDiscussionController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\SitemapController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Middleware\IsInstructor;
 
 /*
@@ -179,6 +180,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/wishlist/{course}/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
     Route::delete('/wishlist/{course}', [WishlistController::class, 'destroy'])->name('wishlist.destroy');
     Route::post('/wishlist/{course}/cart', [WishlistController::class, 'moveToCart'])->name('wishlist.move-to-cart');
+
+    // Notification Routes
+    Route::get('/notifications/count', [NotificationController::class, 'count'])->name('notifications.count');
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
+    Route::get('/settings/notifications', [NotificationController::class, 'preferences'])->name('notifications.preferences');
+    Route::post('/settings/notifications', [NotificationController::class, 'savePreferences'])->name('notifications.save');
 });
 
 Route::middleware(['auth', 'instructor'])->group(function () {

@@ -259,6 +259,36 @@ class PaymentController extends Controller
                     ]);
 
                     $course = Course::find($enrollment->course_id);
+
+                    // Fire in-app notifications
+                    try {
+                        // Notify the student
+                        \App\Models\AppNotification::notify(
+                            $enrollment->user_id,
+                            'payment',
+                            'Payment Confirmed! 🎉',
+                            "You're now enrolled in \"{$course->title}\". Start learning now!",
+                            $course ? route('course.detail', $course->slug) : null,
+                            'fa-check-circle',
+                            'green'
+                        );
+
+                        // Notify the instructor
+                        if ($course && $course->instructor_id) {
+                            \App\Models\AppNotification::notify(
+                                $course->instructor_id,
+                                'payment',
+                                'New Student Enrolled 💰',
+                                "A student just enrolled in \"{$course->title}\" — your share: ₦" . number_format($instructorShare, 2),
+                                null,
+                                'fa-graduation-cap',
+                                'blue'
+                            );
+                        }
+                    } catch (\Exception $notifEx) {
+                        Log::warning('Notification error: ' . $notifEx->getMessage());
+                    }
+
                     return redirect()->route('course.detail', $course ? $course->slug : '')
                         ->with('status', 'Payment successful! You are now enrolled.');
                 }

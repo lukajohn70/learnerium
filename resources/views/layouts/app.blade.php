@@ -250,7 +250,33 @@
                                     </span>
                                 @endif
                             </a>
+
+                            {{-- Notification Bell --}}
+                            <div class="relative" id="notifBellWrap">
+                                <button id="notifBellBtn" class="relative text-gray-600 hover:text-primary-jlm p-2 rounded-full hover:bg-blue-50 transition" title="Notifications">
+                                    <i class="fas fa-bell text-lg"></i>
+                                    <span id="notifBadge" class="absolute -top-1 -right-1 bg-secondary-jlm text-white text-[10px] font-black w-4 h-4 rounded-full items-center justify-center border-2 border-white hidden">0</span>
+                                </button>
+                                <div id="notifPanel" class="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 z-30 hidden origin-top-right">
+                                    <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                                        <span class="font-bold text-gray-900 text-sm">Notifications</span>
+                                        <button onclick="markAllRead()" class="text-xs text-primary-jlm font-bold hover:underline">Mark all read</button>
+                                    </div>
+                                    <div id="notifList" class="max-h-80 overflow-y-auto divide-y divide-gray-50">
+                                        <div class="p-6 text-center text-gray-400 text-sm" id="notifEmpty">
+                                            <i class="fas fa-bell-slash text-2xl mb-2 block text-gray-200"></i>
+                                            No notifications yet
+                                        </div>
+                                    </div>
+                                    <div class="px-4 py-2.5 border-t border-gray-100 text-center">
+                                        <a href="{{ route('notifications.preferences') }}" class="text-xs text-gray-400 hover:text-primary-jlm font-semibold transition">
+                                            <i class="fas fa-sliders-h mr-1"></i>Notification Settings
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+
 
                         <div class="relative" id="userDropdownWrap">
                             <button id="userDropdownBtn" class="flex items-center text-primary-jlm focus:outline-none hover:text-secondary-jlm font-semibold space-x-2">
@@ -630,6 +656,101 @@
 
         stickyDropdown('loginDropdownWrap', 'loginDropdownBtn', 'loginDropdownMenu');
         stickyDropdown('userDropdownWrap',  'userDropdownBtn',  'userDropdownMenu');
+
+        // ─── Notification Bell ───────────────────────────────────────────────
+        @auth
+        const notifBtn   = document.getElementById('notifBellBtn');
+        const notifPanel = document.getElementById('notifPanel');
+        const notifBadge = document.getElementById('notifBadge');
+        const notifList  = document.getElementById('notifList');
+        const notifEmpty = document.getElementById('notifEmpty');
+
+        const colorMap = {
+            green: 'text-emerald-500', blue: 'text-blue-500',
+            red: 'text-red-500', amber: 'text-amber-500', purple: 'text-purple-500'
+        };
+
+        function loadNotifications() {
+            fetch('{{ route("notifications.index") }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(r => r.json())
+                .then(notifications => {
+                    const unread = notifications.filter(n => !n.is_read).length;
+                    if (unread > 0) {
+                        notifBadge.textContent = unread > 9 ? '9+' : unread;
+                        notifBadge.classList.remove('hidden');
+                        notifBadge.classList.add('flex');
+                    } else {
+                        notifBadge.classList.add('hidden');
+                        notifBadge.classList.remove('flex');
+                    }
+
+                    if (notifications.length === 0) {
+                        notifEmpty.classList.remove('hidden');
+                        return;
+                    }
+                    notifEmpty.classList.add('hidden');
+
+                    // Clear and rebuild list (keep notifEmpty node)
+                    [...notifList.children].forEach(c => { if (c.id !== 'notifEmpty') c.remove(); });
+
+                    notifications.slice(0, 15).forEach(n => {
+                        const iconColor = colorMap[n.color] || 'text-blue-500';
+                        const readClass = n.is_read ? 'opacity-60' : 'bg-blue-50/40';
+                        const item = document.createElement('div');
+                        item.className = `px-4 py-3 hover:bg-gray-50 transition cursor-pointer ${readClass}`;
+                        item.innerHTML = `
+                            <div class="flex gap-3 items-start">
+                                <i class="fas ${n.icon} mt-0.5 flex-shrink-0 ${iconColor}"></i>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-xs font-bold text-gray-900 leading-tight">${n.title}</p>
+                                    <p class="text-xs text-gray-500 mt-0.5 leading-snug">${n.message}</p>
+                                    <p class="text-[10px] text-gray-300 mt-1">${new Date(n.created_at).toLocaleString()}</p>
+                                </div>
+                            </div>`;
+                        item.addEventListener('click', () => {
+                            fetch(`/notifications/${n.id}/read`, {
+                                method: 'POST',
+                                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'X-Requested-With': 'XMLHttpRequest' }
+                            }).then(() => {
+                                item.classList.remove('bg-blue-50/40');
+                                item.classList.add('opacity-60');
+                                if (n.action_url) window.location.href = n.action_url;
+                            });
+                        });
+                        notifList.appendChild(item);
+                    });
+                }).catch(() => {});
+        }
+
+        function markAllRead() {
+            fetch('{{ route("notifications.read-all") }}', {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'X-Requested-With': 'XMLHttpRequest' }
+            }).then(() => loadNotifications());
+        }
+
+        if (notifBtn) {
+            notifBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                notifPanel.classList.toggle('hidden');
+                if (!notifPanel.classList.contains('hidden')) loadNotifications();
+            });
+            document.addEventListener('click', (e) => {
+                if (!notifPanel.contains(e.target) && e.target !== notifBtn) notifPanel.classList.add('hidden');
+            });
+            // Load count on page load
+            fetch('{{ route("notifications.count") }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.count > 0) {
+                        notifBadge.textContent = data.count > 9 ? '9+' : data.count;
+                        notifBadge.classList.remove('hidden');
+                        notifBadge.classList.add('flex');
+                    }
+                }).catch(() => {});
+        }
+        @endauth
+
     </script>
 </body>
 </html>
