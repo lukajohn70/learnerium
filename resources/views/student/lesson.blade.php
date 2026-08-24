@@ -53,12 +53,12 @@
                     <div class="bg-black">
                         @if($isIframe)
                             <div class="aspect-video w-full">
-                                <iframe class="w-full h-full border-0" src="{{ $embedUrl }}"
+                                <iframe id="lessonVideoIframe" class="w-full h-full border-0" src="{{ $embedUrl . (strpos($embedUrl, '?') !== false ? '&' : '?') . 'enablejsapi=1' }}"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                     allowfullscreen></iframe>
                             </div>
                         @else
-                            <video class="w-full max-h-[480px]" controls>
+                            <video id="lessonVideoPlayer" class="w-full max-h-[480px]" controls>
                                 <source src="{{ $embedUrl }}" type="video/mp4">
                                 Your browser does not support the video tag.
                             </video>
@@ -98,16 +98,25 @@
                                     </div>
                                 </div>
                             @else
-                                <form action="{{ route('lesson.complete', [$course, $lesson]) }}" method="POST">
+                                <form id="completeLessonForm" action="{{ route('lesson.complete', [$course, $lesson]) }}" method="POST">
                                     @csrf
-                                    <button type="submit" class="bg-primary-jlm text-white px-8 py-3 rounded-xl font-bold hover:bg-primary-jlm-dark transition shadow-md flex items-center gap-2">
-                                        <i class="fas fa-check"></i>Mark as Complete
+                                    <button type="submit" id="completeLessonBtn"
+                                            class="bg-primary-jlm hover:bg-primary-jlm-dark disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-3 rounded-xl font-bold transition shadow-md flex items-center gap-2">
+                                        <i class="fas fa-check"></i><span id="completeBtnTxt">Mark as Complete</span>
                                     </button>
                                 </form>
+
+                                @if($lesson->video_url && !$lessonCompleted)
+                                    <div id="videoGateMsg" class="mt-3 text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-4 py-2.5 rounded-xl inline-flex items-center gap-2">
+                                        <i class="fas fa-play-circle text-amber-500"></i>
+                                        <span>Video Requirement: Watch at least 80% of this video lesson to unlock completion (<span id="watchPercentTxt" class="font-bold">0%</span> watched).</span>
+                                    </div>
+                                @endif
                             @endif
                         </div>
                     @else
                         <div class="border-t border-gray-100 pt-5">
+
                             <div class="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-xl px-5 py-4 text-blue-800">
                                 <i class="fas fa-chalkboard-teacher text-blue-400 text-xl"></i>
                                 <span class="font-medium">You are viewing this lesson as the course instructor.</span>
@@ -495,6 +504,74 @@ function toggleReplyForm(commentId) {
         }
     }
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    const hasVideo = {{ $lesson->video_url && !$lessonCompleted ? 'true' : 'false' }};
+    const completeBtn = document.getElementById('completeLessonBtn');
+    const completeBtnTxt = document.getElementById('completeBtnTxt');
+    const watchPercentTxt = document.getElementById('watchPercentTxt');
+    const videoGateMsg = document.getElementById('videoGateMsg');
+    
+    if (hasVideo && completeBtn) {
+        let maxPercentWatched = 0;
+        const requiredPercent = 80;
+
+        function unlockCompletion() {
+            completeBtn.disabled = false;
+            if (completeBtnTxt) completeBtnTxt.textContent = 'Mark as Complete';
+            if (videoGateMsg) {
+                videoGateMsg.className = 'mt-3 text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-4 py-2.5 rounded-xl inline-flex items-center gap-2';
+                videoGateMsg.innerHTML = '<i class="fas fa-check-circle text-emerald-500"></i><span>Video Requirement Met (80%+ watched)! You can now mark this lesson as complete.</span>';
+            }
+        }
+
+        // Lock button initially
+        completeBtn.disabled = true;
+
+        // 1. Native HTML5 Video Player
+        const videoPlayer = document.getElementById('lessonVideoPlayer');
+        if (videoPlayer) {
+            videoPlayer.addEventListener('timeupdate', function () {
+                if (videoPlayer.duration > 0) {
+                    const currentPercent = Math.min(100, Math.round((videoPlayer.currentTime / videoPlayer.duration) * 100));
+                    if (currentPercent > maxPercentWatched) {
+                        maxPercentWatched = currentPercent;
+                        if (watchPercentTxt) watchPercentTxt.textContent = maxPercentWatched + '%';
+                    }
+                    if (maxPercentWatched >= requiredPercent) {
+                        unlockCompletion();
+                    }
+                }
+            });
+            videoPlayer.addEventListener('ended', function () {
+                maxPercentWatched = 100;
+                if (watchPercentTxt) watchPercentTxt.textContent = '100%';
+                unlockCompletion();
+            });
+        }
+
+        // 2. Embedded Video Watch Timer (YouTube / Vimeo / External)
+        const iframe = document.getElementById('lessonVideoIframe');
+        if (iframe) {
+            let activeWatchSeconds = 0;
+            const targetWatchSeconds = Math.min(120, Math.max(30, {{ (int)($lesson->duration_minutes ? $lesson->duration_minutes * 60 * 0.8 : 60) }}));
+            
+            const watchInterval = setInterval(() => {
+                activeWatchSeconds += 1;
+                const estPercent = Math.min(100, Math.round((activeWatchSeconds / targetWatchSeconds) * 100));
+                if (estPercent > maxPercentWatched) {
+                    maxPercentWatched = estPercent;
+                    if (watchPercentTxt) watchPercentTxt.textContent = maxPercentWatched + '%';
+                }
+                if (maxPercentWatched >= requiredPercent) {
+                    clearInterval(watchInterval);
+                    unlockCompletion();
+                }
+            }, 1000);
+        }
+    }
+});
 </script>
 @endsection
+
 

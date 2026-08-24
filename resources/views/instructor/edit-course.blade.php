@@ -28,8 +28,12 @@
                     </form>
                 @endif
                 <a href="{{ route('course.detail', $course->slug) }}" target="_blank" class="border border-gray-300 text-gray-700 hover:bg-gray-50 text-xs font-bold px-3.5 py-2 rounded-xl transition">
-                    <i class="fas fa-eye mr-1"></i> Preview
+                    <i class="fas fa-eye mr-1"></i> Preview Course
                 </a>
+                <a href="{{ route('student.certificate.view', $course) }}" target="_blank" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5" title="Preview Accredited Certificate">
+                    <i class="fas fa-certificate"></i> Preview Certificate
+                </a>
+
                 <form action="{{ route('instructor.courses.destroy', $course) }}" method="POST" class="inline" onsubmit="return confirm('⚠️ Are you sure you want to PERMANENTLY DELETE this course?\n\nThis action cannot be undone!');">
                     @csrf
                     @method('DELETE')
