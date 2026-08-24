@@ -76,12 +76,15 @@ class Coupon extends Model
     {
         $price = (float) $originalPrice;
         $value = (float) $this->discount_value;
+        $type  = strtolower(trim($this->discount_type ?? ''));
 
-        if ($this->discount_type === 'percentage') {
-            return round(($price * $value) / 100, 2);
+        if (in_array($type, ['percentage', 'percent', '%'], true)) {
+            $effectivePercent = min(100, max(0, $value));
+            return round(($price * $effectivePercent) / 100, 2);
         }
 
-        // Fixed discount
+        // Fixed amount discount (cannot exceed original price)
         return round(min($value, $price), 2);
     }
+
 }

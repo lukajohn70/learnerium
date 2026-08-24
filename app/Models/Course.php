@@ -79,8 +79,10 @@ class Course extends Model
     public function students(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'enrollments', 'course_id', 'user_id')
-                    ->withPivot('progress_percentage', 'completion_date', 'created_at', 'updated_at');
+                    ->wherePivot('payment_status', 'paid')
+                    ->withPivot('payment_status', 'progress_percentage', 'completion_date', 'created_at', 'updated_at');
     }
+
 
     /**
      * Get the coupons associated with this Course.

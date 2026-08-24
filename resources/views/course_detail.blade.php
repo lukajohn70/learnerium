@@ -228,7 +228,8 @@
                                         <i id="icon-sec-{{ $loop->index }}" class="fas fa-chevron-down transition-transform duration-200"></i>
                                     </span>
                                 </button>
-                                <div id="sec-{{ $loop->index }}" class="bg-white divide-y                                    @foreach($sectionLessons as $lesson)
+                                <div id="sec-{{ $loop->index }}" class="bg-white divide-y divide-gray-50">
+                                    @foreach($sectionLessons as $lesson)
                                         <div class="px-5 py-3 flex items-center justify-between text-sm flex-wrap gap-2">
                                             <div class="flex items-center gap-3">
                                                 <i class="fas fa-play-circle text-primary-jlm"></i>
@@ -277,10 +278,10 @@
                             </div>
                         @endforeach
                     @endif
-            @endif
                 </div>
             </section>
             @endif
+
 
             {{-- About the Instructor --}}
             <section class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
