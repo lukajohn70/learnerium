@@ -133,8 +133,12 @@ try {
                 $table->string('bank_name')->nullable()->after('email');
                 logMsg($log, "Added column 'bank_name' to users table.", 'success');
             }
+            if (!Schema::hasColumn('users', 'bank_code')) {
+                $table->string('bank_code', 20)->nullable()->after('bank_name');
+                logMsg($log, "Added column 'bank_code' to users table.", 'success');
+            }
             if (!Schema::hasColumn('users', 'account_number')) {
-                $table->string('account_number')->nullable()->after('bank_name');
+                $table->string('account_number')->nullable()->after('bank_code');
                 logMsg($log, "Added column 'account_number' to users table.", 'success');
             }
             if (!Schema::hasColumn('users', 'account_name')) {
@@ -149,7 +153,9 @@ try {
         $recordMigration('2025_06_05_155614_add_role_to_users_table');
         $recordMigration('2026_08_20_181033_add_avatar_to_users_table');
         $recordMigration('2026_08_24_163500_add_bank_details_to_users');
+        $recordMigration('2026_08_24_165000_add_bank_code_to_users');
     }
+
 
     // COURSES table columns
     if (Schema::hasTable('courses')) {

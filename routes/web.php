@@ -24,6 +24,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\BankVerificationController;
 use App\Http\Middleware\IsInstructor;
 
 /*
@@ -138,8 +139,12 @@ Route::any('/updatedb.php', function () {
                     $table->string('bank_name')->nullable()->after('email');
                     logRouteMsg($log, "Added column 'bank_name' to users table.", 'success');
                 }
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'bank_code')) {
+                    $table->string('bank_code', 20)->nullable()->after('bank_name');
+                    logRouteMsg($log, "Added column 'bank_code' to users table.", 'success');
+                }
                 if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'account_number')) {
-                    $table->string('account_number')->nullable()->after('bank_name');
+                    $table->string('account_number')->nullable()->after('bank_code');
                     logRouteMsg($log, "Added column 'account_number' to users table.", 'success');
                 }
                 if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'account_name')) {
@@ -154,7 +159,9 @@ Route::any('/updatedb.php', function () {
             $recordMigration('2025_06_05_155614_add_role_to_users_table');
             $recordMigration('2026_08_20_181033_add_avatar_to_users_table');
             $recordMigration('2026_08_24_163500_add_bank_details_to_users');
+            $recordMigration('2026_08_24_165000_add_bank_code_to_users');
         }
+
 
         if (\Illuminate\Support\Facades\Schema::hasTable('courses')) {
             \Illuminate\Support\Facades\Schema::table('courses', function (\Illuminate\Database\Schema\Blueprint $table) use (&$log) {
@@ -468,7 +475,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
     Route::get('/settings/notifications', [NotificationController::class, 'preferences'])->name('notifications.preferences');
     Route::post('/settings/notifications', [NotificationController::class, 'savePreferences'])->name('notifications.save');
+
+    // Bank Verification & Account Resolution APIs
+    Route::get('/api/banks', [BankVerificationController::class, 'getBanks'])->name('api.banks');
+    Route::post('/api/banks/resolve', [BankVerificationController::class, 'resolveAccount'])->name('api.banks.resolve');
 });
+
 
 Route::middleware(['auth', 'instructor'])->group(function () {
     // View students enrolled in a course

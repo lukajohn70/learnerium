@@ -27,6 +27,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'avatar',
         'profile_picture',
         'bank_name',
+        'bank_code',
         'account_number',
         'account_name',
         'payout_requested_at',

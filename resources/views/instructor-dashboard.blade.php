@@ -62,30 +62,62 @@
             </form>
         </div>
 
-        {{-- Bank Details Card --}}
-        <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
-            <h3 class="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
-                <i class="fas fa-university text-primary-jlm"></i> Payout Bank Details
-            </h3>
-            <form action="{{ route('instructor.bank-details.update') }}" method="POST" class="space-y-2.5">
-                @csrf
-                <div>
-                    <input type="text" name="bank_name" placeholder="Bank Name (e.g. GTBank, Zenith)" value="{{ old('bank_name', $user->bank_name) }}" required
-                           class="w-full bg-gray-50 border border-gray-200 text-gray-800 text-xs rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-jlm/30">
-                </div>
-                <div>
-                    <input type="text" name="account_number" placeholder="10-Digit Account Number" value="{{ old('account_number', $user->account_number) }}" required
-                           class="w-full bg-gray-50 border border-gray-200 text-gray-800 text-xs rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-jlm/30">
-                </div>
-                <div>
-                    <input type="text" name="account_name" placeholder="Account Name (as on bank app)" value="{{ old('account_name', $user->account_name) }}" required
-                           class="w-full bg-gray-50 border border-gray-200 text-gray-800 text-xs rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-jlm/30">
-                </div>
-                <button type="submit" class="w-full bg-gray-900 hover:bg-black text-white text-xs font-bold py-2 rounded-xl transition">
-                    Save Bank Info
-                </button>
-            </form>
+        {{-- Bank Details Card with Instant NIBSS/Paystack Verification --}}
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
+            <div>
+                <h3 class="text-sm font-bold text-gray-900 mb-1 flex items-center justify-between">
+                    <span class="flex items-center gap-2"><i class="fas fa-university text-primary-jlm"></i> Payout Bank Details</span>
+                    <span class="text-[10px] text-emerald-700 bg-emerald-50 font-bold px-2 py-0.5 rounded-full border border-emerald-100">
+                        <i class="fas fa-bolt mr-0.5"></i> Instant Verification
+                    </span>
+                </h3>
+                <p class="text-[11px] text-gray-400 mb-3">Verified automatically via Central Bank / NIBSS network.</p>
+
+                <form id="bankDetailsForm" action="{{ route('instructor.bank-details.update') }}" method="POST" class="space-y-2.5">
+                    @csrf
+                    <input type="hidden" name="bank_name" id="bankNameInput" value="{{ old('bank_name', $user->bank_name) }}">
+                    <input type="hidden" name="bank_code" id="bankCodeInput" value="{{ old('bank_code', $user->bank_code) }}">
+
+                    {{-- Bank Select Dropdown --}}
+                    <div>
+                        <select id="bankSelect" required class="w-full bg-gray-50 border border-gray-200 text-gray-800 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-jlm/30 font-medium">
+                            <option value="">-- Select Your Bank --</option>
+                            @if($user->bank_code && $user->bank_name)
+                                <option value="{{ $user->bank_code }}" selected>{{ $user->bank_name }}</option>
+                            @endif
+                        </select>
+                    </div>
+
+                    {{-- Account Number Input --}}
+                    <div>
+                        <input type="text" name="account_number" id="accountNumberInput" maxlength="10" placeholder="10-Digit Account Number" value="{{ old('account_number', $user->account_number) }}" required
+                               class="w-full bg-gray-50 border border-gray-200 text-gray-800 text-xs rounded-xl px-3 py-2.5 font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-primary-jlm/30">
+                    </div>
+
+                    {{-- Live Account Resolution Status Badge --}}
+                    <div id="verifyStatusBox" class="text-[11px] min-h-[22px] flex items-center">
+                        @if($user->account_name)
+                            <span class="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md font-bold text-[11px] flex items-center gap-1 border border-emerald-100">
+                                <i class="fas fa-check-circle text-emerald-600"></i> {{ $user->account_name }}
+                            </span>
+                        @else
+                            <span class="text-gray-400 italic">Select bank & enter 10 digits to verify</span>
+                        @endif
+                    </div>
+
+                    {{-- Account Name Input (Auto-populated from Paystack) --}}
+                    <div>
+                        <input type="text" name="account_name" id="accountNameInput" placeholder="Account Name (Auto-resolved)" value="{{ old('account_name', $user->account_name) }}" required readonly
+                               class="w-full bg-gray-100 border border-gray-200 text-gray-700 font-semibold text-xs rounded-xl px-3 py-2.5 focus:outline-none cursor-not-allowed">
+                    </div>
+
+                    <button type="submit" id="saveBankBtn" class="w-full bg-gray-900 hover:bg-black text-white text-xs font-bold py-2.5 rounded-xl transition shadow-sm">
+                        <i class="fas fa-save mr-1.5"></i>Save Verified Bank Info
+                    </button>
+                </form>
+            </div>
         </div>
+
     </div>
 
     <!-- Stats Cards -->
@@ -198,4 +230,117 @@
         @endif
     </div>
 </div>
+
+{{-- Bank Resolution Real-Time Script --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const bankSelect     = document.getElementById('bankSelect');
+    const bankNameInput  = document.getElementById('bankNameInput');
+    const bankCodeInput  = document.getElementById('bankCodeInput');
+    const accNumInput    = document.getElementById('accountNumberInput');
+    const accNameInput   = document.getElementById('accountNameInput');
+    const statusBox      = document.getElementById('verifyStatusBox');
+    const saveBtn        = document.getElementById('saveBankBtn');
+
+    if (!bankSelect || !accNumInput) return;
+
+    const currentBankCode = "{{ $user->bank_code ?? '' }}";
+
+    // 1. Fetch live bank list from Paystack
+    fetch("{{ route('api.banks') }}")
+        .then(r => r.json())
+        .then(data => {
+            if (data.success && data.banks) {
+                bankSelect.innerHTML = '<option value="">-- Select Your Bank --</option>';
+                data.banks.forEach(bank => {
+                    const opt = document.createElement('option');
+                    opt.value = bank.code;
+                    opt.textContent = bank.name;
+                    opt.dataset.name = bank.name;
+                    if (bank.code === currentBankCode) {
+                        opt.selected = true;
+                    }
+                    bankSelect.appendChild(opt);
+                });
+            }
+        })
+        .catch(() => {});
+
+    // 2. Real-time Account Resolver
+    let debounceTimer = null;
+
+    function verifyAccount() {
+        const selectedOpt = bankSelect.options[bankSelect.selectedIndex];
+        const bankCode    = selectedOpt ? selectedOpt.value : '';
+        const bankName    = selectedOpt ? (selectedOpt.dataset.name || selectedOpt.textContent) : '';
+        const accNum      = accNumInput.value.trim();
+
+        if (bankCode) {
+            bankCodeInput.value = bankCode;
+            bankNameInput.value = bankName;
+        }
+
+        if (accNum.length !== 10 || !bankCode) {
+            if (accNum.length > 0 && accNum.length < 10) {
+                statusBox.innerHTML = `<span class="text-gray-400 italic">Enter full 10-digit account number (${accNum.length}/10)</span>`;
+            }
+            return;
+        }
+
+        // Show verifying animation
+        statusBox.innerHTML = `
+            <span class="text-blue-600 font-semibold text-[11px] flex items-center gap-1.5 animate-pulse">
+                <i class="fas fa-circle-notch fa-spin text-blue-500"></i> Verifying with ${bankName}...
+            </span>`;
+        saveBtn.disabled = true;
+
+        fetch("{{ route('api.banks.resolve') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                account_number: accNum,
+                bank_code: bankCode
+            })
+        })
+        .then(r => r.json())
+        .then(res => {
+            saveBtn.disabled = false;
+            if (res.success && res.account_name) {
+                accNameInput.value = res.account_name;
+                statusBox.innerHTML = `
+                    <span class="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md font-bold text-[11px] flex items-center gap-1 border border-emerald-100">
+                        <i class="fas fa-check-circle text-emerald-600"></i> Verified: ${res.account_name}
+                    </span>`;
+            } else {
+                accNameInput.value = '';
+                statusBox.innerHTML = `
+                    <span class="text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md font-semibold text-[11px] flex items-center gap-1 border border-rose-100">
+                        <i class="fas fa-times-circle text-rose-500"></i> ${res.message || 'Account verification failed.'}
+                    </span>`;
+            }
+        })
+        .catch(() => {
+            saveBtn.disabled = false;
+            statusBox.innerHTML = `<span class="text-rose-500 text-[11px]">Network verification error. Please try again.</span>`;
+        });
+    }
+
+    accNumInput.addEventListener('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '');
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(verifyAccount, 400);
+    });
+
+    bankSelect.addEventListener('change', function() {
+        if (accNumInput.value.trim().length === 10) {
+            verifyAccount();
+        }
+    });
+});
+</script>
 @endsection
+

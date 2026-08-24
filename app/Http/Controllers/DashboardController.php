@@ -63,19 +63,22 @@ class DashboardController extends Controller
     {
         $request->validate([
             'bank_name'      => 'required|string|max:100',
-            'account_number' => 'required|string|max:30',
+            'bank_code'      => 'nullable|string|max:20',
+            'account_number' => 'required|string|size:10',
             'account_name'   => 'required|string|max:150',
         ]);
 
         $user = Auth::user();
         $user->update([
             'bank_name'      => $request->bank_name,
+            'bank_code'      => $request->bank_code,
             'account_number' => $request->account_number,
             'account_name'   => $request->account_name,
         ]);
 
-        return back()->with('status', 'Bank details updated successfully!');
+        return back()->with('status', 'Bank details verified and saved successfully!');
     }
+
 
     /**
      * Instructor requests a payout.
