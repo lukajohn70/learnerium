@@ -365,9 +365,58 @@
 
                 <!-- ============= PAYMENTS TAB ============= -->
                 <div id="tab-payments" class="tab-panel hidden space-y-4">
+                    {{-- Pending Payments (Reminder) Section --}}
+                    @if($pendingEnrollments->count() > 0)
+                    <div class="bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden">
+                        <div class="px-6 py-4 border-b border-amber-100 flex items-center justify-between bg-amber-50/50">
+                            <div>
+                                <h2 class="font-bold text-amber-900 text-base flex items-center gap-2"><i class="fas fa-clock text-amber-500"></i> Pending Payments</h2>
+                                <p class="text-xs text-amber-700 mt-0.5">Students who started checkout but haven't completed payment.</p>
+                            </div>
+                            <span class="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1.5 rounded-xl">{{ $pendingEnrollments->count() }} Pending</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs">
+                                <thead class="bg-gray-50 text-gray-600 uppercase font-semibold">
+                                    <tr>
+                                        <th class="px-5 py-3.5 text-left">Student</th>
+                                        <th class="px-5 py-3.5 text-left">Course</th>
+                                        <th class="px-5 py-3.5 text-left">Amount</th>
+                                        <th class="px-5 py-3.5 text-left">Started</th>
+                                        <th class="px-5 py-3.5 text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    @foreach($pendingEnrollments as $pending)
+                                    <tr class="hover:bg-amber-50/30 transition">
+                                        <td class="px-5 py-3.5">
+                                            <p class="font-bold text-gray-900">{{ $pending->user->name ?? '—' }}</p>
+                                            <p class="text-gray-400">{{ $pending->user->email ?? '' }}</p>
+                                        </td>
+                                        <td class="px-5 py-3.5 text-gray-700 font-medium">{{ Str::limit($pending->course->title ?? '—', 35) }}</td>
+                                        <td class="px-5 py-3.5 font-extrabold text-amber-700">₦{{ number_format($pending->amount_paid ?? 0, 2) }}</td>
+                                        <td class="px-5 py-3.5 text-gray-500">{{ $pending->created_at->format('d M Y') }}</td>
+                                        <td class="px-5 py-3.5 text-center">
+                                            <form action="{{ route('enrollment.remind', $pending) }}" method="POST">
+                                                @csrf
+                                                <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3.5 py-1.5 rounded-xl transition shadow-sm flex items-center gap-1.5 mx-auto"
+                                                        onclick="return confirm('Send payment reminder to {{ addslashes($pending->user->name ?? '') }}?')">
+                                                    <i class="fas fa-bell"></i> Send Reminder
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    @endif
+
+                    {{-- Completed Payments --}}
                     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
                         <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                            <h2 class="font-bold text-gray-800 text-base"><i class="fas fa-credit-card mr-2 text-emerald-600"></i>Payments & Enrollments</h2>
+                            <h2 class="font-bold text-gray-800 text-base"><i class="fas fa-credit-card mr-2 text-emerald-600"></i>Completed Payments & Enrollments</h2>
                             <a href="{{ route('admin.payments') }}" class="text-xs font-bold text-emerald-600 hover:underline">Full Page &rarr;</a>
                         </div>
                         <div class="overflow-x-auto">
@@ -400,6 +449,7 @@
                         </div>
                     </div>
                 </div>
+
 
                 <!-- ============= PAYOUTS TAB ============= -->
                 <div id="tab-payouts" class="tab-panel hidden space-y-5">

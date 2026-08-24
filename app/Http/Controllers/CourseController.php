@@ -66,15 +66,23 @@ class CourseController extends Controller
         $this->authorizeInstructor($course);
 
         $data = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['required', 'string'],
-            'category' => ['required', 'string', 'max:100'],
-            'thumbnail' => ['nullable', 'string'],
-            'thumbnail_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
-            'price' => ['nullable', 'numeric', 'min:0'],
-            'level' => ['required', 'in:Beginner,Intermediate,Advanced,All Levels'],
-            'duration_minutes' => ['required', 'integer', 'min:1'],
+            'title'              => ['required', 'string', 'max:255'],
+            'description'        => ['required', 'string'],
+            'category'           => ['required', 'string', 'max:100'],
+            'thumbnail'          => ['nullable', 'string'],
+            'thumbnail_file'     => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
+            'price'              => ['nullable', 'numeric', 'min:0'],
+            'level'              => ['required', 'in:Beginner,Intermediate,Advanced,All Levels'],
+            'duration_minutes'   => ['required', 'integer', 'min:1'],
+            'requirements'       => ['nullable', 'array'],
+            'requirements.*'     => ['nullable', 'string', 'max:300'],
+            'what_you_will_learn'   => ['nullable', 'array'],
+            'what_you_will_learn.*' => ['nullable', 'string', 'max:300'],
         ]);
+
+        // Filter out blank items
+        $data['requirements']       = array_values(array_filter($request->input('requirements', []), fn($v) => !empty(trim($v))));
+        $data['what_you_will_learn'] = array_values(array_filter($request->input('what_you_will_learn', []), fn($v) => !empty(trim($v))));
 
         if ($request->hasFile('thumbnail_file')) {
             $file = $request->file('thumbnail_file');
@@ -113,15 +121,23 @@ class CourseController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['required', 'string'],
-            'category' => ['required', 'string', 'max:100'],
-            'thumbnail' => ['nullable', 'string'],
-            'thumbnail_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
-            'price' => ['nullable', 'numeric', 'min:0'],
-            'level' => ['required', 'in:Beginner,Intermediate,Advanced,All Levels'],
-            'duration_minutes' => ['required', 'integer', 'min:1'],
+            'title'              => ['required', 'string', 'max:255'],
+            'description'        => ['required', 'string'],
+            'category'           => ['required', 'string', 'max:100'],
+            'thumbnail'          => ['nullable', 'string'],
+            'thumbnail_file'     => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
+            'price'              => ['nullable', 'numeric', 'min:0'],
+            'level'              => ['required', 'in:Beginner,Intermediate,Advanced,All Levels'],
+            'duration_minutes'   => ['required', 'integer', 'min:1'],
+            'requirements'       => ['nullable', 'array'],
+            'requirements.*'     => ['nullable', 'string', 'max:300'],
+            'what_you_will_learn'   => ['nullable', 'array'],
+            'what_you_will_learn.*' => ['nullable', 'string', 'max:300'],
         ]);
+
+        // Filter out blank items
+        $data['requirements']        = array_values(array_filter($request->input('requirements', []), fn($v) => !empty(trim($v))));
+        $data['what_you_will_learn'] = array_values(array_filter($request->input('what_you_will_learn', []), fn($v) => !empty(trim($v))));
 
         if ($request->hasFile('thumbnail_file')) {
             $file = $request->file('thumbnail_file');

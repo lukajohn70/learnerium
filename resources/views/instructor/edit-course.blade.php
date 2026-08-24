@@ -151,6 +151,108 @@
                     </div>
                 </div>
 
+                {{-- ✨ AI Assistant Panel --}}
+                <div class="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border border-indigo-200 rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow">
+                                ✨
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-extrabold text-indigo-900">AI Course Assistant</h3>
+                                <p class="text-xs text-indigo-600">Powered by Google Gemini — auto-fill course content</p>
+                            </div>
+                        </div>
+                        <span id="aiStatus" class="text-xs text-indigo-500 font-semibold hidden">
+                            <i class="fas fa-spinner fa-spin mr-1"></i> Generating...
+                        </span>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" onclick="aiGenerate('description')"
+                                class="bg-white border border-indigo-200 hover:bg-indigo-50 text-indigo-800 text-xs font-bold px-4 py-2 rounded-xl transition shadow-sm flex items-center gap-1.5">
+                            <i class="fas fa-magic text-purple-500"></i> Generate Description
+                        </button>
+                        <button type="button" onclick="aiGenerate('outcomes')"
+                                class="bg-white border border-indigo-200 hover:bg-indigo-50 text-indigo-800 text-xs font-bold px-4 py-2 rounded-xl transition shadow-sm flex items-center gap-1.5">
+                            <i class="fas fa-list-check text-emerald-500"></i> Generate Learning Outcomes
+                        </button>
+                        <button type="button" onclick="aiGenerate('requirements')"
+                                class="bg-white border border-indigo-200 hover:bg-indigo-50 text-indigo-800 text-xs font-bold px-4 py-2 rounded-xl transition shadow-sm flex items-center gap-1.5">
+                            <i class="fas fa-clipboard-list text-amber-500"></i> Generate Requirements
+                        </button>
+                        <button type="button" onclick="showOutlineModal()"
+                                class="bg-gradient-to-r from-indigo-500 to-purple-600 hover:opacity-90 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-sm flex items-center gap-1.5">
+                            <i class="fas fa-layer-group"></i> Generate Course Outline
+                        </button>
+                    </div>
+                </div>
+
+                {{-- What You'll Learn --}}
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700">
+                            <i class="fas fa-check-circle text-emerald-500 mr-1"></i> What Students Will Learn
+                        </label>
+                        <button type="button" onclick="addBullet('outcomes-list', 'what_you_will_learn')"
+                                class="text-xs font-bold text-primary-jlm hover:underline flex items-center gap-1">
+                            <i class="fas fa-plus"></i> Add Item
+                        </button>
+                    </div>
+                    <div id="outcomes-list" class="space-y-2">
+                        @php $outcomes = old('what_you_will_learn', $course->what_you_will_learn ?? []); @endphp
+                        @if(empty($outcomes))
+                            <div class="outcome-item flex items-center gap-2">
+                                <i class="fas fa-grip-vertical text-gray-300 cursor-grab text-xs"></i>
+                                <input type="text" name="what_you_will_learn[]" placeholder="e.g. Build full-stack web applications from scratch"
+                                       class="flex-1 px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary-jlm">
+                                <button type="button" onclick="removeBullet(this)" class="text-red-400 hover:text-red-600 text-xs"><i class="fas fa-times"></i></button>
+                            </div>
+                        @else
+                            @foreach($outcomes as $outcome)
+                            <div class="outcome-item flex items-center gap-2">
+                                <i class="fas fa-grip-vertical text-gray-300 cursor-grab text-xs"></i>
+                                <input type="text" name="what_you_will_learn[]" value="{{ $outcome }}" placeholder="e.g. Build full-stack web applications from scratch"
+                                       class="flex-1 px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary-jlm">
+                                <button type="button" onclick="removeBullet(this)" class="text-red-400 hover:text-red-600 text-xs"><i class="fas fa-times"></i></button>
+                            </div>
+                            @endforeach
+                        @endif
+                    </div>
+                </div>
+
+                {{-- Requirements / Prerequisites --}}
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700">
+                            <i class="fas fa-clipboard-list text-amber-500 mr-1"></i> Requirements / Prerequisites
+                        </label>
+                        <button type="button" onclick="addBullet('requirements-list', 'requirements')"
+                                class="text-xs font-bold text-primary-jlm hover:underline flex items-center gap-1">
+                            <i class="fas fa-plus"></i> Add Item
+                        </button>
+                    </div>
+                    <div id="requirements-list" class="space-y-2">
+                        @php $reqs = old('requirements', $course->requirements ?? []); @endphp
+                        @if(empty($reqs))
+                            <div class="req-item flex items-center gap-2">
+                                <i class="fas fa-grip-vertical text-gray-300 cursor-grab text-xs"></i>
+                                <input type="text" name="requirements[]" placeholder="e.g. Basic knowledge of HTML and CSS"
+                                       class="flex-1 px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary-jlm">
+                                <button type="button" onclick="removeBullet(this)" class="text-red-400 hover:text-red-600 text-xs"><i class="fas fa-times"></i></button>
+                            </div>
+                        @else
+                            @foreach($reqs as $req)
+                            <div class="req-item flex items-center gap-2">
+                                <i class="fas fa-grip-vertical text-gray-300 cursor-grab text-xs"></i>
+                                <input type="text" name="requirements[]" value="{{ $req }}" placeholder="e.g. Basic knowledge of HTML and CSS"
+                                       class="flex-1 px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary-jlm">
+                                <button type="button" onclick="removeBullet(this)" class="text-red-400 hover:text-red-600 text-xs"><i class="fas fa-times"></i></button>
+                            </div>
+                            @endforeach
+                        @endif
+                    </div>
+                </div>
+
                 <div class="pt-4 border-t border-gray-100 flex items-center justify-between">
                     <button type="submit" class="bg-secondary-jlm hover:bg-secondary-jlm/90 text-white px-8 py-3.5 rounded-2xl font-bold text-sm transition shadow-md">
                         <i class="fas fa-save mr-2"></i>Save Course Details
@@ -159,6 +261,7 @@
                         Next: Manage Modules & Lessons <i class="fas fa-arrow-right"></i>
                     </button>
                 </div>
+
             </form>
         </div>
 
@@ -512,6 +615,42 @@
     </div>
 </div>
 
+<!-- ================= AI COURSE OUTLINE MODAL ================= -->
+<div id="aiOutlineModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/60 backdrop-blur-sm p-4 sm:p-6 flex items-center justify-center">
+    <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl border border-gray-100 space-y-5 my-auto">
+        <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-lg font-bold shadow">
+                    ✨
+                </div>
+                <div>
+                    <h3 class="text-lg font-extrabold text-gray-900">AI Course Outline Generator</h3>
+                    <p class="text-xs text-gray-500">Gemini AI generates full module & lesson curriculum</p>
+                </div>
+            </div>
+            <button onclick="toggleModal('aiOutlineModal')" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+        </div>
+
+        <div id="aiOutlineLoading" class="py-12 text-center space-y-3">
+            <div class="inline-block w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+            <p class="text-sm font-bold text-indigo-900">Designing your curriculum with Gemini AI...</p>
+            <p class="text-xs text-gray-400">Analyzing course title, level, and prerequisites</p>
+        </div>
+
+        <div id="aiOutlineContent" class="hidden space-y-4">
+            <p class="text-xs text-gray-600">Here is the curriculum structure generated for your course. You can review and copy these into your course modules:</p>
+            <div id="aiOutlineTree" class="bg-gray-50 rounded-2xl p-4 max-h-[50vh] overflow-y-auto space-y-3 text-xs border border-gray-200 font-sans">
+            </div>
+        </div>
+
+        <div class="pt-3 border-t border-gray-100 flex justify-end gap-2">
+            <button type="button" onclick="toggleModal('aiOutlineModal')" class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-xs font-bold">Close</button>
+        </div>
+    </div>
+</div>
+
 <script>
 function switchTab(showId, hideId, activeBtn) {
     document.getElementById(showId).classList.remove('hidden');
@@ -543,5 +682,198 @@ function toggleMaterialInputs(type, modId) {
         }
     }
 }
+
+function addBullet(containerId, inputName) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const div = document.createElement('div');
+    div.className = 'flex items-center gap-2';
+    div.innerHTML = `
+        <i class="fas fa-grip-vertical text-gray-300 cursor-grab text-xs"></i>
+        <input type="text" name="${inputName}[]" placeholder="Enter bullet point..."
+               class="flex-1 px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary-jlm">
+        <button type="button" onclick="removeBullet(this)" class="text-red-400 hover:text-red-600 text-xs px-1">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    container.appendChild(div);
+    div.querySelector('input').focus();
+}
+
+function removeBullet(btn) {
+    const item = btn.closest('div');
+    const container = item.parentElement;
+    if (container.children.length > 1) {
+        item.remove();
+    } else {
+        item.querySelector('input').value = '';
+    }
+}
+
+// ================= AI GENERATOR JAVASCRIPT =================
+async function aiGenerate(action) {
+    const titleInput = document.getElementById('title');
+    const descInput = document.getElementById('description');
+    const levelSelect = document.getElementById('level');
+    const categorySelect = document.getElementById('category');
+    const aiStatus = document.getElementById('aiStatus');
+
+    const title = titleInput ? titleInput.value.trim() : '';
+    if (!title) {
+        alert('Please enter a Course Title first before generating content with AI.');
+        titleInput.focus();
+        return;
+    }
+
+    if (aiStatus) aiStatus.classList.remove('hidden');
+
+    try {
+        const response = await fetch('{{ route("instructor.ai.generate") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                action: action,
+                title: title,
+                level: levelSelect ? levelSelect.value : 'Beginner',
+                category: categorySelect ? categorySelect.value : '',
+                description: descInput ? descInput.value : ''
+            })
+        });
+
+        const result = await response.json();
+        if (aiStatus) aiStatus.classList.add('hidden');
+
+        if (!result.success) {
+            alert('AI Generation: ' + (result.message || 'Something went wrong.'));
+            return;
+        }
+
+        if (action === 'description' && descInput) {
+            descInput.value = result.data;
+            descInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else if (action === 'outcomes') {
+            const container = document.getElementById('outcomes-list');
+            if (container && Array.isArray(result.data)) {
+                container.innerHTML = '';
+                result.data.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'outcome-item flex items-center gap-2';
+                    div.innerHTML = `
+                        <i class="fas fa-grip-vertical text-gray-300 cursor-grab text-xs"></i>
+                        <input type="text" name="what_you_will_learn[]" value="${item.replace(/"/g, '&quot;')}"
+                               class="flex-1 px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary-jlm">
+                        <button type="button" onclick="removeBullet(this)" class="text-red-400 hover:text-red-600 text-xs px-1"><i class="fas fa-times"></i></button>
+                    `;
+                    container.appendChild(div);
+                });
+                container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        } else if (action === 'requirements') {
+            const container = document.getElementById('requirements-list');
+            if (container && Array.isArray(result.data)) {
+                container.innerHTML = '';
+                result.data.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'req-item flex items-center gap-2';
+                    div.innerHTML = `
+                        <i class="fas fa-grip-vertical text-gray-300 cursor-grab text-xs"></i>
+                        <input type="text" name="requirements[]" value="${item.replace(/"/g, '&quot;')}"
+                               class="flex-1 px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary-jlm">
+                        <button type="button" onclick="removeBullet(this)" class="text-red-400 hover:text-red-600 text-xs px-1"><i class="fas fa-times"></i></button>
+                    `;
+                    container.appendChild(div);
+                });
+                container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    } catch (err) {
+        if (aiStatus) aiStatus.classList.add('hidden');
+        alert('Network or AI service error: ' + err.message);
+    }
+}
+
+async function showOutlineModal() {
+    const titleInput = document.getElementById('title');
+    const descInput = document.getElementById('description');
+    const levelSelect = document.getElementById('level');
+    const categorySelect = document.getElementById('category');
+
+    const title = titleInput ? titleInput.value.trim() : '';
+    if (!title) {
+        alert('Please enter a Course Title first.');
+        titleInput.focus();
+        return;
+    }
+
+    toggleModal('aiOutlineModal');
+    const loading = document.getElementById('aiOutlineLoading');
+    const content = document.getElementById('aiOutlineContent');
+    const tree = document.getElementById('aiOutlineTree');
+
+    loading.classList.remove('hidden');
+    content.classList.add('hidden');
+
+    try {
+        const response = await fetch('{{ route("instructor.ai.generate") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'outline',
+                title: title,
+                level: levelSelect ? levelSelect.value : 'Beginner',
+                category: categorySelect ? categorySelect.value : '',
+                description: descInput ? descInput.value : ''
+            })
+        });
+
+        const result = await response.json();
+        loading.classList.add('hidden');
+
+        if (!result.success) {
+            alert('AI Outline: ' + (result.message || 'Error'));
+            toggleModal('aiOutlineModal');
+            return;
+        }
+
+        content.classList.remove('hidden');
+        tree.innerHTML = '';
+
+        if (Array.isArray(result.data)) {
+            result.data.forEach((mod, idx) => {
+                const modBox = document.createElement('div');
+                modBox.className = 'bg-white p-4 rounded-xl border border-gray-200 shadow-sm';
+                let lessonsHtml = '<ul class="mt-2 space-y-1 pl-4">';
+                if (Array.isArray(mod.lessons)) {
+                    mod.lessons.forEach(lesson => {
+                        lessonsHtml += `<li class="text-gray-700 list-disc">${lesson}</li>`;
+                    });
+                }
+                lessonsHtml += '</ul>';
+
+                modBox.innerHTML = `
+                    <div class="font-extrabold text-indigo-900 flex items-center gap-2">
+                        <i class="fas fa-folder text-indigo-500"></i> ${mod.module || 'Module ' + (idx + 1)}
+                    </div>
+                    ${lessonsHtml}
+                `;
+                tree.appendChild(modBox);
+            });
+        }
+    } catch (err) {
+        loading.classList.add('hidden');
+        alert('Failed to generate course outline: ' + err.message);
+        toggleModal('aiOutlineModal');
+    }
+}
 </script>
 @endsection
+

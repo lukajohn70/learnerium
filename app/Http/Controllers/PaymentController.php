@@ -330,4 +330,54 @@ class PaymentController extends Controller
             return redirect()->route('courses')->with('error', 'Error verifying payment: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Send a payment reminder email to a student with a pending enrollment.
+     */
+    public function sendPaymentReminder(Enrollment $enrollment)
+
+    {
+        // Only allow admin or the course instructor
+        $user = Auth::user();
+        $course = $enrollment->course;
+        $student = $enrollment->user;
+
+        if (!$user || (!$user->isAdmin() && $course->instructor_id !== $user->id)) {
+            abort(403);
+        }
+
+        if ($enrollment->payment_status === 'paid') {
+            return back()->with('status', "{$student->name} is already enrolled and has paid.");
+        }
+
+        // Build checkout URL
+        $checkoutUrl = route('payment.checkout', $course);
+
+        try {
+            \Illuminate\Support\Facades\Mail::send(
+                'emails.payment_reminder',
+                compact('student', 'course', 'enrollment', 'checkoutUrl'),
+                function ($m) use ($student, $course) {
+                    $m->to($student->email, $student->name)
+                      ->subject("⏰ Complete Your Enrollment: {$course->title} — Learnerium");
+                }
+            );
+
+            // In-app notification
+            \App\Models\AppNotification::notify(
+                $student->id,
+                'payment',
+                'Enrollment Reminder 💳',
+                "A reminder to complete your enrollment in \"{$course->title}\". Click to go to checkout.",
+                $checkoutUrl,
+                'fa-credit-card',
+                'amber'
+            );
+
+            return back()->with('status', "Payment reminder sent to {$student->name} ({$student->email}).");
+        } catch (\Exception $e) {
+            Log::error('Payment reminder failed: ' . $e->getMessage());
+            return back()->with('error', 'Failed to send reminder: ' . $e->getMessage());
+        }
+    }
 }

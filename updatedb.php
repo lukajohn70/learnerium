@@ -164,9 +164,18 @@ try {
                 $table->string('category')->nullable()->after('description');
                 logMsg($log, "Added column 'category' to courses table.", 'success');
             }
+            if (!Schema::hasColumn('courses', 'requirements')) {
+                $table->text('requirements')->nullable()->after('category');
+                logMsg($log, "Added column 'requirements' to courses table.", 'success');
+            }
+            if (!Schema::hasColumn('courses', 'what_you_will_learn')) {
+                $table->text('what_you_will_learn')->nullable()->after('requirements');
+                logMsg($log, "Added column 'what_you_will_learn' to courses table.", 'success');
+            }
         });
         $recordMigration('2026_08_20_182351_add_category_to_courses_table');
     }
+
 
     // ENROLLMENTS table columns
     if (Schema::hasTable('enrollments')) {

@@ -181,25 +181,49 @@
         <div class="lg:w-2/3 w-full space-y-10">
 
             {{-- What you'll learn --}}
-            @if($course->lessons->count() > 0)
+            @if(!empty($course->what_you_will_learn) || $course->lessons->count() > 0)
             <section class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-                <h2 class="text-2xl font-extrabold text-primary-jlm mb-6">What you'll learn</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-gray-700">
-                    @foreach($course->lessons->take(8) as $lesson)
-                        <div class="flex items-start gap-3">
-                            <i class="fas fa-check-circle text-secondary-jlm mt-0.5 flex-shrink-0"></i>
-                            <span class="text-sm leading-relaxed">{{ $lesson->title }}</span>
-                        </div>
-                    @endforeach
-                    @if($course->lessons->count() > 8)
-                        <div class="flex items-start gap-3 md:col-span-2">
-                            <i class="fas fa-plus-circle text-gray-400 mt-0.5 flex-shrink-0"></i>
-                            <span class="text-sm text-gray-500">And {{ $course->lessons->count() - 8 }} more lessons...</span>
-                        </div>
+                <h2 class="text-2xl font-extrabold text-primary-jlm mb-6 flex items-center gap-2">
+                    <i class="fas fa-check-circle text-secondary-jlm text-xl"></i> What you'll learn
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 text-gray-700">
+                    @if(!empty($course->what_you_will_learn) && count($course->what_you_will_learn) > 0)
+                        @foreach($course->what_you_will_learn as $outcome)
+                            <div class="flex items-start gap-3">
+                                <i class="fas fa-check text-emerald-500 mt-1 flex-shrink-0 text-xs"></i>
+                                <span class="text-sm leading-relaxed">{{ $outcome }}</span>
+                            </div>
+                        @endforeach
+                    @else
+                        @foreach($course->lessons->take(8) as $lesson)
+                            <div class="flex items-start gap-3">
+                                <i class="fas fa-check text-secondary-jlm mt-1 flex-shrink-0 text-xs"></i>
+                                <span class="text-sm leading-relaxed">{{ $lesson->title }}</span>
+                            </div>
+                        @endforeach
                     @endif
                 </div>
             </section>
             @endif
+
+            {{-- Requirements / Prerequisites --}}
+            @if(!empty($course->requirements) && count($course->requirements) > 0)
+            <section class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                <h2 class="text-2xl font-extrabold text-primary-jlm mb-4 flex items-center gap-2">
+                    <i class="fas fa-clipboard-list text-amber-500 text-xl"></i> Requirements & Prerequisites
+                </h2>
+                <p class="text-xs text-gray-500 mb-4">What you need before taking this course:</p>
+                <ul class="space-y-2.5 text-gray-700">
+                    @foreach($course->requirements as $req)
+                        <li class="flex items-start gap-3 text-sm">
+                            <i class="fas fa-arrow-right text-amber-500 text-xs mt-1 flex-shrink-0"></i>
+                            <span class="leading-relaxed">{{ $req }}</span>
+                        </li>
+                    @endforeach
+                </ul>
+            </section>
+            @endif
+
 
             {{-- Course Content Accordion --}}
             @if($course->lessons->count() > 0)

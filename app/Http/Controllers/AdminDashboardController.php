@@ -41,6 +41,13 @@ class AdminDashboardController extends Controller
         $recentCourses  = Course::with('instructor')->latest()->take(5)->get();
         $recentCoupons  = Coupon::with('course')->latest()->get();
 
+        // Pending enrollments (incomplete payments) for reminder tool
+        $pendingEnrollments = Enrollment::with(['user', 'course'])
+            ->where('payment_status', 'pending')
+            ->latest()
+            ->take(20)
+            ->get();
+
         // Payout data — per instructor summary
         $instructorPayoutSummary = User::whereIn('role', ['instructor', 'admin'])
             ->withSum(['instructorEnrollments as total_earned' => function ($q) {
@@ -68,8 +75,9 @@ class AdminDashboardController extends Controller
 
         return view('admin.dashboard', compact(
             'stats', 'recentUsers', 'recentEnrolls', 'recentCourses', 'recentCoupons',
-            'instructorPayoutSummary', 'platformSettings'
+            'instructorPayoutSummary', 'platformSettings', 'pendingEnrollments'
         ));
+
     }
 
     /**

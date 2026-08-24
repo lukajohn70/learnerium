@@ -53,8 +53,16 @@ class DashboardController extends Controller
             $q->where('instructor_id', $user->id);
         })->where('status', 'pending')->count();
 
-        return view('instructor-dashboard', compact('user', 'courses', 'totalStudents', 'totalEarned', 'pendingPayout', 'pendingSubmissionsCount'));
+        $pendingEnrollments = \App\Models\Enrollment::with(['user', 'course'])
+            ->whereIn('course_id', $courses->pluck('id'))
+            ->where('payment_status', 'pending')
+            ->latest()
+            ->take(15)
+            ->get();
+
+        return view('instructor-dashboard', compact('user', 'courses', 'totalStudents', 'totalEarned', 'pendingPayout', 'pendingSubmissionsCount', 'pendingEnrollments'));
     }
+
 
     /**
      * Update instructor payout bank details.

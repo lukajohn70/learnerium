@@ -185,6 +185,45 @@
         </a>
     </div>
 
+    {{-- Pending Payments / Reminders Card --}}
+    @if(isset($pendingEnrollments) && $pendingEnrollments->count() > 0)
+    <div class="bg-white rounded-2xl shadow-sm border border-amber-200 overflow-hidden mb-10">
+        <div class="bg-amber-50/70 border-b border-amber-100 px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2.5">
+                <i class="fas fa-clock text-amber-500 text-lg"></i>
+                <div>
+                    <h2 class="text-sm font-extrabold text-amber-900">Pending Student Checkout & Enrollments</h2>
+                    <p class="text-[11px] text-amber-700">Students who started enrolling in your courses but haven't completed checkout.</p>
+                </div>
+            </div>
+            <span class="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full">
+                {{ $pendingEnrollments->count() }} Incomplete
+            </span>
+        </div>
+        <div class="divide-y divide-gray-100">
+            @foreach($pendingEnrollments as $pending)
+            <div class="px-6 py-3.5 flex items-center justify-between hover:bg-amber-50/30 transition flex-wrap gap-3 text-xs">
+                <div>
+                    <span class="font-bold text-gray-900">{{ $pending->user->name ?? 'Student' }}</span>
+                    <span class="text-gray-400">({{ $pending->user->email ?? '—' }})</span>
+                    <span class="text-gray-400 mx-1">&bull;</span>
+                    <span class="font-medium text-gray-700">{{ Str::limit($pending->course->title ?? '', 35) }}</span>
+                </div>
+                <div class="flex items-center gap-3 ml-auto">
+                    <span class="font-bold text-amber-700">₦{{ number_format($pending->amount_paid ?? 0, 2) }}</span>
+                    <span class="text-gray-400">{{ $pending->created_at->diffForHumans() }}</span>
+                    <form action="{{ route('enrollment.remind', $pending) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-3 py-1 rounded-lg text-xs transition shadow-sm flex items-center gap-1">
+                            <i class="fas fa-bell"></i> Send Reminder
+                        </button>
+                    </form>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
 
     <!-- My Courses List -->
     <div class="bg-white rounded-2xl shadow-md overflow-hidden">
@@ -194,6 +233,7 @@
                 <i class="fas fa-plus mr-1"></i>New Course
             </a>
         </div>
+
 
         @if($courses->isEmpty())
             <div class="p-12 text-center text-gray-400">

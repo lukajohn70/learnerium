@@ -25,6 +25,8 @@ use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\BankVerificationController;
+use App\Http\Controllers\AiCourseAssistantController;
+use App\Http\Controllers\InstructorCouponController;
 use App\Http\Middleware\IsInstructor;
 
 /*
@@ -562,4 +564,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 Route::get('/home', function () {
     return redirect()->route('dashboard');
+});
+
+// ── Payment Reminder (Admin + Instructor) ──
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::post('/enrollments/{enrollment}/remind', [PaymentController::class, 'sendPaymentReminder'])->name('enrollment.remind');
+});
+
+// ── AI Course Builder (Instructor only) ──
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::post('/instructor/ai/generate', [AiCourseAssistantController::class, 'generate'])->name('instructor.ai.generate');
 });

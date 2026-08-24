@@ -28,6 +28,8 @@ class Course extends Model
         'category',
         'duration_minutes',
         'published_at',
+        'requirements',
+        'what_you_will_learn',
     ];
 
     /**
@@ -36,7 +38,9 @@ class Course extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'published_at' => 'datetime',
+        'published_at'        => 'datetime',
+        'requirements'        => 'array',
+        'what_you_will_learn' => 'array',
     ];
 
     // --- Define Relationships Below ---
