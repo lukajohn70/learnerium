@@ -134,17 +134,6 @@
     <!-- Right Panel: Form -->
     <div class="w-full lg:w-1/2 flex items-center justify-center px-6 py-12 bg-gray-50 relative">
 
-        <!-- Subtle Admin Access Icon (top-right corner) — only visible on non-admin pages -->
-        @if($currentRole !== 'admin')
-        <div class="absolute top-5 right-5 z-20">
-            <a href="{{ route('login.admin') }}"
-               title="Administrator Sign In"
-               class="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-gray-300 hover:text-amber-600 hover:bg-amber-50 border border-transparent hover:border-amber-200 transition-all duration-200">
-                <i class="fas fa-shield-halved text-gray-300 group-hover:text-amber-500 transition-colors text-sm"></i>
-                <span class="hidden sm:inline tracking-wide">Admin</span>
-            </a>
-        </div>
-        @endif
 
         <div class="w-full max-w-md">
 
