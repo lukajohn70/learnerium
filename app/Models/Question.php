@@ -18,6 +18,10 @@ class Question extends Model
         'order',
     ];
 
+    protected $casts = [
+        'options' => 'array',
+    ];
+
     public function quiz()
     {
         return $this->belongsTo(Quiz::class);
