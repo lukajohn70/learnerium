@@ -325,6 +325,7 @@
                                     <a href="{{ route('student.progress') }}" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-jlm transition"><i class="fas fa-chart-pie mr-3 text-gray-400"></i>My Progress</a>
                                     <a href="{{ route('instructor.apply') }}" class="block px-4 py-2.5 text-sm text-secondary-jlm font-bold hover:bg-gray-50 transition"><i class="fas fa-chalkboard-teacher mr-3"></i>Apply as Instructor</a>
                                 @endif
+                                <a href="{{ route('user.inbox') }}" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-jlm transition"><i class="fas fa-inbox mr-3 text-purple-400"></i>My Messages</a>
                                 <a href="{{ url('/profile') }}" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-jlm transition"><i class="fas fa-user-circle mr-3 text-gray-400"></i>Profile</a>
                                 <a href="{{ url('/settings') }}" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary-jlm transition"><i class="fas fa-cog mr-3 text-gray-400"></i>Settings</a>
                                 <form method="POST" action="{{ route('logout') }}" class="block border-t border-gray-100 mt-1">
@@ -481,6 +482,7 @@
                                 <a href="{{ route('student.progress') }}" class="block px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-white rounded-xl transition"><i class="fas fa-chart-pie mr-2.5 text-gray-400"></i>My Progress</a>
                             @endif
 
+                            <a href="{{ route('user.inbox') }}" class="block px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-white rounded-xl transition"><i class="fas fa-inbox mr-2.5 text-purple-400"></i>My Messages</a>
                             <a href="{{ url('/profile') }}" class="block px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-white rounded-xl transition"><i class="fas fa-user-circle mr-2.5 text-gray-400"></i>Profile</a>
                             <a href="{{ url('/settings') }}" class="block px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-white rounded-xl transition"><i class="fas fa-cog mr-2.5 text-gray-400"></i>Settings</a>
                         </div>

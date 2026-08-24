@@ -10,28 +10,28 @@ class AiCourseAssistantController extends Controller
 {
     /**
      * Handle AI generation requests for the course builder.
-     * Action: description | outcomes | requirements | outline
+     * Actions: description | outcomes | requirements | outline | lesson_notes | transcript | task_prompt
      */
     public function generate(Request $request)
     {
         $request->validate([
-            'action'      => 'required|in:description,outcomes,requirements,outline,lesson_notes,transcript,task_prompt',
-            'title'       => 'required|string|max:300',
-            'level'       => 'nullable|string|max:100',
-            'category'    => 'nullable|string|max:100',
-            'description' => 'nullable|string|max:2000',
-            'lesson_title'=> 'nullable|string|max:300',
+            'action'       => 'required|in:description,outcomes,requirements,outline,lesson_notes,transcript,task_prompt',
+            'title'        => 'required|string|max:300',
+            'level'        => 'nullable|string|max:100',
+            'category'     => 'nullable|string|max:100',
+            'description'  => 'nullable|string|max:2000',
+            'lesson_title' => 'nullable|string|max:300',
         ]);
 
-        $apiKey = config('services.gemini.api_key') 
-            ?: (env('GEMINI_API_KEY') 
+        $apiKey = config('services.gemini.api_key')
+            ?: (env('GEMINI_API_KEY')
             ?: (\App\Models\PlatformSetting::get('gemini_api_key')));
-        $model  = config('services.gemini.model', 'gemini-1.5-flash');
+        $configuredModel = config('services.gemini.model', 'gemini-3.6-flash');
 
         if (empty($apiKey)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gemini API key is not configured. Please add GEMINI_API_KEY to .env or in Admin Dashboard -> Settings.',
+                'message' => 'Gemini API key is not configured. Please add GEMINI_API_KEY to your .env file or in Admin Dashboard -> Settings.',
             ], 503);
         }
 
@@ -43,29 +43,28 @@ class AiCourseAssistantController extends Controller
         $lessonTitle = $request->input('lesson_title', '');
 
         $prompt = match ($action) {
-            'description' => "You are an expert e-learning content writer. Write a compelling, professional course description (3-4 paragraphs, ~180 words) for an online course titled: \"{$title}\". Level: {$level}. Category: {$category}. Make it enthusiastic, benefit-focused, and SEO-friendly. Return only the description text, no headings.",
+            'description' => "You are an expert e-learning curriculum designer and copywriter. Write a compelling, high-converting, professional course overview/description (3 concise paragraphs, ~150-180 words) for an online course titled: \"{$title}\". Level: {$level}. Category: {$category}. Make it engaging, benefit-driven, and clear. Return ONLY the plain description text with no Markdown headings, no asterisks, no quotes.",
 
-            'outcomes' => "You are an expert instructional designer. List exactly 6-8 specific, measurable learning outcomes for an online course titled: \"{$title}\". Level: {$level}. Category: {$category}." . ($description ? " Overview: {$description}" : "") . " Format: Return ONLY a JSON array of strings. Example: [\"Understand X\", \"Build Y\", \"Apply Z\"]. No other text.",
+            'outcomes' => "You are an expert instructional designer. List 6-8 specific, actionable learning outcomes for an online course titled: \"{$title}\". Level: {$level}. Category: {$category}." . ($description ? " Overview: {$description}" : "") . " Format: Return ONLY a valid JSON array of strings. Example: [\"Understand core concepts of {$title}\", \"Build real-world projects\", \"Apply best practices\"]. Do not wrap in markdown code blocks.",
 
-            'requirements' => "You are an expert course designer. List exactly 4-6 realistic prerequisites/requirements for students taking an online course titled: \"{$title}\". Level: {$level}. Category: {$category}. These should be prior knowledge or tools needed. Format: Return ONLY a JSON array of strings. Example: [\"Basic knowledge of HTML\", \"A computer with internet access\"]. No other text.",
+            'requirements' => "You are an expert course designer. List 4-6 realistic prerequisites and requirements for students enrolling in: \"{$title}\". Level: {$level}. Category: {$category}. Format: Return ONLY a valid JSON array of strings. Example: [\"Basic computer skills\", \"A stable internet connection\"]. Do not wrap in markdown code blocks.",
 
-            'outline' => "You are an expert instructional designer. Create a structured course outline for: \"{$title}\". Level: {$level}. Category: {$category}." . ($description ? " Overview: {$description}" : "") . " Generate 4-6 modules, each with 3-5 lesson titles. Format: Return ONLY a valid JSON array of module objects. Example: [{\"module\": \"Module 1: Introduction\", \"lessons\": [\"Lesson 1: Welcome\", \"Lesson 2: Setup\"]}, ...]. No other text.",
+            'outline' => "You are an expert instructional designer. Create a structured curriculum outline for: \"{$title}\". Level: {$level}. Category: {$category}." . ($description ? " Overview: {$description}" : "") . " Generate 4-6 modules, each with 3-5 lesson titles. Format: Return ONLY a valid JSON array of module objects. Example: [{\"module\": \"Module 1: Getting Started\", \"lessons\": [\"Lesson 1: Introduction\", \"Lesson 2: Development Setup\"]}]. Do not wrap in markdown code blocks.",
 
-            'lesson_notes' => "You are an expert educator. Write comprehensive, beautifully structured lesson study notes and summary for a lesson titled: \"" . ($lessonTitle ?: $title) . "\" in the course \"{$title}\". Include an overview, 3-4 key concepts explained clearly, practical takeaways, and a quick recap. Use clear HTML formatting (<p>, <h3>, <ul>, <li>, <strong>). Return only clean HTML markup.",
+            'lesson_notes' => "You are an expert educator. Write comprehensive, well-structured lesson study notes and summary for a lesson titled: \"" . ($lessonTitle ?: $title) . "\" in the course \"{$title}\". Include an overview, 3-4 key concepts explained clearly with bullet points, and practical takeaways. Format cleanly in HTML (<p>, <h3>, <ul>, <li>, <strong>). Return only clean HTML markup.",
 
-            'transcript' => "You are an expert video lecture creator. Write a comprehensive, conversational, word-for-word spoken transcript and lecture script for a lesson titled: \"" . ($lessonTitle ?: $title) . "\" in the course \"{$title}\". Make it engaging, instructional, clear, and paced like a top Udemy/Coursera instructor explaining step-by-step. Format with speaker cues and paragraphs.",
+            'transcript' => "You are an expert video lecture presenter. Write an engaging, conversational, word-for-word spoken transcript and lecture script for a lesson titled: \"" . ($lessonTitle ?: $title) . "\" in the course \"{$title}\". Make it instructional, enthusiastic, and paced for high student retention.",
 
-            'task_prompt' => "You are an instructional designer. Create a practical, engaging student assignment and task instructions for the lesson \"" . ($lessonTitle ?: $title) . "\" in the course \"{$title}\". Detail: Task Objective, Step-by-Step Instructions, What to Submit, and Evaluation Criteria.",
+            'task_prompt' => "You are an instructional designer. Create a practical, engaging student assignment for the lesson \"" . ($lessonTitle ?: $title) . "\" in the course \"{$title}\". Include: 1. Objective, 2. Step-by-Step Instructions, 3. Submission Deliverable, 4. Success Criteria.",
         };
 
-
         $modelsToTry = array_unique([
-            $model,
-            'gemini-1.5-flash',
-            'gemini-1.5-flash-latest',
-            'gemini-2.0-flash',
-            'gemini-1.5-pro',
-            'gemini-pro',
+            $configuredModel,
+            'gemini-3.6-flash',
+            'gemini-3.7-flash',
+            'gemini-flash-latest',
+            'gemini-2.5-flash-lite',
+            'gemini-pro-latest',
         ]);
 
         $apiVersions = ['v1beta', 'v1'];
@@ -88,47 +87,94 @@ class AiCourseAssistantController extends Controller
                             ],
                             'generationConfig' => [
                                 'temperature'     => 0.7,
-                                'maxOutputTokens' => 1200,
+                                'maxOutputTokens' => 2000,
                             ],
                         ]);
 
                     if ($res->successful()) {
                         $successResponse = $res;
-                        break 2; // Found working model and version!
+                        break 2;
                     } else {
-                        $lastError = $res->json()['error']['message'] ?? 'API error: ' . $res->status();
+                        $err = $res->json()['error']['message'] ?? ('HTTP ' . $res->status() . ': ' . $res->body());
+                        $lastError = "{$tryModel} ({$version}): {$err}";
                     }
                 } catch (\Throwable $ex) {
-                    $lastError = $ex->getMessage();
+                    $lastError = "{$tryModel} exception: " . $ex->getMessage();
                 }
             }
         }
 
         if (!$successResponse) {
             Log::error("Gemini API all models failed. Last error: {$lastError}");
-            return response()->json(['success' => false, 'message' => $lastError], 502);
+            return response()->json([
+                'success' => false,
+                'message' => 'AI generation could not complete: ' . $lastError,
+            ], 502);
         }
 
-        $text = $successResponse->json()['candidates'][0]['content']['parts'][0]['text'] ?? '';
+        $body = $successResponse->json();
+        $parts = $body['candidates'][0]['content']['parts'] ?? [];
+        $text = '';
+        foreach ($parts as $part) {
+            if (!empty($part['text'])) {
+                $text .= $part['text'];
+            }
+        }
 
+        if (empty(trim($text))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'AI returned an empty response. Please try again.',
+            ], 500);
+        }
 
-            // For JSON actions, parse and return clean array
-            if (in_array($action, ['outcomes', 'requirements', 'outline'])) {
-                $text = preg_replace('/^```(?:json)?\s*/m', '', $text);
-                $text = preg_replace('/\s*```$/m', '', $text);
-                $text = trim($text);
-                $parsed = json_decode($text, true);
-                if (json_last_error() !== JSON_ERROR_NONE) {
-                    return response()->json(['success' => false, 'message' => 'AI returned invalid JSON. Please try again.'], 422);
+        // For JSON actions, safely parse and return clean array
+        if (in_array($action, ['outcomes', 'requirements', 'outline'])) {
+            $cleaned = preg_replace('/^```(?:json)?\s*/m', '', $text);
+            $cleaned = preg_replace('/\s*```$/m', '', $cleaned);
+            $cleaned = trim($cleaned);
+
+            $parsed = json_decode($cleaned, true);
+
+            // Fallback 1: Try regex extraction if direct parse fails
+            if (json_last_error() !== JSON_ERROR_NONE || !is_array($parsed)) {
+                if (preg_match('/\[\s*\{.*\}\s*\]/s', $text, $matches)) {
+                    $parsed = json_decode($matches[0], true);
+                } elseif (preg_match('/\[\s*".*"\s*\]/s', $text, $matches)) {
+                    $parsed = json_decode($matches[0], true);
                 }
-                return response()->json(['success' => true, 'action' => $action, 'data' => $parsed]);
             }
 
-            return response()->json(['success' => true, 'action' => $action, 'data' => trim($text)]);
+            // Fallback 2 for list items: if Gemini returned line-by-line bullets
+            if (!is_array($parsed) && in_array($action, ['outcomes', 'requirements'])) {
+                $lines = array_filter(array_map(function ($line) {
+                    return trim(preg_replace('/^(\d+\.|\-|\*|•)\s*/', '', trim($line)));
+                }, explode("\n", $text)));
+                if (!empty($lines)) {
+                    $parsed = array_values($lines);
+                }
+            }
 
-        } catch (\Exception $e) {
-            Log::error('Gemini generation exception: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'AI request failed: ' . $e->getMessage()], 500);
+            if (!is_array($parsed) || empty($parsed)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'AI returned text that could not be parsed into a structured list. Please try again.',
+                    'raw'     => $text,
+                ], 422);
+            }
+
+            return response()->json([
+                'success' => true,
+                'action'  => $action,
+                'data'    => $parsed,
+            ]);
         }
+
+        // For plain text / HTML actions
+        return response()->json([
+            'success' => true,
+            'action'  => $action,
+            'data'    => trim($text),
+        ]);
     }
 }

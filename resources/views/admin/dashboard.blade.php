@@ -569,7 +569,7 @@
                             </span>
                         </div>
 
-                        <form action="{{ route('admin.mailer.send') }}" method="POST" class="space-y-5" onsubmit="return confirm('Confirm sending this email broadcast?');">
+                        <form action="{{ route('admin.mailer.send') }}" method="POST" class="space-y-5" id="broadcastForm" onsubmit="return false;">
                             @csrf
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -614,7 +614,7 @@
                                     <span>Also deliver as In-App Notification (Bell alert)</span>
                                 </label>
 
-                                <button type="submit" class="bg-gradient-to-r from-blue-800 to-pink-600 text-white px-7 py-3 rounded-xl font-extrabold text-xs shadow-md hover:opacity-90 transition flex items-center gap-2">
+                                <button type="button" onclick="confirmBroadcast()" class="bg-gradient-to-r from-blue-800 to-pink-600 text-white px-7 py-3 rounded-xl font-extrabold text-xs shadow-md hover:opacity-90 transition flex items-center gap-2">
                                     <i class="fas fa-paper-plane"></i> Send Email
                                 </button>
                             </div>
@@ -856,6 +856,26 @@ function toggleSpecificUser(val) {
 function toggleReplyBox(id) {
     const box = document.getElementById(id);
     if (box) box.classList.toggle('hidden');
+}
+
+async function confirmBroadcast() {
+    const form = document.getElementById('broadcastForm');
+    if (!form) return;
+    const subject = form.querySelector('[name="subject"]')?.value?.trim();
+    const msg = form.querySelector('[name="message"]')?.value?.trim();
+    if (!subject || !msg) {
+        showModal({ type: 'warning', title: 'Fields Required', message: 'Please fill in the Subject and Message before sending.' });
+        return;
+    }
+    const confirmed = await showModal({
+        type: 'info',
+        title: '📢 Confirm Email Broadcast',
+        message: `You are about to send "<strong>${subject}</strong>" to the selected recipients. This action will send real emails. Continue?`,
+        confirmText: 'Yes, Send Now',
+        cancelText: 'Cancel',
+        isConfirm: true
+    });
+    if (confirmed) form.submit();
 }
 
 </script>

@@ -580,7 +580,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/admin/mailer/send', [\App\Http\Controllers\AdminMailerController::class, 'send'])->name('admin.mailer.send');
     Route::post('/admin/mailer/reply/{message}', [\App\Http\Controllers\AdminMailerController::class, 'reply'])->name('admin.mailer.reply');
+    Route::post('/admin/mailer/read/{message}', [\App\Http\Controllers\AdminMailerController::class, 'markRead'])->name('admin.mailer.read');
 });
 
 // ── Inbound Contact / Support Endpoint ──
 Route::post('/contact/submit', [\App\Http\Controllers\AdminMailerController::class, 'storeInbound'])->name('contact.submit');
+
+// User Inbox (student & instructor view of received broadcast emails)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/messages', [\App\Http\Controllers\AdminMailerController::class, 'userInbox'])->name('user.inbox');
+    Route::post('/messages/{message}/reply', [\App\Http\Controllers\AdminMailerController::class, 'userReply'])->name('user.reply');
+});

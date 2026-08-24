@@ -184,4 +184,76 @@ class AdminMailerController extends Controller
 
         return back()->with('status', 'Your message has been sent to the Learnerium team! We will reply via email shortly.');
     }
+
+    /**
+     * Mark an inbound message as read (admin).
+     */
+    public function markRead(InboundMessage $message)
+    {
+        if ($message->status === 'unread') {
+            $message->update(['status' => 'read']);
+        }
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * In-app inbox for authenticated students and instructors.
+     * Shows broadcasts sent to them and their sent contact messages + replies.
+     */
+    public function userInbox()
+    {
+        $user = Auth::user();
+
+        // Broadcasts that were sent to this user (all, their role, or specific)
+        $broadcasts = BroadcastEmail::where(function ($q) use ($user) {
+            $q->where('recipient_type', 'all')
+              ->orWhere('recipient_type', $user->role === 'instructor' ? 'instructors' : 'students')
+              ->orWhere(function ($q2) use ($user) {
+                  $q2->where('recipient_type', 'specific')->where('recipient_user_id', $user->id);
+              });
+        })->with('sender')->latest()->get();
+
+        // Inbound messages submitted by this user (their contact/replies) + admin responses
+        $myMessages = InboundMessage::where('user_id', $user->id)->latest()->get();
+
+        return view('user.inbox', compact('broadcasts', 'myMessages'));
+    }
+
+    /**
+     * Submit a reply / new contact message from a user (via inbox page).
+     */
+    public function userReply(Request $request, BroadcastEmail $message)
+    {
+        $request->validate([
+            'reply_text' => 'required|string|max:5000',
+        ]);
+
+        $user = Auth::user();
+
+        $inbound = InboundMessage::create([
+            'user_id'            => $user->id,
+            'broadcast_email_id' => $message->id,
+            'name'               => $user->name,
+            'email'              => $user->email,
+            'subject'            => "Re: {$message->subject}",
+            'message'            => $request->reply_text,
+            'status'             => 'unread',
+        ]);
+
+        // Notify all admins in-app
+        $admins = User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            AppNotification::notify(
+                $admin->id,
+                'support',
+                "Reply from {$user->name} ✉️",
+                "Re: {$message->subject}",
+                route('admin.dashboard'),
+                'fa-reply',
+                'purple'
+            );
+        }
+
+        return back()->with('status', 'Your reply has been sent to the Learnerium team!');
+    }
 }

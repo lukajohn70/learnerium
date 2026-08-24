@@ -1,44 +1,33 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $subject }}</title>
-    <style>
-        body { margin: 0; padding: 0; background: #f4f6fb; font-family: 'Segoe UI', Arial, sans-serif; }
-        .wrapper { max-width: 600px; margin: 40px auto; background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 32px rgba(27,34,153,0.10); }
-        .header { background: linear-gradient(135deg, #1b2299 0%, #0d1259 100%); padding: 36px 36px 28px; text-align: center; }
-        .header h1 { color: #f7de7a; font-size: 22px; font-weight: 900; margin: 0; }
-        .header p { color: rgba(255,255,255,0.8); font-size: 13px; margin: 4px 0 0; }
-        .body { padding: 36px; }
-        .hi { font-size: 16px; font-weight: 700; color: #1b2299; margin-bottom: 16px; }
-        .content { font-size: 14px; color: #374151; line-height: 1.75; margin-bottom: 28px; }
-        .content p { margin-bottom: 14px; }
-        .footer { background: #f8f9ff; padding: 24px 36px; text-align: center; border-top: 1px solid #edf0fb; }
-        .footer p { font-size: 11px; color: #9ca3af; margin: 0 0 4px; }
-        .footer a { color: #1b2299; text-decoration: none; font-weight: 700; }
-    </style>
-</head>
-<body>
-<div class="wrapper">
-    <div class="header">
-        <h1>Learnerium Platform Update</h1>
-        <p>Learn Without Limits</p>
-    </div>
-    <div class="body">
-        <p class="hi">Hello {{ $recipient->name ?? 'there' }},</p>
-        <div class="content">
-            {!! nl2br(e($content)) !!}
-        </div>
-        <p style="font-size: 13px; color: #6b7280; line-height: 1.6;">
-            Best regards,<br>
-            <strong>The Learnerium Team</strong>
-        </p>
-    </div>
-    <div class="footer">
-        <p><strong>Learnerium</strong> &bull; <a href="{{ url('/') }}">learnerium.com.ng</a></p>
-        <p>You can reply directly to this email if you have any questions or feedback.</p>
-    </div>
+@extends('emails.layout')
+
+@section('content')
+
+<p style="font-size:15px;font-weight:700;color:#1b2299;margin:0 0 12px;">
+    Hello {{ $recipient->name ?? 'there' }},
+</p>
+
+<p style="font-size:14px;color:#374151;line-height:1.8;margin:0 0 22px;">
+    You have a new message from the <strong>Learnerium Team</strong>:
+</p>
+
+{{-- Message Card --}}
+<div style="background:#f8f9ff;border:1.5px solid #e0e3ff;border-left:4px solid #1b2299;border-radius:0 12px 12px 0;padding:20px 22px;margin:0 0 28px;font-size:14px;color:#1f2937;line-height:1.8;">
+    {!! nl2br(e($content)) !!}
 </div>
-</body>
-</html>
+
+<p style="font-size:13px;color:#6b7280;line-height:1.6;margin:0 0 24px;">
+    You can reply directly to this email if you have any questions or feedback. Our team will respond promptly.
+</p>
+
+<div style="text-align:center;margin:32px 0;">
+    <a href="{{ url('/') }}" style="display:inline-block;background:linear-gradient(135deg,#1b2299 0%,#e4306d 100%);color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:50px;font-size:14px;font-weight:700;letter-spacing:0.3px;box-shadow:0 4px 16px rgba(27,34,153,0.30);">
+        Visit Learnerium &rarr;
+    </a>
+</div>
+
+<p style="font-size:12px;color:#9ca3af;border-top:1px solid #f1f5f9;padding-top:18px;margin-top:8px;line-height:1.6;">
+    Best regards,<br>
+    <strong style="color:#1b2299;">The Learnerium Team</strong>
+</p>
+
+@endsection
