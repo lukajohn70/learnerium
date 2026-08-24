@@ -79,9 +79,26 @@ class Enrollment extends Model
         $completedLessons = \App\Models\LessonProgress::where('user_id', $userId)
             ->whereIn('lesson_id', $course->lessons()->pluck('id'))
             ->where('completed', true)
-            ->count();
         $progress = (int) round(($completedLessons / $totalLessons) * 100);
+        $wasCompleted = (int)$this->progress_percentage >= 100;
         $this->progress_percentage = $progress;
+
+        if ($progress >= 100 && !$wasCompleted) {
+            $this->completion_date = now();
+            try {
+                \App\Models\AppNotification::notify(
+                    $userId,
+                    'certificate',
+                    "🎓 Certificate Earned! Congratulations!",
+                    "You have successfully completed 100% of \"{$course->title}\". View your verified certificate now!",
+                    route('student.certificate.view', $course),
+                    'fa-certificate',
+                    'amber'
+                );
+            } catch (\Throwable $e) {}
+        }
+
         $this->save();
     }
 }
+

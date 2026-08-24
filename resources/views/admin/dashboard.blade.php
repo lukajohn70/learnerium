@@ -44,7 +44,9 @@
                         ['payments', 'fa-credit-card', 'Payments'],
                         ['payouts', 'fa-wallet', 'Payouts'],
                         ['applications', 'fa-user-check', 'Instructor Apps'],
+                        ['mailer', 'fa-paper-plane', 'Mailer & Inbox'],
                         ['settings', 'fa-sliders-h', 'Settings'],
+
                     ] as [$tab, $icon, $label])
                     <button onclick="switchTab('{{ $tab }}')" id="tab-btn-{{ $tab }}"
                         class="tab-btn flex items-center gap-2.5 px-4 py-3 text-sm font-bold rounded-xl whitespace-nowrap transition-all duration-200 min-w-[9rem] lg:min-w-0
@@ -550,8 +552,191 @@
                     </div>
                 </div>
 
+                <!-- ============= MAILER & INBOX TAB ============= -->
+                <div id="tab-mailer" class="tab-panel hidden space-y-6">
+
+                    <!-- Compose Broadcast Card -->
+                    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8">
+                        <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
+                            <div>
+                                <h2 class="text-lg font-extrabold text-gray-900 flex items-center gap-2">
+                                    <i class="fas fa-paper-plane text-primary-jlm"></i> Compose & Broadcast Email
+                                </h2>
+                                <p class="text-xs text-gray-500 mt-0.5">Send custom announcements, notifications, or direct emails to platform users.</p>
+                            </div>
+                            <span class="bg-primary-jlm/10 text-primary-jlm text-xs font-bold px-3 py-1 rounded-full">
+                                {{ $stats['total_users'] }} Total Registered Users
+                            </span>
+                        </div>
+
+                        <form action="{{ route('admin.mailer.send') }}" method="POST" class="space-y-5" onsubmit="return confirm('Confirm sending this email broadcast?');">
+                            @csrf
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1.5">Recipient Group <span class="text-red-500">*</span></label>
+                                    <select name="recipient_type" id="recipientTypeSelect" required onchange="toggleSpecificUser(this.value)"
+                                            class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-xl px-4 py-3 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary-jlm/30">
+                                        <option value="all">📢 All Users (Students + Instructors + Admins) [{{ $stats['total_users'] }}]</option>
+                                        <option value="students">🎓 All Students Only [{{ $stats['total_students'] }}]</option>
+                                        <option value="instructors">👨‍🏫 All Instructors Only [{{ $stats['total_instructors'] }}]</option>
+                                        <option value="specific">👤 Specific User...</option>
+                                    </select>
+                                </div>
+
+                                <div id="specificUserWrap" class="hidden">
+                                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1.5">Select User <span class="text-red-500">*</span></label>
+                                    <select name="recipient_user_id" id="recipientUserSelect"
+                                            class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-xl px-4 py-3 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary-jlm/30">
+                                        <option value="">-- Choose User --</option>
+                                        @foreach($allUsersList as $u)
+                                            <option value="{{ $u->id }}">{{ $u->name }} ({{ $u->email }}) [{{ ucfirst($u->role) }}]</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 uppercase mb-1.5">Subject Line <span class="text-red-500">*</span></label>
+                                <input type="text" name="subject" required placeholder="e.g., Important Platform Update & New Features on Learnerium"
+                                       class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-xl px-4 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary-jlm/30">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 uppercase mb-1.5">Email Message Body <span class="text-red-500">*</span></label>
+                                <textarea name="message" rows="6" required placeholder="Write your message here... Recipients can reply directly to this email."
+                                          class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-jlm/30 leading-relaxed"></textarea>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-2">
+                                <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-700">
+                                    <input type="checkbox" name="also_notify" value="1" checked class="rounded text-primary-jlm focus:ring-primary-jlm">
+                                    <span>Also deliver as In-App Notification (Bell alert)</span>
+                                </label>
+
+                                <button type="submit" class="bg-gradient-to-r from-blue-800 to-pink-600 text-white px-7 py-3 rounded-xl font-extrabold text-xs shadow-md hover:opacity-90 transition flex items-center gap-2">
+                                    <i class="fas fa-paper-plane"></i> Send Email
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Inbound Messages & Inquiries Inbox -->
+                    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/60">
+                            <div>
+                                <h3 class="font-extrabold text-gray-900 text-base flex items-center gap-2">
+                                    <i class="fas fa-inbox text-purple-600"></i> Inbound Messages & Student Replies
+                                </h3>
+                                <p class="text-xs text-gray-500">Messages sent by students and visitors via contact forms and email replies.</p>
+                            </div>
+                            <span class="bg-purple-100 text-purple-700 text-xs font-bold px-3 py-1 rounded-full">
+                                {{ $inboundMessages->where('status', 'unread')->count() }} Unread
+                            </span>
+                        </div>
+
+                        @if($inboundMessages->isEmpty())
+                            <div class="p-12 text-center text-gray-400">
+                                <i class="fas fa-inbox text-4xl mb-3 block text-gray-200"></i>
+                                No incoming inquiries recorded yet.
+                            </div>
+                        @else
+                            <div class="divide-y divide-gray-100">
+                                @foreach($inboundMessages as $inbound)
+                                <div class="p-6 hover:bg-gray-50 transition space-y-3">
+                                    <div class="flex items-start justify-between gap-4 flex-wrap">
+                                        <div>
+                                            <div class="flex items-center gap-2.5">
+                                                <span class="font-extrabold text-gray-900 text-sm">{{ $inbound->name }}</span>
+                                                <span class="text-xs text-gray-400">&bull; {{ $inbound->email }}</span>
+                                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full {{ $inbound->status === 'replied' ? 'bg-emerald-100 text-emerald-700' : 'bg-purple-100 text-purple-700' }}">
+                                                    {{ ucfirst($inbound->status) }}
+                                                </span>
+                                            </div>
+                                            <h4 class="font-bold text-primary-jlm text-xs mt-1">{{ $inbound->subject }}</h4>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs text-gray-400">{{ $inbound->created_at->diffForHumans() }}</span>
+                                            <button type="button" onclick="toggleReplyBox('replyBox-{{ $inbound->id }}')"
+                                                    class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 py-1 rounded-lg text-xs transition flex items-center gap-1">
+                                                <i class="fas fa-reply text-purple-500"></i> Reply
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-gray-50 rounded-xl p-3.5 text-xs text-gray-700 leading-relaxed border border-gray-100">
+                                        {!! nl2br(e($inbound->message)) !!}
+                                    </div>
+
+                                    @if($inbound->admin_reply)
+                                    <div class="bg-emerald-50 rounded-xl p-3.5 text-xs text-emerald-900 leading-relaxed border border-emerald-200">
+                                        <span class="font-bold text-[10px] uppercase text-emerald-700 block mb-1">
+                                            <i class="fas fa-check-circle mr-1"></i> Replied on {{ $inbound->replied_at ? $inbound->replied_at->format('d M Y, h:i A') : 'earlier' }}:
+                                        </span>
+                                        {!! nl2br(e($inbound->admin_reply)) !!}
+                                    </div>
+                                    @endif
+
+                                    <!-- Expandable Reply Box -->
+                                    <div id="replyBox-{{ $inbound->id }}" class="hidden pt-2">
+                                        <form action="{{ route('admin.mailer.reply', $inbound) }}" method="POST" class="space-y-2.5">
+                                            @csrf
+                                            <textarea name="reply_text" rows="3" required placeholder="Type your reply to {{ $inbound->name }}..."
+                                                      class="w-full bg-white border border-gray-300 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/30"></textarea>
+                                            <div class="flex justify-end gap-2">
+                                                <button type="button" onclick="toggleReplyBox('replyBox-{{ $inbound->id }}')"
+                                                        class="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-bold text-gray-600">Cancel</button>
+                                                <button type="submit"
+                                                        class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold shadow transition flex items-center gap-1">
+                                                    <i class="fas fa-paper-plane"></i> Send Reply Email
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+
+                    <!-- Recent Broadcasts History -->
+                    @if($broadcastEmails->isNotEmpty())
+                    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-100">
+                            <h3 class="font-extrabold text-gray-900 text-sm flex items-center gap-2">
+                                <i class="fas fa-history text-gray-500"></i> Broadcast History
+                            </h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs">
+                                <thead class="bg-gray-50 text-gray-600 uppercase font-semibold">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left">Subject</th>
+                                        <th class="px-6 py-3 text-left">Audience</th>
+                                        <th class="px-6 py-3 text-center">Sent Count</th>
+                                        <th class="px-6 py-3 text-right">Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    @foreach($broadcastEmails as $bc)
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-3 font-bold text-gray-900">{{ $bc->subject }}</td>
+                                        <td class="px-6 py-3 capitalize text-gray-600">{{ $bc->recipient_type }}</td>
+                                        <td class="px-6 py-3 text-center font-bold text-primary-jlm">{{ $bc->total_sent }}</td>
+                                        <td class="px-6 py-3 text-right text-gray-400">{{ $bc->created_at->format('d M Y, h:i A') }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    @endif
+
+                </div>
+
                 <!-- ============= SETTINGS TAB ============= -->
                 <div id="tab-settings" class="tab-panel hidden space-y-5">
+
 
                     @if($errors->has('revenue_split'))
                         <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2">
@@ -599,7 +784,39 @@
                             </div>
                         </form>
                     </div>
+
+                    <!-- AI Configuration Settings -->
+                    <div class="bg-white rounded-2xl border border-indigo-200 shadow-sm p-6">
+                        <div class="flex items-center gap-2 mb-1">
+                            <div class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">✨</div>
+                            <h3 class="font-extrabold text-gray-900 text-base">Google Gemini AI Configuration</h3>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-5">Configure the Gemini AI Assistant used across the course builder for auto-generating descriptions, outlines, and notes.</p>
+
+                        <form action="{{ route('admin.settings.update') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="instructor_revenue_share" value="{{ $platformSettings['instructor_revenue_share']->value ?? 70 }}">
+                            <input type="hidden" name="platform_revenue_share" value="{{ $platformSettings['platform_revenue_share']->value ?? 30 }}">
+
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 uppercase mb-1.5">
+                                    Google Gemini API Key
+                                </label>
+                                <input type="password" name="gemini_api_key" placeholder="AIzaSy..."
+                                    value="{{ $platformSettings['gemini_api_key']->value ?? env('GEMINI_API_KEY', '') }}"
+                                    class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+                                <p class="text-[11px] text-gray-400 mt-1">Get your free key from <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-indigo-600 underline font-semibold">Google AI Studio</a>. Saved in database and works instantly without editing server files.</p>
+                            </div>
+
+                            <div class="mt-4">
+                                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-bold text-xs shadow transition flex items-center gap-1.5">
+                                    <i class="fas fa-key"></i> Save AI Key
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
+
 
             </main>
         </div>
@@ -615,8 +832,30 @@ function switchTab(name) {
     });
     document.getElementById('tab-' + name).classList.remove('hidden');
     const activeBtn = document.getElementById('tab-btn-' + name);
-    activeBtn.classList.remove('text-gray-700', 'hover:bg-gray-100');
-    activeBtn.classList.add('bg-gradient-to-r', 'from-blue-800', 'to-pink-600', 'text-white', 'shadow-md');
+    if (activeBtn) {
+        activeBtn.classList.remove('text-gray-700', 'hover:bg-gray-100');
+        activeBtn.classList.add('bg-gradient-to-r', 'from-blue-800', 'to-pink-600', 'text-white', 'shadow-md');
+    }
 }
+
+function toggleSpecificUser(val) {
+    const wrap = document.getElementById('specificUserWrap');
+    const select = document.getElementById('recipientUserSelect');
+    if (wrap) {
+        if (val === 'specific') {
+            wrap.classList.remove('hidden');
+            if (select) select.required = true;
+        } else {
+            wrap.classList.add('hidden');
+            if (select) select.required = false;
+        }
+    }
+}
+
+function toggleReplyBox(id) {
+    const box = document.getElementById(id);
+    if (box) box.classList.toggle('hidden');
+}
+
 </script>
 @endsection

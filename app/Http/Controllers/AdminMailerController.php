@@ -1,0 +1,187 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\BroadcastEmail;
+use App\Models\InboundMessage;
+use App\Models\User;
+use App\Models\AppNotification;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+
+class AdminMailerController extends Controller
+{
+    /**
+     * Send email broadcast to all or selected users.
+     */
+    public function send(Request $request)
+    {
+        $request->validate([
+            'recipient_type'    => 'required|in:all,students,instructors,specific',
+            'recipient_user_id' => 'nullable|required_if:recipient_type,specific|exists:users,id',
+            'subject'           => 'required|string|max:255',
+            'message'           => 'required|string',
+            'also_notify'       => 'nullable|boolean',
+        ]);
+
+        $admin = Auth::user();
+        $recipientType = $request->recipient_type;
+        $subject = $request->subject;
+        $body = $request->message;
+        $alsoNotify = (bool) $request->input('also_notify', true);
+
+        $query = User::query();
+        if ($recipientType === 'students') {
+            $query->where('role', 'student');
+        } elseif ($recipientType === 'instructors') {
+            $query->where('role', 'instructor');
+        } elseif ($recipientType === 'specific') {
+            $query->where('id', $request->recipient_user_id);
+        }
+
+        $recipients = $query->get();
+        $totalSent = 0;
+
+        // Log broadcast
+        $broadcast = BroadcastEmail::create([
+            'sender_id'         => $admin->id,
+            'recipient_type'    => $recipientType,
+            'recipient_user_id' => $recipientType === 'specific' ? $request->recipient_user_id : null,
+            'subject'           => $subject,
+            'message'           => $body,
+            'total_sent'        => 0,
+        ]);
+
+        $replyToEmail = config('mail.from.address') ?: 'learnerium@jlm.com.ng';
+        $replyToName  = config('mail.from.name') ?: 'Learnerium Support';
+
+        foreach ($recipients as $recipient) {
+            try {
+                Mail::send('emails.admin_broadcast', [
+                    'recipient'   => $recipient,
+                    'subject'     => $subject,
+                    'content'     => $body,
+                    'broadcastId' => $broadcast->id,
+                ], function ($m) use ($recipient, $subject, $replyToEmail, $replyToName) {
+                    $m->to($recipient->email, $recipient->name)
+                      ->subject($subject)
+                      ->replyTo($replyToEmail, $replyToName);
+                });
+
+                $totalSent++;
+
+                if ($alsoNotify) {
+                    AppNotification::notify(
+                        $recipient->id,
+                        'announcement',
+                        "📢 {$subject}",
+                        \Illuminate\Support\Str::limit(strip_tags($body), 140),
+                        route('dashboard'),
+                        'fa-bullhorn',
+                        'blue'
+                    );
+                }
+            } catch (\Exception $e) {
+                Log::warning("Failed to send broadcast email to {$recipient->email}: " . $e->getMessage());
+            }
+        }
+
+        $broadcast->update(['total_sent' => $totalSent]);
+
+        return back()->with('status', "Message successfully sent to {$totalSent} recipient(s).");
+    }
+
+    /**
+     * Reply to an inbound message.
+     */
+    public function reply(Request $request, InboundMessage $message)
+    {
+        $request->validate([
+            'reply_text' => 'required|string',
+        ]);
+
+        $replyText = $request->reply_text;
+        $admin = Auth::user();
+
+        try {
+            Mail::send('emails.admin_reply', [
+                'recipientName' => $message->name,
+                'originalSubject' => $message->subject,
+                'originalMessage' => $message->message,
+                'replyText' => $replyText,
+                'adminName' => $admin->name,
+            ], function ($m) use ($message) {
+                $m->to($message->email, $message->name)
+                  ->subject("Re: {$message->subject} — Learnerium Support");
+            });
+
+            $message->update([
+                'status'      => 'replied',
+                'admin_reply' => $replyText,
+                'replied_at'  => now(),
+            ]);
+
+            if ($message->user_id) {
+                AppNotification::notify(
+                    $message->user_id,
+                    'support',
+                    "Support Response: Re: {$message->subject}",
+                    \Illuminate\Support\Str::limit($replyText, 140),
+                    null,
+                    'fa-reply',
+                    'green'
+                );
+            }
+
+            return back()->with('status', "Reply sent to {$message->name} ({$message->email}).");
+        } catch (\Exception $e) {
+            return back()->with('error', "Failed to send reply: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Receive inbound contact / support form from students or visitors.
+     */
+    public function storeInbound(Request $request)
+    {
+        $request->validate([
+            'name'      => 'required|string|max:150',
+            'email'     => 'required|email|max:190',
+            'subject'   => 'required|string|max:255',
+            'message'   => 'required|string|max:5000',
+            'broadcast_email_id' => 'nullable|exists:broadcast_emails,id',
+        ]);
+
+        $inbound = InboundMessage::create([
+            'user_id'            => Auth::id(),
+            'broadcast_email_id' => $request->broadcast_email_id ?: null,
+            'name'               => $request->name,
+            'email'              => $request->email,
+            'subject'            => $request->subject,
+            'message'            => $request->message,
+            'status'             => 'unread',
+        ]);
+
+        // Notify admins in-app
+        $admins = User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            AppNotification::notify(
+                $admin->id,
+                'support',
+                "New Inbound Message from {$request->name} ✉️",
+                "Subject: {$request->subject}",
+                route('admin.dashboard'),
+                'fa-envelope',
+                'purple'
+            );
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Your message has been received! Our support team will get back to you shortly.']);
+        }
+
+        return back()->with('status', 'Your message has been sent to the Learnerium team! We will reply via email shortly.');
+    }
+}

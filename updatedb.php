@@ -325,13 +325,46 @@ try {
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
-        logMsg($log, "Created 'notification_preferences' table.", 'success');
+        $recordMigration('2026_08_24_161000_create_notifications_table');
     }
-    $recordMigration('2026_08_24_161000_create_notifications_table');
 
-    // 6. Run remaining Laravel migrations to catch anything else
+    // 6. Ensure BROADCAST_EMAILS & INBOUND_MESSAGES tables
+    if (!Schema::hasTable('broadcast_emails')) {
+        Schema::create('broadcast_emails', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('sender_id')->nullable();
+            $table->string('recipient_type', 50)->default('all');
+            $table->unsignedBigInteger('recipient_user_id')->nullable();
+            $table->string('subject');
+            $table->longText('message');
+            $table->integer('total_sent')->default(0);
+            $table->timestamps();
+        });
+        logMsg($log, "Created 'broadcast_emails' table.", 'success');
+    }
+
+    if (!Schema::hasTable('inbound_messages')) {
+        Schema::create('inbound_messages', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->unsignedBigInteger('broadcast_email_id')->nullable();
+            $table->string('name', 150);
+            $table->string('email', 190);
+            $table->string('subject');
+            $table->longText('message');
+            $table->string('status', 30)->default('unread');
+            $table->text('admin_reply')->nullable();
+            $table->dateTime('replied_at')->nullable();
+            $table->timestamps();
+        });
+        logMsg($log, "Created 'inbound_messages' table.", 'success');
+    }
+    $recordMigration('2026_08_24_183000_create_broadcast_and_inbound_messages_tables');
+
+    // 7. Run remaining Laravel migrations to catch anything else
     try {
         Artisan::call('migrate', ['--force' => true]);
+
         $migOutput = Artisan::output();
         if (trim($migOutput)) {
             logMsg($log, "Artisan Output: " . trim($migOutput));

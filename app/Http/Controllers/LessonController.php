@@ -161,20 +161,27 @@ class LessonController extends Controller
         }
 
         $validated = $request->validate([
-            'title'       => 'required|string|max:255',
-            'module_id'   => 'nullable|exists:modules,id',
-            'description' => 'nullable|string',
-            'order'       => 'required|integer|min:0',
-            'video_url'   => 'nullable|url',
-            'content'     => 'nullable|string',
-            'drip_date'   => 'nullable|date',
-            'drip_days'   => 'nullable|integer|min:0',
+            'title'            => 'required|string|max:255',
+            'module_id'        => 'nullable|exists:modules,id',
+            'description'      => 'nullable|string',
+            'order'            => 'required|integer|min:0',
+            'video_url'        => 'nullable|url',
+            'duration_minutes' => 'nullable|integer|min:0',
+            'content'          => 'nullable|string',
+            'drip_date'        => 'nullable|date',
+            'drip_days'        => 'nullable|integer|min:0',
         ]);
 
         $validated['drip_date'] = $request->drip_date ?: null;
         $validated['drip_days'] = $request->drip_days !== null && $request->drip_days !== '' ? (int)$request->drip_days : null;
 
         $lesson = $course->lessons()->create($validated);
+
+        // Auto-recalculate course duration
+        $totalMinutes = (int) $course->lessons()->sum('duration_minutes');
+        if ($totalMinutes > 0) {
+            $course->update(['duration_minutes' => $totalMinutes]);
+        }
 
         return redirect()->route('instructor.courses.edit', $course)->with('success', 'Lesson created successfully!');
     }
@@ -194,14 +201,15 @@ class LessonController extends Controller
         }
 
         $validated = $request->validate([
-            'title'       => 'required|string|max:255',
-            'module_id'   => 'nullable|exists:modules,id',
-            'description' => 'nullable|string',
-            'order'       => 'required|integer|min:0',
-            'video_url'   => 'nullable|url',
-            'content'     => 'nullable|string',
-            'drip_date'   => 'nullable|date',
-            'drip_days'   => 'nullable|integer|min:0',
+            'title'            => 'required|string|max:255',
+            'module_id'        => 'nullable|exists:modules,id',
+            'description'      => 'nullable|string',
+            'order'            => 'required|integer|min:0',
+            'video_url'        => 'nullable|url',
+            'duration_minutes' => 'nullable|integer|min:0',
+            'content'          => 'nullable|string',
+            'drip_date'        => 'nullable|date',
+            'drip_days'        => 'nullable|integer|min:0',
         ]);
 
         $validated['drip_date'] = $request->drip_date ?: null;
@@ -209,6 +217,11 @@ class LessonController extends Controller
 
         $lesson->update($validated);
 
+        // Auto-recalculate course duration
+        $totalMinutes = (int) $course->lessons()->sum('duration_minutes');
+        if ($totalMinutes > 0) {
+            $course->update(['duration_minutes' => $totalMinutes]);
+        }
 
         return redirect()->route('instructor.courses.edit', $course)->with('success', 'Lesson updated successfully!');
     }
@@ -229,6 +242,11 @@ class LessonController extends Controller
 
         $lesson->delete();
 
+        // Auto-recalculate course duration
+        $totalMinutes = (int) $course->lessons()->sum('duration_minutes');
+        $course->update(['duration_minutes' => max(1, $totalMinutes)]);
+
         return redirect()->route('instructor.courses.edit', $course)->with('success', 'Lesson deleted successfully!');
     }
 }
+

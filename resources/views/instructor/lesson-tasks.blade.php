@@ -33,34 +33,35 @@
                         <label for="title" class="block text-sm font-semibold text-gray-700 mb-1.5">Task Title <span class="text-red-500">*</span></label>
                         <input id="title" name="title" type="text" required
                                class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400/30 focus:border-green-500 transition text-gray-800"
-                               placeholder="e.g., Submit GitHub Repo Link">
+                               placeholder="e.g., Practical Assignment: Implement Your First Working Prototype">
                     </div>
                     <div>
                         <label for="type" class="block text-sm font-semibold text-gray-700 mb-1.5">Task Type <span class="text-red-500">*</span></label>
                         <select id="type" name="type" required onchange="toggleTaskOptions(this.value)"
                                 class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400/30 focus:border-green-500 transition text-gray-800 bg-white">
-                            <option value="link">Provide a URL Link</option>
-                            <option value="file">File Upload (PDF, ZIP, DOCX)</option>
-                            <option value="survey">Take a Survey / Feedback</option>
-                            <option value="quiz">Pass a Lesson Quiz</option>
+                            <option value="link">🔗 Submit URL / Live Project Link</option>
+                            <option value="file">📁 Upload Document or Code Archive (PDF, ZIP, DOCX)</option>
+                            <option value="survey">📋 Complete Reflection Survey / Q&A</option>
+                            <option value="quiz">📝 Pass Lesson Quiz</option>
                         </select>
                     </div>
                 </div>
 
                 <div>
-                    <label for="description" class="block text-sm font-semibold text-gray-700 mb-1.5">Task Instructions</label>
+                    <label for="description" class="block text-sm font-semibold text-gray-700 mb-1.5">Task Instructions & Evaluation Criteria</label>
                     <textarea id="description" name="description" rows="3"
-                              class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400/30 focus:border-green-500 transition text-gray-800 resize-none"
-                              placeholder="Provide clear instructions for the student..."></textarea>
+                              class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400/30 focus:border-green-500 transition text-gray-800 resize-none text-sm"
+                              placeholder="Detail the expected deliverable, requirements, criteria for passing, and any reference materials needed to complete this task successfully..."></textarea>
                 </div>
 
                 <!-- Survey Questions Fields (Hidden by default) -->
                 <div id="survey-questions-section" style="display:none;">
                     <label for="survey_questions" class="block text-sm font-semibold text-gray-700 mb-1.5">Survey Questions (One per line) <span class="text-red-500">*</span></label>
                     <textarea id="survey_questions" name="survey_questions" rows="4"
-                              class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400/30 focus:border-green-500 transition text-gray-800"
-                              placeholder="e.g., What did you learn from this lesson?&#10;How would you rate the video quality?"></textarea>
+                              class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400/30 focus:border-green-500 transition text-gray-800 text-sm"
+                              placeholder="e.g., What was the most valuable insight from this lesson?&#10;What challenges did you face during the practical exercise?&#10;How will you apply these concepts in your work?"></textarea>
                 </div>
+
 
                 <!-- Peer Review Options (Visible for link & file types) -->
                 <div id="peer-review-section" class="space-y-4">

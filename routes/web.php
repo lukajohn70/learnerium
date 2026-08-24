@@ -575,3 +575,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/instructor/ai/generate', [AiCourseAssistantController::class, 'generate'])->name('instructor.ai.generate');
 });
+
+// ── Admin Mailer & Communication Hub ──
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::post('/admin/mailer/send', [\App\Http\Controllers\AdminMailerController::class, 'send'])->name('admin.mailer.send');
+    Route::post('/admin/mailer/reply/{message}', [\App\Http\Controllers\AdminMailerController::class, 'reply'])->name('admin.mailer.reply');
+});
+
+// ── Inbound Contact / Support Endpoint ──
+Route::post('/contact/submit', [\App\Http\Controllers\AdminMailerController::class, 'storeInbound'])->name('contact.submit');

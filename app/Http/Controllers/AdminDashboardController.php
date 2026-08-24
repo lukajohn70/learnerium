@@ -73,12 +73,27 @@ class AdminDashboardController extends Controller
         } catch (\Throwable $e) {}
 
 
+        // Mailer & Inbound Communications
+        $broadcastEmails = collect();
+        $inboundMessages = collect();
+        $allUsersList    = collect();
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('broadcast_emails')) {
+                $broadcastEmails = \App\Models\BroadcastEmail::with(['sender', 'recipient'])->latest()->take(20)->get();
+            }
+            if (\Illuminate\Support\Facades\Schema::hasTable('inbound_messages')) {
+                $inboundMessages = \App\Models\InboundMessage::with('user')->latest()->take(30)->get();
+            }
+            $allUsersList = User::orderBy('name')->get(['id', 'name', 'email', 'role']);
+        } catch (\Throwable $e) {}
+
         return view('admin.dashboard', compact(
             'stats', 'recentUsers', 'recentEnrolls', 'recentCourses', 'recentCoupons',
-            'instructorPayoutSummary', 'platformSettings', 'pendingEnrollments'
+            'instructorPayoutSummary', 'platformSettings', 'pendingEnrollments',
+            'broadcastEmails', 'inboundMessages', 'allUsersList'
         ));
-
     }
+
 
     /**
      * Manage Users.
@@ -223,13 +238,14 @@ class AdminDashboardController extends Controller
     }
 
     /**
-     * Update platform revenue split settings.
+     * Update platform revenue split & system settings.
      */
     public function updateSettings(Request $request)
     {
         $request->validate([
             'instructor_revenue_share' => 'required|numeric|min:0|max:100',
             'platform_revenue_share'   => 'required|numeric|min:0|max:100',
+            'gemini_api_key'           => 'nullable|string|max:255',
         ]);
 
         $total = (float)$request->instructor_revenue_share + (float)$request->platform_revenue_share;
@@ -240,6 +256,11 @@ class AdminDashboardController extends Controller
         PlatformSetting::set('instructor_revenue_share', $request->instructor_revenue_share);
         PlatformSetting::set('platform_revenue_share', $request->platform_revenue_share);
 
-        return back()->with('status', 'Revenue split settings updated successfully.');
+        if ($request->filled('gemini_api_key')) {
+            PlatformSetting::set('gemini_api_key', trim($request->gemini_api_key));
+        }
+
+        return back()->with('status', 'Platform settings and AI configuration updated successfully.');
     }
 }
+

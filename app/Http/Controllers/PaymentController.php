@@ -350,8 +350,8 @@ class PaymentController extends Controller
             return back()->with('status', "{$student->name} is already enrolled and has paid.");
         }
 
-        // Build checkout URL
-        $checkoutUrl = route('payment.checkout', $course);
+        // Build checkout URL safely
+        $checkoutUrl = route('courses.checkout', $course);
 
         try {
             \Illuminate\Support\Facades\Mail::send(
