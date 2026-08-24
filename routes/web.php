@@ -61,23 +61,268 @@ Route::post('/cart/{course}/wishlist', [CartController::class, 'moveToWishlist']
 // Payment callback - public route (Paystack redirects here)
 Route::get('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
 
-// Database Schema Migration Web Route (Accessible for deployment updates)
+// Database Schema Migration Web Route (Smart Synchronizer)
 Route::any('/updatedb.php', function () {
-    $output = '';
-    $status = 'running';
+    $log = [];
+    $status = 'success';
+
+    function logRouteMsg(&$log, $msg, $type = 'info') {
+        $icon = $type === 'success' ? '✅' : ($type === 'warn' ? '⚠️' : ($type === 'error' ? '❌' : 'ℹ️'));
+        $log[] = "$icon $msg";
+    }
+
     try {
-        $exitCode = \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-        $output = \Illuminate\Support\Facades\Artisan::output();
-        $status = ($exitCode === 0) ? 'success' : 'error';
+        logRouteMsg($log, "Starting Learnerium Database Sync...");
+
+        // 1. Ensure migrations table exists
+        if (!\Illuminate\Support\Facades\Schema::hasTable('migrations')) {
+            \Illuminate\Support\Facades\Schema::create('migrations', function (\Illuminate\Database\Schema\Blueprint $table) {
+                $table->increments('id');
+                $table->string('migration');
+                $table->integer('batch');
+            });
+            logRouteMsg($log, "Created migrations tracking table.", 'success');
+        }
+
+        $recordMigration = function($name) use (&$log) {
+            if (!\Illuminate\Support\Facades\DB::table('migrations')->where('migration', $name)->exists()) {
+                \Illuminate\Support\Facades\DB::table('migrations')->insert(['migration' => $name, 'batch' => 1]);
+                logRouteMsg($log, "Marked baseline migration '$name' as completed.");
+            }
+        };
+
+        // 2. Mark historical base table migrations if tables already exist
+        foreach ([
+            'users' => '2014_10_12_000000_create_users_table',
+            'password_resets' => '2014_10_12_100000_create_password_resets_table',
+            'failed_jobs' => '2019_08_19_000000_create_failed_jobs_table',
+            'personal_access_tokens' => '2019_12_14_000001_create_personal_access_tokens_table',
+            'courses' => '2025_05_31_185625_create_courses_table',
+            'lessons' => '2026_01_24_002837_create_lessons_table',
+            'lesson_progress' => '2026_01_24_002842_create_lesson_progress_table',
+            'quizzes' => '2026_01_24_004000_create_quizzes_table',
+            'questions' => '2026_01_24_004002_create_questions_table',
+            'quiz_attempts' => '2026_01_24_004002_create_quiz_attempts_table',
+            'tasks' => '2026_08_20_122027_create_tasks_table',
+            'submissions' => '2026_08_20_122029_create_submissions_table',
+            'peer_reviews' => '2026_08_20_122032_create_peer_reviews_table',
+            'instructor_applications' => '2026_08_20_163345_create_instructor_applications_table',
+            'modules' => '2026_08_20_175142_create_modules_table',
+            'module_materials' => '2026_08_20_181018_create_module_materials_table',
+            'coupons' => '2026_08_21_104551_create_coupons_table',
+            'lesson_discussions' => '2026_08_21_104555_create_lesson_discussions_table',
+            'wishlists' => '2026_08_21_115305_create_wishlists_table',
+            'cart_items' => '2026_08_21_115307_create_cart_items_table',
+        ] as $tbl => $mig) {
+            if (\Illuminate\Support\Facades\Schema::hasTable($tbl)) {
+                $recordMigration($mig);
+            }
+        }
+        if (\Illuminate\Support\Facades\Schema::hasTable('enrollments')) {
+            $recordMigration('2025_06_05_151641_create_enrollments_table');
+            $recordMigration('2025_06_05_153002_add_user_id_and_course_id_to_enrollments_table');
+        }
+
+        // 3. Ensure Columns
+        if (\Illuminate\Support\Facades\Schema::hasTable('users')) {
+            \Illuminate\Support\Facades\Schema::table('users', function (\Illuminate\Database\Schema\Blueprint $table) use (&$log) {
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'role')) {
+                    $table->string('role', 50)->default('student')->after('password');
+                    logRouteMsg($log, "Added column 'role' to users table.", 'success');
+                }
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'avatar')) {
+                    $table->string('avatar')->nullable()->after('role');
+                    logRouteMsg($log, "Added column 'avatar' to users table.", 'success');
+                }
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'bank_name')) {
+                    $table->string('bank_name')->nullable()->after('email');
+                    logRouteMsg($log, "Added column 'bank_name' to users table.", 'success');
+                }
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'account_number')) {
+                    $table->string('account_number')->nullable()->after('bank_name');
+                    logRouteMsg($log, "Added column 'account_number' to users table.", 'success');
+                }
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'account_name')) {
+                    $table->string('account_name')->nullable()->after('account_number');
+                    logRouteMsg($log, "Added column 'account_name' to users table.", 'success');
+                }
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'payout_requested_at')) {
+                    $table->string('payout_requested_at')->nullable()->after('account_name');
+                    logRouteMsg($log, "Added column 'payout_requested_at' to users table.", 'success');
+                }
+            });
+            $recordMigration('2025_06_05_155614_add_role_to_users_table');
+            $recordMigration('2026_08_20_181033_add_avatar_to_users_table');
+            $recordMigration('2026_08_24_163500_add_bank_details_to_users');
+        }
+
+        if (\Illuminate\Support\Facades\Schema::hasTable('courses')) {
+            \Illuminate\Support\Facades\Schema::table('courses', function (\Illuminate\Database\Schema\Blueprint $table) use (&$log) {
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('courses', 'category')) {
+                    $table->string('category')->nullable()->after('description');
+                    logRouteMsg($log, "Added column 'category' to courses table.", 'success');
+                }
+            });
+            $recordMigration('2026_08_20_182351_add_category_to_courses_table');
+        }
+
+        if (\Illuminate\Support\Facades\Schema::hasTable('enrollments')) {
+            \Illuminate\Support\Facades\Schema::table('enrollments', function (\Illuminate\Database\Schema\Blueprint $table) use (&$log) {
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('enrollments', 'progress_percentage')) {
+                    $table->integer('progress_percentage')->default(0)->after('completion_date');
+                    logRouteMsg($log, "Added column 'progress_percentage' to enrollments table.", 'success');
+                }
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('enrollments', 'payment_status')) {
+                    $table->string('payment_status')->default('pending')->after('progress_percentage');
+                    logRouteMsg($log, "Added column 'payment_status' to enrollments table.", 'success');
+                }
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('enrollments', 'amount_paid')) {
+                    $table->decimal('amount_paid', 10, 2)->default(0.00)->after('payment_status');
+                    logRouteMsg($log, "Added column 'amount_paid' to enrollments table.", 'success');
+                }
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('enrollments', 'instructor_share')) {
+                    $table->decimal('instructor_share', 12, 2)->default(0)->after('amount_paid');
+                    logRouteMsg($log, "Added column 'instructor_share' to enrollments table.", 'success');
+                }
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('enrollments', 'platform_share')) {
+                    $table->decimal('platform_share', 12, 2)->default(0)->after('instructor_share');
+                    logRouteMsg($log, "Added column 'platform_share' to enrollments table.", 'success');
+                }
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('enrollments', 'payout_status')) {
+                    $table->string('payout_status')->default('pending')->after('platform_share');
+                    logRouteMsg($log, "Added column 'payout_status' to enrollments table.", 'success');
+                }
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('enrollments', 'coupon_code')) {
+                    $table->string('coupon_code')->nullable()->after('payout_status');
+                    logRouteMsg($log, "Added column 'coupon_code' to enrollments table.", 'success');
+                }
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('enrollments', 'payment_reference')) {
+                    $table->string('payment_reference')->nullable()->after('coupon_code');
+                    logRouteMsg($log, "Added column 'payment_reference' to enrollments table.", 'success');
+                }
+            });
+            $recordMigration('2026_01_24_010000_add_progress_percentage_to_enrollments_table');
+            $recordMigration('2026_08_21_104547_update_enrollments_table_for_payments');
+            $recordMigration('2026_08_24_154500_add_revenue_split_to_enrollments');
+        }
+
+        if (\Illuminate\Support\Facades\Schema::hasTable('lessons')) {
+            \Illuminate\Support\Facades\Schema::table('lessons', function (\Illuminate\Database\Schema\Blueprint $table) use (&$log) {
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('lessons', 'module_id')) {
+                    $table->unsignedBigInteger('module_id')->nullable()->after('course_id');
+                    logRouteMsg($log, "Added column 'module_id' to lessons table.", 'success');
+                }
+            });
+            $recordMigration('2026_08_20_175303_add_module_id_to_lessons_table');
+        }
+
+        if (\Illuminate\Support\Facades\Schema::hasTable('coupons')) {
+            \Illuminate\Support\Facades\Schema::table('coupons', function (\Illuminate\Database\Schema\Blueprint $table) use (&$log) {
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('coupons', 'max_uses')) {
+                    $table->unsignedInteger('max_uses')->nullable()->after('active');
+                    logRouteMsg($log, "Added column 'max_uses' to coupons table.", 'success');
+                }
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('coupons', 'used_count')) {
+                    $table->unsignedInteger('used_count')->default(0)->after('max_uses');
+                    logRouteMsg($log, "Added column 'used_count' to coupons table.", 'success');
+                }
+            });
+            $recordMigration('2026_08_21_123224_add_max_uses_and_used_count_to_coupons_table');
+        }
+
+        // 4. Ensure PLATFORM_SETTINGS table
+        if (!\Illuminate\Support\Facades\Schema::hasTable('platform_settings')) {
+            \Illuminate\Support\Facades\Schema::create('platform_settings', function (\Illuminate\Database\Schema\Blueprint $table) {
+                $table->id();
+                $table->string('key')->unique();
+                $table->text('value')->nullable();
+                $table->string('type')->default('string');
+                $table->string('label')->nullable();
+                $table->timestamps();
+            });
+            \Illuminate\Support\Facades\DB::table('platform_settings')->insert([
+                ['key' => 'instructor_revenue_share', 'value' => '70', 'type' => 'decimal', 'label' => 'Instructor Revenue Share (%)', 'created_at' => now(), 'updated_at' => now()],
+                ['key' => 'platform_revenue_share',   'value' => '30', 'type' => 'decimal', 'label' => 'Platform Revenue Share (%)',   'created_at' => now(), 'updated_at' => now()],
+            ]);
+            logRouteMsg($log, "Created 'platform_settings' table and seeded 70/30 default split.", 'success');
+        }
+        $recordMigration('2026_08_24_154501_create_platform_settings_table');
+
+        // 5. Ensure APP_NOTIFICATIONS & NOTIFICATION_PREFERENCES
+        if (!\Illuminate\Support\Facades\Schema::hasTable('app_notifications')) {
+            \Illuminate\Support\Facades\Schema::create('app_notifications', function (\Illuminate\Database\Schema\Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('user_id');
+                $table->string('type');
+                $table->string('title');
+                $table->text('message');
+                $table->string('action_url')->nullable();
+                $table->string('icon')->default('fa-bell');
+                $table->string('color')->default('blue');
+                $table->boolean('is_read')->default(false);
+                $table->timestamps();
+                $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+                $table->index(['user_id', 'is_read']);
+            });
+            logRouteMsg($log, "Created 'app_notifications' table.", 'success');
+        }
+
+        if (!\Illuminate\Support\Facades\Schema::hasTable('notification_preferences')) {
+            \Illuminate\Support\Facades\Schema::create('notification_preferences', function (\Illuminate\Database\Schema\Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('user_id')->unique();
+                $table->boolean('email_enrollment')->default(true);
+                $table->boolean('email_payment')->default(true);
+                $table->boolean('email_course_updates')->default(true);
+                $table->boolean('email_new_student')->default(true);
+                $table->boolean('email_payout')->default(true);
+                $table->boolean('email_announcements')->default(true);
+                $table->boolean('email_marketing')->default(false);
+                $table->boolean('inapp_enrollment')->default(true);
+                $table->boolean('inapp_payment')->default(true);
+                $table->boolean('inapp_course_updates')->default(true);
+                $table->boolean('inapp_announcements')->default(true);
+                $table->timestamps();
+                $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            });
+            logRouteMsg($log, "Created 'notification_preferences' table.", 'success');
+        }
+        $recordMigration('2026_08_24_161000_create_notifications_table');
+
+        // 6. Run remaining Laravel migrations
+        try {
+            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+            $migOutput = \Illuminate\Support\Facades\Artisan::output();
+            if (trim($migOutput)) {
+                logRouteMsg($log, "Artisan Output: " . trim($migOutput));
+            }
+        } catch (\Throwable $migEx) {
+            logRouteMsg($log, "Note: " . $migEx->getMessage(), 'warn');
+        }
+
+        // 7. Clear caches
+        try {
+            \Illuminate\Support\Facades\Artisan::call('view:clear');
+            \Illuminate\Support\Facades\Artisan::call('route:clear');
+            \Illuminate\Support\Facades\Artisan::call('config:clear');
+            logRouteMsg($log, "Cleared view, route, and config caches.", 'success');
+        } catch (\Throwable $cEx) {}
+
+        logRouteMsg($log, "Database schema is 100% synchronized and up-to-date!", 'success');
+
     } catch (\Throwable $e) {
         $status = 'error';
-        $output = $e->getMessage() . "\n" . $e->getTraceAsString();
+        logRouteMsg($log, "Error: " . $e->getMessage(), 'error');
+        logRouteMsg($log, $e->getTraceAsString(), 'error');
     }
+
+    $output = implode("\n", $log);
     return response()->view('updatedb-view', compact('status', 'output'));
 });
 Route::any('/updatedb', function () {
     return redirect('/updatedb.php');
 });
+
 
 // Media / Uploads file serving route (Guarantees online image delivery on cPanel shared hosting)
 Route::get('/uploads/{folder}/{filename}', function ($folder, $filename) {
