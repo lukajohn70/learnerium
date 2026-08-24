@@ -79,7 +79,10 @@ class Enrollment extends Model
         $completedLessons = \App\Models\LessonProgress::where('user_id', $userId)
             ->whereIn('lesson_id', $course->lessons()->pluck('id'))
             ->where('completed', true)
+            ->count();
+
         $progress = (int) round(($completedLessons / $totalLessons) * 100);
+
         $wasCompleted = (int)$this->progress_percentage >= 100;
         $this->progress_percentage = $progress;
 

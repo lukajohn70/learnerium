@@ -738,11 +738,12 @@
                 <div id="tab-settings" class="tab-panel hidden space-y-5">
 
 
-                    @if($errors->has('revenue_split'))
+                    @if(isset($errors) && $errors->any() && $errors->has('revenue_split'))
                         <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2">
                             <i class="fas fa-exclamation-circle text-red-500"></i>{{ $errors->first('revenue_split') }}
                         </div>
                     @endif
+
 
                     <!-- Revenue Split Settings -->
                     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
