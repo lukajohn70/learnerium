@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,42 +12,58 @@ class LoginController extends Controller
 {
     use AuthenticatesUsers;
 
-    /**
-     * Where to redirect users after login.
-     *
-     * @var string
-     */
     protected $redirectTo = '/dashboard';
 
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
     }
 
-    /**
-     * Show the student login form.
-     */
+    // ─── View Methods ────────────────────────────────────────────────────────
+
     public function showLoginForm()
     {
         return view('auth.login', ['role' => 'student']);
     }
 
-    /**
-     * Show the instructor login form.
-     */
     public function showInstructorLoginForm()
     {
         return view('auth.login', ['role' => 'instructor']);
     }
 
-    /**
-     * Handle instructor login request.
-     */
+    public function showAdminLoginForm()
+    {
+        return view('auth.login', ['role' => 'admin']);
+    }
+
+    // ─── Student Login ────────────────────────────────────────────────────────
+
+    public function loginStudent(Request $request)
+    {
+        $this->validateLogin($request);
+
+        if ($this->hasTooManyLoginAttempts($request)) {
+            $this->fireLockoutEvent($request);
+            return $this->sendLockoutResponse($request);
+        }
+
+        if ($this->attemptLogin($request)) {
+            // Always respect the portal they chose: set active_role = student
+            session(['active_role' => 'student']);
+
+            if ($request->hasSession()) {
+                $request->session()->put('auth.password_confirmed_at', time());
+            }
+
+            return $this->sendLoginResponse($request);
+        }
+
+        $this->incrementLoginAttempts($request);
+        return $this->sendFailedLoginResponse($request);
+    }
+
+    // ─── Instructor Login ─────────────────────────────────────────────────────
+
     public function loginInstructor(Request $request)
     {
         $this->validateLogin($request);
@@ -61,18 +76,19 @@ class LoginController extends Controller
         if ($this->attemptLogin($request)) {
             $user = Auth::user();
 
-            // Strict check: Only block if the account is purely a student and not an instructor or admin
+            // Pure student accounts cannot use instructor portal
             if ($user->role === 'student') {
                 Auth::logout();
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
 
                 throw ValidationException::withMessages([
-                    $this->username() => ['This account is registered as a Student. Please use the Student Sign In page.'],
+                    $this->username() => ['This account is a Student account. Please use the Student Sign In page.'],
                 ]);
             }
 
-            session(['active_role' => $user->isAdmin() ? 'admin' : 'instructor']);
+            // Always respect the portal they chose: set active_role = instructor
+            session(['active_role' => 'instructor']);
 
             if ($request->hasSession()) {
                 $request->session()->put('auth.password_confirmed_at', time());
@@ -85,10 +101,9 @@ class LoginController extends Controller
         return $this->sendFailedLoginResponse($request);
     }
 
-    /**
-     * Handle student login request.
-     */
-    public function loginStudent(Request $request)
+    // ─── Admin Login ──────────────────────────────────────────────────────────
+
+    public function loginAdmin(Request $request)
     {
         $this->validateLogin($request);
 
@@ -100,7 +115,18 @@ class LoginController extends Controller
         if ($this->attemptLogin($request)) {
             $user = Auth::user();
 
-            session(['active_role' => $user->isAdmin() ? 'admin' : 'student']);
+            // Only admin accounts can use admin portal
+            if ($user->role !== 'admin') {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                throw ValidationException::withMessages([
+                    $this->username() => ['Access denied. This portal is for administrators only.'],
+                ]);
+            }
+
+            session(['active_role' => 'admin']);
 
             if ($request->hasSession()) {
                 $request->session()->put('auth.password_confirmed_at', time());
@@ -113,16 +139,30 @@ class LoginController extends Controller
         return $this->sendFailedLoginResponse($request);
     }
 
-    /**
-     * The user has been authenticated.
-     */
+    // ─── Post-Auth Redirect ───────────────────────────────────────────────────
+
     protected function authenticated(Request $request, $user)
     {
-        if ($user->isAdmin()) {
+        $activeRole = session('active_role');
+
+        if ($activeRole === 'admin') {
             return redirect()->route('admin.dashboard');
         }
 
-        if (session('active_role') === 'instructor' || ($user->role === 'instructor' && !session()->has('active_role'))) {
+        if ($activeRole === 'instructor') {
+            return redirect()->route('instructor.dashboard');
+        }
+
+        if ($activeRole === 'student') {
+            return redirect()->route('student.dashboard');
+        }
+
+        // Fallback based on database role (no session set)
+        if ($user->role === 'admin') {
+            return redirect()->route('admin.dashboard');
+        }
+
+        if ($user->role === 'instructor') {
             return redirect()->route('instructor.dashboard');
         }
 

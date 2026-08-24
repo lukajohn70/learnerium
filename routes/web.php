@@ -85,6 +85,11 @@ Route::post('/login/student', [LoginController::class, 'loginStudent'])->middlew
 Route::get('/login/instructor', [LoginController::class, 'showInstructorLoginForm'])->name('login.instructor');
 Route::post('/login/instructor', [LoginController::class, 'loginInstructor'])->middleware('throttle:5,1')->name('login.instructor.post');
 
+// Admin Login Routes (subtle / unlisted)
+Route::get('/login/admin', [LoginController::class, 'showAdminLoginForm'])->name('login.admin');
+Route::post('/login/admin', [LoginController::class, 'loginAdmin'])->middleware('throttle:5,1')->name('login.admin.post');
+
+
 // Instructor Application & Verification Routes
 Route::get('/apply-instructor', [InstructorApplicationController::class, 'showForm'])->name('instructor.apply');
 Route::post('/apply-instructor', [InstructorApplicationController::class, 'submit'])->middleware('throttle:5,1')->name('instructor.apply.submit');
