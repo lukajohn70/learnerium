@@ -337,6 +337,27 @@
                                                     <input type="number" name="order" value="{{ old('order', $lesson->order) }}" min="0" required class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-600">
                                                 </div>
 
+                                                <!-- Drip Schedule Options -->
+                                                <div class="bg-indigo-50/70 border border-indigo-100 rounded-2xl p-4 space-y-3">
+                                                    <div class="flex items-center gap-2">
+                                                        <i class="fas fa-hourglass-half text-indigo-600 text-sm"></i>
+                                                        <span class="text-xs font-extrabold text-indigo-900 uppercase tracking-wider">Drip Release Schedule (Optional)</span>
+                                                    </div>
+                                                    <p class="text-[11px] text-indigo-700/80 leading-relaxed">Leave blank to make available immediately. Or choose when students can access this lesson:</p>
+                                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                        <div>
+                                                            <label class="block text-[10px] font-bold uppercase tracking-wider text-indigo-900 mb-1">Release on Specific Date/Time</label>
+                                                            <input type="datetime-local" name="drip_date" value="{{ $lesson->drip_date ? $lesson->drip_date->format('Y-m-d\TH:i') : '' }}"
+                                                                   class="w-full px-3 py-2 border border-indigo-200 bg-white rounded-xl text-xs focus:outline-none focus:border-indigo-600">
+                                                        </div>
+                                                        <div>
+                                                            <label class="block text-[10px] font-bold uppercase tracking-wider text-indigo-900 mb-1">Days After Enrollment</label>
+                                                            <input type="number" name="drip_days" min="0" value="{{ $lesson->drip_days }}" placeholder="e.g. 7 (days)"
+                                                                   class="w-full px-3 py-2 border border-indigo-200 bg-white rounded-xl text-xs focus:outline-none focus:border-indigo-600">
+                                                        </div>
+                                                    </div>
+                                                </div>
+
                                                 <div class="pt-3 border-t border-gray-100 flex justify-end gap-2">
                                                     <button type="button" onclick="toggleModal('editLessonModal-{{ $lesson->id }}')" class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-xs font-bold">Cancel</button>
                                                     <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-md">
@@ -389,6 +410,28 @@
                                         <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">Video / Media URL (Optional)</label>
                                         <input type="url" name="video_url" placeholder="https://youtube.com/watch?v=..." class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary-jlm">
                                     </div>
+
+                                    <!-- Drip Schedule Options -->
+                                    <div class="bg-indigo-50/70 border border-indigo-100 rounded-2xl p-4 space-y-3">
+                                        <div class="flex items-center gap-2">
+                                            <i class="fas fa-hourglass-half text-indigo-600 text-sm"></i>
+                                            <span class="text-xs font-extrabold text-indigo-900 uppercase tracking-wider">Drip Release Schedule (Optional)</span>
+                                        </div>
+                                        <p class="text-[11px] text-indigo-700/80 leading-relaxed">Leave blank to make available immediately. Or set a drip lock:</p>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <div>
+                                                <label class="block text-[10px] font-bold uppercase tracking-wider text-indigo-900 mb-1">Release on Specific Date/Time</label>
+                                                <input type="datetime-local" name="drip_date"
+                                                       class="w-full px-3 py-2 border border-indigo-200 bg-white rounded-xl text-xs focus:outline-none focus:border-indigo-600">
+                                            </div>
+                                            <div>
+                                                <label class="block text-[10px] font-bold uppercase tracking-wider text-indigo-900 mb-1">Days After Enrollment</label>
+                                                <input type="number" name="drip_days" min="0" placeholder="e.g. 7 (days)"
+                                                       class="w-full px-3 py-2 border border-indigo-200 bg-white rounded-xl text-xs focus:outline-none focus:border-indigo-600">
+                                            </div>
+                                        </div>
+                                    </div>
+
 
                                     <div class="pt-3 border-t border-gray-100 flex justify-end gap-2">
                                         <button type="button" onclick="toggleModal('addLessonModal-{{ $mod->id }}')" class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-xs font-bold">Cancel</button>

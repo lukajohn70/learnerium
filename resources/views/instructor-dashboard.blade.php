@@ -145,38 +145,46 @@
     </div>
 
     <!-- Quick Actions -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-        <a href="{{ route('instructor.courses.create') }}" class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 border-t-4 border-primary-jlm flex flex-col items-center text-center hover:shadow-lg transition duration-300 transform hover:-translate-y-1 group">
-            <div class="text-primary-jlm mb-3 text-4xl group-hover:scale-110 transition-transform duration-300"><i class="fas fa-plus-circle"></i></div>
-            <h3 class="text-base font-bold text-gray-900 mb-1">Create Course</h3>
-            <p class="text-gray-400 text-xs mb-3">Publish a new learning experience.</p>
-            <span class="mt-auto inline-block bg-primary-jlm text-white px-4 py-1.5 rounded-xl font-semibold text-xs group-hover:bg-primary-jlm-dark transition">Start Now</span>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5 mb-10">
+        <a href="{{ route('instructor.courses.create') }}" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border-t-4 border-primary-jlm flex flex-col items-center text-center hover:shadow-lg transition duration-300 transform hover:-translate-y-1 group">
+            <div class="text-primary-jlm mb-3 text-3xl group-hover:scale-110 transition-transform duration-300"><i class="fas fa-plus-circle"></i></div>
+            <h3 class="text-sm font-bold text-gray-900 mb-1">Create Course</h3>
+            <p class="text-gray-400 text-xs mb-3">Publish new syllabus.</p>
+            <span class="mt-auto inline-block bg-primary-jlm text-white px-3 py-1 rounded-xl font-semibold text-xs group-hover:bg-primary-jlm-dark transition">Start Now</span>
         </a>
 
-        <a href="{{ route('instructor.manage.courses') }}" class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 border-t-4 border-secondary-jlm flex flex-col items-center text-center hover:shadow-lg transition duration-300 transform hover:-translate-y-1 group">
-            <div class="text-secondary-jlm mb-3 text-4xl group-hover:scale-110 transition-transform duration-300"><i class="fas fa-folder-open"></i></div>
-            <h3 class="text-base font-bold text-gray-900 mb-1">Manage Courses</h3>
-            <p class="text-gray-400 text-xs mb-3">Edit, update, and manage syllabus.</p>
-            <span class="mt-auto inline-block bg-secondary-jlm text-white px-4 py-1.5 rounded-xl font-semibold text-xs group-hover:bg-secondary-jlm/90 transition">View Courses</span>
+        <a href="{{ route('instructor.manage.courses') }}" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border-t-4 border-secondary-jlm flex flex-col items-center text-center hover:shadow-lg transition duration-300 transform hover:-translate-y-1 group">
+            <div class="text-secondary-jlm mb-3 text-3xl group-hover:scale-110 transition-transform duration-300"><i class="fas fa-folder-open"></i></div>
+            <h3 class="text-sm font-bold text-gray-900 mb-1">Manage Courses</h3>
+            <p class="text-gray-400 text-xs mb-3">Edit lessons & modules.</p>
+            <span class="mt-auto inline-block bg-secondary-jlm text-white px-3 py-1 rounded-xl font-semibold text-xs group-hover:bg-secondary-jlm/90 transition">View Courses</span>
         </a>
 
-        <a href="{{ route('instructor.submissions') }}" class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 border-t-4 border-accent-jlm flex flex-col items-center text-center hover:shadow-lg transition duration-300 transform hover:-translate-y-1 group relative">
+        <a href="{{ route('instructor.submissions') }}" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border-t-4 border-accent-jlm flex flex-col items-center text-center hover:shadow-lg transition duration-300 transform hover:-translate-y-1 group relative">
             @if($pendingSubmissionsCount > 0)
-                <span class="absolute top-3 right-3 bg-secondary-jlm text-white text-[10px] font-black px-2 py-0.5 rounded-full">{{ $pendingSubmissionsCount }} new</span>
+                <span class="absolute top-2.5 right-2.5 bg-secondary-jlm text-white text-[10px] font-black px-2 py-0.5 rounded-full">{{ $pendingSubmissionsCount }} new</span>
             @endif
-            <div class="text-accent-jlm mb-3 text-4xl group-hover:scale-110 transition-transform duration-300"><i class="fas fa-clipboard-check text-primary-jlm"></i></div>
-            <h3 class="text-base font-bold text-gray-900 mb-1">Grading Queue</h3>
-            <p class="text-gray-400 text-xs mb-3">Review & grade student submissions.</p>
-            <span class="mt-auto inline-block bg-primary-jlm text-white px-4 py-1.5 rounded-xl font-semibold text-xs group-hover:bg-primary-jlm-dark transition">Open Queue</span>
+            <div class="text-accent-jlm mb-3 text-3xl group-hover:scale-110 transition-transform duration-300"><i class="fas fa-clipboard-check text-primary-jlm"></i></div>
+            <h3 class="text-sm font-bold text-gray-900 mb-1">Grading Queue</h3>
+            <p class="text-gray-400 text-xs mb-3">Review submissions.</p>
+            <span class="mt-auto inline-block bg-primary-jlm text-white px-3 py-1 rounded-xl font-semibold text-xs group-hover:bg-primary-jlm-dark transition">Open Queue</span>
         </a>
 
-        <a href="{{ url('/profile') }}" class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 border-t-4 border-blue-400 flex flex-col items-center text-center hover:shadow-lg transition duration-300 transform hover:-translate-y-1 group">
-            <div class="text-blue-400 mb-3 text-4xl group-hover:scale-110 transition-transform duration-300"><i class="fas fa-user-cog"></i></div>
-            <h3 class="text-base font-bold text-gray-900 mb-1">Profile & Settings</h3>
-            <p class="text-gray-400 text-xs mb-3">Update your profile & preferences.</p>
-            <span class="mt-auto inline-block bg-blue-500 text-white px-4 py-1.5 rounded-xl font-semibold text-xs group-hover:bg-blue-600 transition">Edit Profile</span>
+        <a href="{{ route('instructor.coupons.index') }}" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border-t-4 border-emerald-500 flex flex-col items-center text-center hover:shadow-lg transition duration-300 transform hover:-translate-y-1 group">
+            <div class="text-emerald-500 mb-3 text-3xl group-hover:scale-110 transition-transform duration-300"><i class="fas fa-tags"></i></div>
+            <h3 class="text-sm font-bold text-gray-900 mb-1">Discount Coupons</h3>
+            <p class="text-gray-400 text-xs mb-3">Create promo codes.</p>
+            <span class="mt-auto inline-block bg-emerald-600 text-white px-3 py-1 rounded-xl font-semibold text-xs group-hover:bg-emerald-700 transition">Coupons</span>
+        </a>
+
+        <a href="{{ url('/profile') }}" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 border-t-4 border-blue-400 flex flex-col items-center text-center hover:shadow-lg transition duration-300 transform hover:-translate-y-1 group">
+            <div class="text-blue-400 mb-3 text-3xl group-hover:scale-110 transition-transform duration-300"><i class="fas fa-user-cog"></i></div>
+            <h3 class="text-sm font-bold text-gray-900 mb-1">Profile & Settings</h3>
+            <p class="text-gray-400 text-xs mb-3">Instructor settings.</p>
+            <span class="mt-auto inline-block bg-blue-500 text-white px-3 py-1 rounded-xl font-semibold text-xs group-hover:bg-blue-600 transition">Edit Profile</span>
         </a>
     </div>
+
 
     <!-- My Courses List -->
     <div class="bg-white rounded-2xl shadow-md overflow-hidden">
@@ -201,10 +209,11 @@
                 @foreach($courses as $course)
                 <div class="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition flex-wrap gap-3">
                     <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0">
-                            <img src="{{ $course->thumbnail ?? 'https://placehold.co/48x48/1b2299/f7de7a?text=C' }}" 
+                        <div class="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100">
+                            <img src="{{ $course->thumbnailUrl() }}" 
                                  alt="{{ $course->title }}" class="w-full h-full object-cover">
                         </div>
+
                         <div>
                             <p class="font-semibold text-gray-800">{{ $course->title }}</p>
                             <p class="text-sm text-gray-400">

@@ -452,6 +452,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/instructor/submissions', [DashboardController::class, 'instructorSubmissions'])
          ->middleware(IsInstructor::class)
          ->name('instructor.submissions');
+    Route::get('/instructor/coupons', [\App\Http\Controllers\InstructorCouponController::class, 'index'])
+         ->middleware(IsInstructor::class)
+         ->name('instructor.coupons.index');
+    Route::post('/instructor/coupons', [\App\Http\Controllers\InstructorCouponController::class, 'store'])
+         ->middleware(IsInstructor::class)
+         ->name('instructor.coupons.store');
+    Route::delete('/instructor/coupons/{coupon}', [\App\Http\Controllers\InstructorCouponController::class, 'destroy'])
+         ->middleware(IsInstructor::class)
+         ->name('instructor.coupons.destroy');
+
 
     // Checkout & Payment Routes
     Route::get('/courses/{course}/checkout', [PaymentController::class, 'checkout'])->name('courses.checkout');

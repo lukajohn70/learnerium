@@ -211,6 +211,20 @@ try {
         $recordMigration('2026_08_24_154500_add_revenue_split_to_enrollments');
     }
 
+    // MODULES table columns
+    if (Schema::hasTable('modules')) {
+        Schema::table('modules', function (Blueprint $table) use (&$log) {
+            if (!Schema::hasColumn('modules', 'drip_date')) {
+                $table->dateTime('drip_date')->nullable();
+                logMsg($log, "Added column 'drip_date' to modules table.", 'success');
+            }
+            if (!Schema::hasColumn('modules', 'drip_days')) {
+                $table->integer('drip_days')->nullable();
+                logMsg($log, "Added column 'drip_days' to modules table.", 'success');
+            }
+        });
+    }
+
     // LESSONS table columns
     if (Schema::hasTable('lessons')) {
         Schema::table('lessons', function (Blueprint $table) use (&$log) {
@@ -218,8 +232,17 @@ try {
                 $table->unsignedBigInteger('module_id')->nullable()->after('course_id');
                 logMsg($log, "Added column 'module_id' to lessons table.", 'success');
             }
+            if (!Schema::hasColumn('lessons', 'drip_date')) {
+                $table->dateTime('drip_date')->nullable();
+                logMsg($log, "Added column 'drip_date' to lessons table.", 'success');
+            }
+            if (!Schema::hasColumn('lessons', 'drip_days')) {
+                $table->integer('drip_days')->nullable();
+                logMsg($log, "Added column 'drip_days' to lessons table.", 'success');
+            }
         });
         $recordMigration('2026_08_20_175303_add_module_id_to_lessons_table');
+        $recordMigration('2026_08_24_171000_add_drip_schedule_to_modules_and_lessons');
     }
 
     // COUPONS table columns
@@ -236,6 +259,7 @@ try {
         });
         $recordMigration('2026_08_21_123224_add_max_uses_and_used_count_to_coupons_table');
     }
+
 
     // 4. Ensure PLATFORM_SETTINGS table
     if (!Schema::hasTable('platform_settings')) {

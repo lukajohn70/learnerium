@@ -20,16 +20,20 @@ class ModuleController extends Controller
         }
 
         $request->validate([
-            'title' => 'required|string|max:255',
+            'title'       => 'required|string|max:255',
             'description' => 'nullable|string',
+            'drip_date'   => 'nullable|date',
+            'drip_days'   => 'nullable|integer|min:0',
         ]);
 
         $nextOrder = $course->modules()->count() + 1;
 
         $course->modules()->create([
-            'title' => $request->title,
+            'title'       => $request->title,
             'description' => $request->description,
-            'order' => $nextOrder,
+            'drip_date'   => $request->drip_date ?: null,
+            'drip_days'   => $request->drip_days !== null && $request->drip_days !== '' ? (int)$request->drip_days : null,
+            'order'       => $nextOrder,
         ]);
 
         return back()->with('status', 'Module added successfully!');
@@ -46,16 +50,21 @@ class ModuleController extends Controller
         }
 
         $request->validate([
-            'title' => 'required|string|max:255',
+            'title'       => 'required|string|max:255',
             'description' => 'nullable|string',
-            'order' => 'nullable|integer',
+            'order'       => 'nullable|integer',
+            'drip_date'   => 'nullable|date',
+            'drip_days'   => 'nullable|integer|min:0',
         ]);
 
         $module->update([
-            'title' => $request->title,
+            'title'       => $request->title,
             'description' => $request->description,
-            'order' => $request->order ?? $module->order,
+            'order'       => $request->order ?? $module->order,
+            'drip_date'   => $request->drip_date ?: null,
+            'drip_days'   => $request->drip_days !== null && $request->drip_days !== '' ? (int)$request->drip_days : null,
         ]);
+
 
         return back()->with('status', 'Module updated successfully!');
     }

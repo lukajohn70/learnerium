@@ -228,16 +228,26 @@
                                         <i id="icon-sec-{{ $loop->index }}" class="fas fa-chevron-down transition-transform duration-200"></i>
                                     </span>
                                 </button>
-                                <div id="sec-{{ $loop->index }}" class="bg-white divide-y divide-gray-50">
-                                    @foreach($sectionLessons as $lesson)
-                                        <div class="px-5 py-3 flex items-center justify-between text-sm">
+                                <div id="sec-{{ $loop->index }}" class="bg-white divide-y                                    @foreach($sectionLessons as $lesson)
+                                        <div class="px-5 py-3 flex items-center justify-between text-sm flex-wrap gap-2">
                                             <div class="flex items-center gap-3">
                                                 <i class="fas fa-play-circle text-primary-jlm"></i>
                                                 <span class="font-medium text-gray-800">{{ $lesson->title }}</span>
                                             </div>
-                                            @if($lesson->duration_minutes)
-                                                <span class="text-xs text-gray-400">{{ $lesson->duration_minutes }} min</span>
-                                            @endif
+                                            <div class="flex items-center gap-2">
+                                                @if(auth()->check() && $lesson->isDripLockedFor(auth()->user()))
+                                                    <span class="text-[11px] bg-indigo-50 text-indigo-700 font-bold px-2.5 py-0.5 rounded-full border border-indigo-100 flex items-center gap-1">
+                                                        <i class="fas fa-lock text-[10px]"></i> {{ $lesson->dripMessageFor(auth()->user()) }}
+                                                    </span>
+                                                @elseif($lesson->drip_date && $lesson->drip_date->isFuture())
+                                                    <span class="text-[11px] bg-indigo-50 text-indigo-700 font-bold px-2.5 py-0.5 rounded-full border border-indigo-100 flex items-center gap-1">
+                                                        <i class="fas fa-clock text-[10px]"></i> Releases {{ $lesson->drip_date->format('d M Y') }}
+                                                    </span>
+                                                @endif
+                                                @if($lesson->duration_minutes)
+                                                    <span class="text-xs text-gray-400">{{ $lesson->duration_minutes }} min</span>
+                                                @endif
+                                            </div>
                                         </div>
                                     @endforeach
                                 </div>
@@ -245,17 +255,29 @@
                         @endforeach
                     @else
                         @foreach($course->lessons as $lesson)
-                            <div class="p-4 flex items-center justify-between text-sm bg-white hover:bg-gray-50 transition">
+                            <div class="p-4 flex items-center justify-between text-sm bg-white hover:bg-gray-50 transition flex-wrap gap-2">
                                 <div class="flex items-center gap-3">
                                     <i class="fas fa-play-circle text-primary-jlm"></i>
                                     <span class="font-medium text-gray-800">{{ $lesson->title }}</span>
                                 </div>
-                                @if($lesson->duration_minutes)
-                                    <span class="text-xs text-gray-400">{{ $lesson->duration_minutes }} min</span>
-                                @endif
+                                <div class="flex items-center gap-2">
+                                    @if(auth()->check() && $lesson->isDripLockedFor(auth()->user()))
+                                        <span class="text-[11px] bg-indigo-50 text-indigo-700 font-bold px-2.5 py-0.5 rounded-full border border-indigo-100 flex items-center gap-1">
+                                            <i class="fas fa-lock text-[10px]"></i> {{ $lesson->dripMessageFor(auth()->user()) }}
+                                        </span>
+                                    @elseif($lesson->drip_date && $lesson->drip_date->isFuture())
+                                        <span class="text-[11px] bg-indigo-50 text-indigo-700 font-bold px-2.5 py-0.5 rounded-full border border-indigo-100 flex items-center gap-1">
+                                            <i class="fas fa-clock text-[10px]"></i> Releases {{ $lesson->drip_date->format('d M Y') }}
+                                        </span>
+                                    @endif
+                                    @if($lesson->duration_minutes)
+                                        <span class="text-xs text-gray-400">{{ $lesson->duration_minutes }} min</span>
+                                    @endif
+                                </div>
                             </div>
                         @endforeach
                     @endif
+            @endif
                 </div>
             </section>
             @endif

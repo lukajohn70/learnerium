@@ -68,6 +68,19 @@ class DashboardController extends Controller
             'account_name'   => 'required|string|max:150',
         ]);
 
+        // Auto-heal missing columns if migrations haven't run yet
+        try {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'bank_name')) {
+                \Illuminate\Support\Facades\Schema::table('users', function(\Illuminate\Database\Schema\Blueprint $t) {
+                    if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'bank_name')) $t->string('bank_name')->nullable();
+                    if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'bank_code')) $t->string('bank_code', 20)->nullable();
+                    if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'account_number')) $t->string('account_number')->nullable();
+                    if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'account_name')) $t->string('account_name')->nullable();
+                    if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'payout_requested_at')) $t->string('payout_requested_at')->nullable();
+                });
+            }
+        } catch (\Throwable $e) {}
+
         $user = Auth::user();
         $user->update([
             'bank_name'      => $request->bank_name,
@@ -78,7 +91,6 @@ class DashboardController extends Controller
 
         return back()->with('status', 'Bank details verified and saved successfully!');
     }
-
 
     /**
      * Instructor requests a payout.
@@ -91,7 +103,16 @@ class DashboardController extends Controller
             return back()->with('error', 'Please update your bank details first before requesting a payout.');
         }
 
+        try {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'payout_requested_at')) {
+                \Illuminate\Support\Facades\Schema::table('users', function(\Illuminate\Database\Schema\Blueprint $t) {
+                    $t->string('payout_requested_at')->nullable();
+                });
+            }
+        } catch (\Throwable $e) {}
+
         $user->update(['payout_requested_at' => now()->toDateTimeString()]);
+
 
         // Notify admins
         $admins = User::where('role', 'admin')->get();

@@ -18,6 +18,13 @@ class Module extends Model
         'title',
         'description',
         'order',
+        'drip_date',
+        'drip_days',
+    ];
+
+    protected $casts = [
+        'drip_date' => 'datetime',
+        'drip_days' => 'integer',
     ];
 
     public function course(): BelongsTo
@@ -33,6 +40,63 @@ class Module extends Model
     public function materials(): HasMany
     {
         return $this->hasMany(ModuleMaterial::class);
+    }
+
+    /**
+     * Check if module has a drip schedule locking it for the user.
+     */
+    public function isDripLockedFor($user): bool
+    {
+        if (!$user) return false;
+        if (method_exists($user, 'isInstructor') && $user->isInstructor()) return false;
+        if ($user->role === 'admin') return false;
+
+        // Specific Calendar Date Drip
+        if ($this->drip_date && $this->drip_date->isFuture()) {
+            return true;
+        }
+
+        // Days-after-enrollment Drip
+        if ($this->drip_days && $this->drip_days > 0) {
+            $enrollment = DB::table('enrollments')
+                ->where('user_id', $user->id)
+                ->where('course_id', $this->course_id)
+                ->first();
+            if ($enrollment && $enrollment->created_at) {
+                $unlockAt = \Carbon\Carbon::parse($enrollment->created_at)->addDays($this->drip_days);
+                if ($unlockAt->isFuture()) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get human-readable drip lock message.
+     */
+    public function dripMessageFor($user): ?string
+    {
+        if (!$this->isDripLockedFor($user)) return null;
+
+        if ($this->drip_date && $this->drip_date->isFuture()) {
+            return 'Unlocks on ' . $this->drip_date->format('d M Y, h:i A');
+        }
+
+        if ($this->drip_days && $this->drip_days > 0) {
+            $enrollment = DB::table('enrollments')
+                ->where('user_id', $user->id)
+                ->where('course_id', $this->course_id)
+                ->first();
+            if ($enrollment && $enrollment->created_at) {
+                $unlockAt = \Carbon\Carbon::parse($enrollment->created_at)->addDays($this->drip_days);
+                return 'Unlocks ' . $unlockAt->diffForHumans();
+            }
+            return "Unlocks {$this->drip_days} days after enrollment";
+        }
+
+        return null;
     }
 
     /**
@@ -60,8 +124,8 @@ class Module extends Model
 
     /**
      * Check if this module is unlocked for the user.
-     * The first module is always unlocked.
-     * Subsequent modules require the previous module to be 100% completed.
+     * 1. Must satisfy drip schedule (date/time or days after enrollment).
+     * 2. Must satisfy sequential prerequisite (previous module 100% completed).
      */
     public function isUnlockedFor($user): bool
     {
@@ -73,6 +137,14 @@ class Module extends Model
         if (method_exists($user, 'isInstructor') && $user->isInstructor()) {
             return true;
         }
+        if ($user->role === 'admin') {
+            return true;
+        }
+
+        // Check Drip Schedule First
+        if ($this->isDripLockedFor($user)) {
+            return false;
+        }
 
         // Get the previous module in order
         $previousModule = Module::where('course_id', $this->course_id)
@@ -81,10 +153,11 @@ class Module extends Model
             ->first();
 
         if (!$previousModule) {
-            // This is the first module in order
+            // First module in order
             return true;
         }
 
         return $previousModule->isCompletedBy($user);
     }
 }
+

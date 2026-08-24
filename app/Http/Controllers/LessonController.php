@@ -40,10 +40,13 @@ class LessonController extends Controller
             );
         }
 
-        // Verify module unlock status for student
+        // Verify module unlock and drip status for student
         if (!$lesson->isUnlockedFor($user)) {
-            return redirect()->route('course.detail', $course->slug)
-                ->with('error', '🔒 Module Locked: Complete all lessons in previous modules first to unlock this section.');
+            $dripMsg = $lesson->dripMessageFor($user);
+            $errorText = $dripMsg 
+                ? "🔒 Drip Content Locked: This lesson {$dripMsg}."
+                : "🔒 Module Locked: Complete all lessons in previous modules first to unlock this section.";
+            return redirect()->route('course.detail', $course->slug)->with('error', $errorText);
         }
 
         // Get or create lesson progress for student
@@ -56,6 +59,7 @@ class LessonController extends Controller
         }
 
         $lessons = $course->lessons()->with('tasks')->get();
+
 
         // Load tasks for this lesson
         $tasks = $lesson->tasks()->orderBy('id')->get();
@@ -157,13 +161,18 @@ class LessonController extends Controller
         }
 
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'module_id' => 'nullable|exists:modules,id',
+            'title'       => 'required|string|max:255',
+            'module_id'   => 'nullable|exists:modules,id',
             'description' => 'nullable|string',
-            'order' => 'required|integer|min:0',
-            'video_url' => 'nullable|url',
-            'content' => 'nullable|string',
+            'order'       => 'required|integer|min:0',
+            'video_url'   => 'nullable|url',
+            'content'     => 'nullable|string',
+            'drip_date'   => 'nullable|date',
+            'drip_days'   => 'nullable|integer|min:0',
         ]);
+
+        $validated['drip_date'] = $request->drip_date ?: null;
+        $validated['drip_days'] = $request->drip_days !== null && $request->drip_days !== '' ? (int)$request->drip_days : null;
 
         $lesson = $course->lessons()->create($validated);
 
@@ -185,15 +194,21 @@ class LessonController extends Controller
         }
 
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'module_id' => 'nullable|exists:modules,id',
+            'title'       => 'required|string|max:255',
+            'module_id'   => 'nullable|exists:modules,id',
             'description' => 'nullable|string',
-            'order' => 'required|integer|min:0',
-            'video_url' => 'nullable|url',
-            'content' => 'nullable|string',
+            'order'       => 'required|integer|min:0',
+            'video_url'   => 'nullable|url',
+            'content'     => 'nullable|string',
+            'drip_date'   => 'nullable|date',
+            'drip_days'   => 'nullable|integer|min:0',
         ]);
 
+        $validated['drip_date'] = $request->drip_date ?: null;
+        $validated['drip_days'] = $request->drip_days !== null && $request->drip_days !== '' ? (int)$request->drip_days : null;
+
         $lesson->update($validated);
+
 
         return redirect()->route('instructor.courses.edit', $course)->with('success', 'Lesson updated successfully!');
     }
