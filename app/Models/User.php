@@ -125,7 +125,7 @@ class User extends Authenticatable implements MustVerifyEmail
         if (session()->has('active_role')) {
             return session('active_role') === 'instructor';
         }
-        return $this->role === 'instructor';
+        return $this->role === 'instructor' || $this->role === 'admin';
     }
 
     /**
@@ -136,7 +136,7 @@ class User extends Authenticatable implements MustVerifyEmail
         if (session()->has('active_role')) {
             return session('active_role') === 'student';
         }
-        return $this->role === 'student' || $this->role === 'instructor';
+        return $this->role === 'student' || $this->role === 'instructor' || $this->role === 'admin';
     }
 
     /**

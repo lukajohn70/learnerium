@@ -60,15 +60,19 @@ class LoginController extends Controller
 
         if ($this->attemptLogin($request)) {
             $user = Auth::user();
-            if (!$user->isInstructor()) {
+
+            // Strict check: Only block if the account is purely a student and not an instructor or admin
+            if ($user->role === 'student') {
                 Auth::logout();
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
 
                 throw ValidationException::withMessages([
-                    $this->username() => ['This account is a student account. Please use the Student Sign In page.'],
+                    $this->username() => ['This account is registered as a Student. Please use the Student Sign In page.'],
                 ]);
             }
+
+            session(['active_role' => $user->isAdmin() ? 'admin' : 'instructor']);
 
             if ($request->hasSession()) {
                 $request->session()->put('auth.password_confirmed_at', time());
@@ -82,7 +86,7 @@ class LoginController extends Controller
     }
 
     /**
-     * Handle student login request (enforces student role or redirects appropriately).
+     * Handle student login request.
      */
     public function loginStudent(Request $request)
     {
@@ -95,15 +99,8 @@ class LoginController extends Controller
 
         if ($this->attemptLogin($request)) {
             $user = Auth::user();
-            if (!$user->isStudent()) {
-                Auth::logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
 
-                throw ValidationException::withMessages([
-                    $this->username() => ['This account is an instructor account. Please use the Instructor Sign In page.'],
-                ]);
-            }
+            session(['active_role' => $user->isAdmin() ? 'admin' : 'student']);
 
             if ($request->hasSession()) {
                 $request->session()->put('auth.password_confirmed_at', time());
@@ -121,7 +118,11 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, $user)
     {
-        if ($user->isInstructor()) {
+        if ($user->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        if (session('active_role') === 'instructor' || ($user->role === 'instructor' && !session()->has('active_role'))) {
             return redirect()->route('instructor.dashboard');
         }
 
