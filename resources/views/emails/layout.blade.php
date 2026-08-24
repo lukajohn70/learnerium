@@ -8,12 +8,20 @@
 <body style="margin:0;padding:24px;background:#eef2f7;font-family:Arial,Helvetica,sans-serif;color:#111827;">
     <div style="max-width:640px;margin:0 auto;background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 12px 30px rgba(15,23,42,0.08);">
 
-        {{-- JLM GRADIENT HEADER --}}
-        <div style="background:linear-gradient(135deg,#1b2299 0%,#7b1fa2 50%,#e4306d 100%);padding:40px 24px 32px;text-align:center;color:#ffffff;">
-            <div style="display:inline-block;margin:0 auto 14px;padding:8px 22px;border-radius:999px;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.30);font-size:13px;letter-spacing:0.22em;font-weight:800;color:#ffffff;">
+        {{-- JLM GRADIENT HEADER WITH LOGO --}}
+        <div style="background:linear-gradient(135deg,#1b2299 0%,#7b1fa2 50%,#e4306d 100%);padding:36px 24px 32px;text-align:center;color:#ffffff;">
+            {{-- App Logo --}}
+            <div style="margin-bottom:16px;">
+                <img src="{{ config('app.url') }}/logo-only.png"
+                     alt="Learnerium"
+                     width="72" height="72"
+                     style="display:inline-block;width:72px;height:72px;object-fit:contain;background:rgba(255,255,255,0.15);border-radius:50%;padding:10px;border:2px solid rgba(255,255,255,0.35);"
+                >
+            </div>
+            <div style="display:inline-block;margin:0 auto 14px;padding:6px 20px;border-radius:999px;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.30);font-size:12px;letter-spacing:0.22em;font-weight:800;color:#ffffff;">
                 LEARNERIUM
             </div>
-            <div style="font-size:26px;line-height:1.2;font-weight:800;margin-bottom:8px;letter-spacing:-0.5px;">
+            <div style="font-size:24px;line-height:1.25;font-weight:800;margin-bottom:8px;letter-spacing:-0.5px;margin-top:10px;">
                 {{ $title ?? $subject ?? 'Learnerium' }}
             </div>
             <div style="font-size:13px;line-height:1.6;opacity:0.92;font-weight:500;">
