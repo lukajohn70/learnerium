@@ -215,21 +215,51 @@
                     </form>
                 </div>
 
-                <!-- Danger Zone -->
-                <div class="bg-white rounded-2xl border border-red-100 shadow-sm overflow-hidden">
-                    <div class="px-6 py-4 border-b border-red-50 flex items-center gap-2">
-                        <i class="fas fa-exclamation-triangle text-red-500"></i>
-                        <h2 class="font-bold text-gray-800">Danger Zone</h2>
-                    </div>
-                    <div class="px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                        <div>
-                            <p class="font-semibold text-gray-700 text-sm">Delete Account</p>
-                            <p class="text-xs text-gray-400 mt-0.5">Permanently delete your account and all associated data. This action cannot be undone.</p>
+                <!-- Account Deletion Request -->
+                <div class="bg-white rounded-2xl border border-amber-200/80 shadow-sm overflow-hidden">
+                    <div class="px-6 py-4 border-b border-amber-100 bg-amber-50/50 flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-user-shield text-amber-600"></i>
+                            <h2 class="font-bold text-gray-800 text-sm">Account Deletion Request</h2>
                         </div>
-                        <button type="button" onclick="confirmDeleteAccount()"
-                            class="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 flex-shrink-0">
-                            <i class="fas fa-trash-alt"></i> Delete Account
-                        </button>
+                        <span class="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded-full">Data & Privacy</span>
+                    </div>
+                    <div class="px-6 py-5 space-y-4">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div>
+                                <p class="font-semibold text-gray-800 text-sm">Request Permanent Account Deletion</p>
+                                <p class="text-xs text-gray-500 mt-1 leading-relaxed">
+                                    Need to close your account? Submit a request and our support team will verify, process, and permanently remove your account and course data within 48 hours.
+                                </p>
+                            </div>
+                            <button type="button" onclick="toggleDeletionRequestForm()"
+                                class="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 flex-shrink-0 shadow-sm">
+                                <i class="fas fa-paper-plane"></i> Request Deletion
+                            </button>
+                        </div>
+
+                        <!-- Expandable Deletion Request Form -->
+                        <div id="deletionRequestBox" class="hidden pt-3 border-t border-gray-100">
+                            <form id="accountDeletionForm" action="{{ route('settings.account.request-deletion') }}" method="POST" class="space-y-3.5">
+                                @csrf
+                                <div>
+                                    <label for="deletion_reason" class="block text-xs font-bold text-gray-700 uppercase mb-1">
+                                        Reason for Deletion (Optional)
+                                    </label>
+                                    <textarea id="deletion_reason" name="reason" rows="3"
+                                        placeholder="Please tell us why you wish to delete your account (e.g. no longer needed, duplicate account, etc.)..."
+                                        class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:border-amber-500 focus:bg-white resize-none"></textarea>
+                                </div>
+                                <div class="flex items-center justify-end gap-2.5">
+                                    <button type="button" onclick="toggleDeletionRequestForm()"
+                                        class="px-4 py-2 rounded-xl border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 transition">Cancel</button>
+                                    <button type="button" onclick="confirmAccountDeletionRequest()"
+                                        class="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-xl text-xs font-bold shadow transition flex items-center gap-1.5">
+                                        <i class="fas fa-paper-plane"></i> Submit Deletion Request
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -237,6 +267,7 @@
     </div>
 </div>
 
+@push('scripts')
 <script>
 function previewAvatar(input) {
     if (input.files && input.files[0]) {
@@ -251,13 +282,27 @@ function previewAvatar(input) {
 
 function togglePwd(id) {
     const input = document.getElementById(id);
-    input.type = input.type === 'password' ? 'text' : 'password';
+    if (input) input.type = input.type === 'password' ? 'text' : 'password';
 }
 
-function confirmDeleteAccount() {
-    if (confirm('Are you absolutely sure? This will permanently delete your account and all your data. This action CANNOT be undone.')) {
-        alert('Please contact support@learnerium.com to complete account deletion.');
+function toggleDeletionRequestForm() {
+    const box = document.getElementById('deletionRequestBox');
+    if (box) box.classList.toggle('hidden');
+}
+
+async function confirmAccountDeletionRequest() {
+    const confirmed = await showModal({
+        type: 'warning',
+        title: '⚠️ Confirm Account Deletion Request',
+        message: 'Are you sure you want to request account deletion? An admin will review and permanently delete your profile, course progress, and associated data.',
+        confirmText: 'Yes, Submit Request',
+        cancelText: 'Cancel',
+        isConfirm: true
+    });
+    if (confirmed) {
+        document.getElementById('accountDeletionForm').submit();
     }
 }
 </script>
+@endpush
 @endsection

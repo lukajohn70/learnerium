@@ -242,4 +242,67 @@ class DashboardController extends Controller
 
         return back()->with('status', 'Password updated successfully!');
     }
+
+    /**
+     * Request account deletion.
+     */
+    public function requestAccountDeletion(Request $request)
+    {
+        $user = Auth::user();
+        $reason = $request->input('reason', 'User submitted account deletion request via Settings.');
+
+        // 1. Create Inbound Message record in database
+        \App\Models\InboundMessage::create([
+            'user_id' => $user->id,
+            'name'    => $user->name,
+            'email'   => $user->email,
+            'subject' => "⚠️ Account Deletion Request — {$user->name} ({$user->email})",
+            'message' => "User: {$user->name}\nEmail: {$user->email}\nRole: " . ucfirst($user->role) . " (ID: #{$user->id})\nRequested At: " . now()->format('d M Y, h:i A') . "\n\nReason given:\n" . ($reason ?: 'No specific reason provided.') . "\n\nPlease review and process according to platform policy.",
+            'status'  => 'unread',
+        ]);
+
+        // 2. In-App Notification to all Admins
+        $admins = \App\Models\User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            \App\Models\AppNotification::notify(
+                $admin->id,
+                'support',
+                "⚠️ Account Deletion Request from {$user->name}",
+                "User {$user->email} has requested account deletion. Review in Mailer & Inbox.",
+                route('admin.dashboard'),
+                'fa-user-slash',
+                'red'
+            );
+        }
+
+        // 3. In-App Notification to the requesting User
+        \App\Models\AppNotification::notify(
+            $user->id,
+            'system',
+            "Account Deletion Request Received",
+            "We have received your account deletion request. Our support team will review and process it.",
+            route('user.inbox'),
+            'fa-clock',
+            'amber'
+        );
+
+        // 4. Trigger Email to Admin
+        try {
+            $adminEmail = config('mail.from.address') ?: 'learnerium@jlm.com.ng';
+            $adminName  = config('mail.from.name') ?: 'Learnerium Support';
+
+            \Illuminate\Support\Facades\Mail::send('emails.admin_broadcast', [
+                'recipient' => (object)['name' => $adminName, 'email' => $adminEmail],
+                'subject'   => "⚠️ Urgent: Account Deletion Request — {$user->name}",
+                'content'   => "User {$user->name} ({$user->email}, Role: " . ucfirst($user->role) . ", ID: #{$user->id}) has requested permanent account deletion.\n\nReason:\n{$reason}\n\nPlease log in to the admin dashboard to review and manage this user's account.",
+            ], function ($m) use ($adminEmail, $adminName, $user) {
+                $m->to($adminEmail, $adminName)
+                  ->subject("⚠️ Urgent: Account Deletion Request — {$user->name}");
+            });
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Could not send account deletion email: " . $e->getMessage());
+        }
+
+        return back()->with('status', 'Your account deletion request has been received. Our team will review and process it shortly.');
+    }
 }

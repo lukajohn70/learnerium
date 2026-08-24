@@ -411,6 +411,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/settings', [DashboardController::class, 'settings'])->name('settings');
     Route::post('/settings/profile', [DashboardController::class, 'updateProfile'])->name('settings.profile');
     Route::post('/settings/password', [DashboardController::class, 'updatePassword'])->name('settings.password');
+    Route::post('/settings/request-deletion', [DashboardController::class, 'requestAccountDeletion'])->name('settings.account.request-deletion');
 
     Route::get('/student/dashboard', [DashboardController::class, 'studentDashboard'])
          ->name('student.dashboard');
