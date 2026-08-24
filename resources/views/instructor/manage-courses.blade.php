@@ -24,10 +24,11 @@
         <div class="bg-white rounded-2xl shadow-md overflow-hidden mb-5 hover:shadow-lg transition">
             <div class="p-5 flex flex-col sm:flex-row gap-5">
                 <!-- Thumbnail -->
-                <div class="w-full sm:w-32 h-32 rounded-xl overflow-hidden flex-shrink-0">
-                    <img src="{{ $course->thumbnail ?? 'https://placehold.co/128x128/1b2299/f7de7a?text=C' }}"
+                <div class="w-full sm:w-32 h-32 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100">
+                    <img src="{{ $course->thumbnailUrl() }}"
                          alt="{{ $course->title }}" class="w-full h-full object-cover">
                 </div>
+
 
                 <!-- Info -->
                 <div class="flex-grow">
