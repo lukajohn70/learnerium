@@ -43,12 +43,21 @@
                     <span class="text-xs px-3 py-1 rounded-full font-bold {{ $course->published_at ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600' }}">
                         {{ $course->published_at ? 'Published' : 'Draft' }}
                     </span>
+                    <a href="{{ route('course.detail', $course->slug) }}" target="_blank"
+                       class="text-xs bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-3.5 py-2 rounded-xl font-bold transition shadow-sm flex items-center gap-1.5" title="View Course Page">
+                        <i class="fas fa-eye text-gray-400"></i> View
+                    </a>
+                    <a href="{{ route('student.certificate.view', $course) }}" target="_blank"
+                       class="text-xs bg-amber-50 border border-amber-200 hover:bg-amber-100 text-amber-800 px-3.5 py-2 rounded-xl font-bold transition shadow-sm flex items-center gap-1.5" title="Preview Course Certificate">
+                        <i class="fas fa-certificate text-amber-500"></i> Certificate
+                    </a>
                     <form action="{{ route('admin.courses.toggle', $course) }}" method="POST">
                         @csrf
                         <button type="submit" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-xl font-bold transition shadow-sm">
                             {{ $course->published_at ? 'Unpublish' : 'Publish' }}
                         </button>
                     </form>
+
                 </div>
             </div>
             @empty
