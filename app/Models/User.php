@@ -130,10 +130,10 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasManyThrough(
             Enrollment::class,
             Course::class,
-            'user_id',    // FK on courses (instructor)
-            'course_id',  // FK on enrollments
-            'id',         // local key on users
-            'id'          // local key on courses
+            'instructor_id', // FK on courses table
+            'course_id',     // FK on enrollments table
+            'id',            // local key on users
+            'id'             // local key on courses
         );
     }
 

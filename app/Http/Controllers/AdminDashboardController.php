@@ -42,7 +42,7 @@ class AdminDashboardController extends Controller
         $recentCoupons  = Coupon::with('course')->latest()->get();
 
         // Payout data — per instructor summary
-        $instructorPayoutSummary = User::where('role', 'instructor')
+        $instructorPayoutSummary = User::whereIn('role', ['instructor', 'admin'])
             ->withSum(['instructorEnrollments as total_earned' => function ($q) {
                 $q->where('payment_status', 'paid');
             }], 'instructor_share')
@@ -52,12 +52,19 @@ class AdminDashboardController extends Controller
             ->withCount(['instructorEnrollments as sales_count' => function ($q) {
                 $q->where('payment_status', 'paid');
             }])
-            ->having('sales_count', '>', 0)
-            ->orderByDesc('total_earned')
-            ->get();
+            ->get()
+            ->filter(fn($u) => $u->sales_count > 0 || $u->total_earned > 0)
+            ->sortByDesc('total_earned')
+            ->values();
 
-        // Platform settings
-        $platformSettings = PlatformSetting::all()->keyBy('key');
+        // Platform settings (with fallback)
+        $platformSettings = collect();
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('platform_settings')) {
+                $platformSettings = PlatformSetting::all()->keyBy('key');
+            }
+        } catch (\Throwable $e) {}
+
 
         return view('admin.dashboard', compact(
             'stats', 'recentUsers', 'recentEnrolls', 'recentCourses', 'recentCoupons',
