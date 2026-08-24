@@ -52,8 +52,37 @@ class StudentTaskController extends Controller
             'status' => 'submitted',
         ]);
 
+        // Send notifications to instructor and student
+        try {
+            $course = $task->lesson?->course;
+            if ($course && $course->instructor_id) {
+                // Alert Instructor
+                \App\Models\AppNotification::notify(
+                    $course->instructor_id,
+                    'submission',
+                    "New Task Submission from {$user->name} 📝",
+                    "Student {$user->name} submitted an assignment for \"{$task->lesson->title}\". Click to review and grade.",
+                    route('instructor.submissions'),
+                    'fa-tasks',
+                    'blue'
+                );
+
+                // Confirmation to Student
+                \App\Models\AppNotification::notify(
+                    $user->id,
+                    'submission',
+                    'Assignment Submitted Successfully! ✅',
+                    "Your submission for \"{$task->title}\" in {$task->lesson->title} was received and is awaiting instructor grading.",
+                    route('courses.lessons.show', [$course->slug, $task->lesson->id]),
+                    'fa-check-circle',
+                    'green'
+                );
+            }
+        } catch (\Throwable $e) {}
+
         return back()->with('status', 'Task submitted successfully! Awaiting review.');
     }
+
 
     /**
      * Submit a peer review for another student's submission.

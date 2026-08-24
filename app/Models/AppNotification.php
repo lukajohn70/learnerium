@@ -24,7 +24,7 @@ class AppNotification extends Model
     }
 
     /**
-     * Create a notification for a user.
+     * Create a notification for a user and send an email if opted in.
      */
     public static function notify(
         int $userId,
@@ -35,7 +35,8 @@ class AppNotification extends Model
         string $icon = 'fa-bell',
         string $color = 'blue'
     ): static {
-        return static::create([
+        // 1. Create in-app notification
+        $notification = static::create([
             'user_id'    => $userId,
             'type'       => $type,
             'title'      => $title,
@@ -45,5 +46,42 @@ class AppNotification extends Model
             'color'      => $color,
             'is_read'    => false,
         ]);
+
+        // 2. Dispatch Email
+        try {
+            $user = User::find($userId);
+            if ($user && !empty($user->email)) {
+                $prefs = NotificationPreference::forUser($userId);
+                
+                $shouldSendEmail = match($type) {
+                    'enrollment' => $user->isInstructor() ? $prefs->email_new_student : $prefs->email_enrollment,
+                    'payment'    => $prefs->email_payment,
+                    'payout'     => $prefs->email_payout,
+                    'submission' => $prefs->email_course_updates,
+                    'grading'    => $prefs->email_course_updates,
+                    default      => true,
+                };
+
+                if ($shouldSendEmail) {
+                    \Illuminate\Support\Facades\Mail::send(
+                        'emails.notification',
+                        [
+                            'title'       => $title,
+                            'bodyMessage' => $message,
+                            'actionUrl'   => $actionUrl,
+                        ],
+                        function ($mail) use ($user, $title) {
+                            $mail->to($user->email, $user->name)
+                                 ->subject("Learnerium: {$title}");
+                        }
+                    );
+                }
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Notification email delivery skipped ({$e->getMessage()})");
+        }
+
+        return $notification;
     }
 }
+

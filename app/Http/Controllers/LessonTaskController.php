@@ -119,10 +119,24 @@ class LessonTaskController extends Controller
      */
     public function approveSubmission($taskId, $submissionId)
     {
-        $submission = Submission::findOrFail($submissionId);
+        $submission = Submission::with(['task.lesson.course', 'user'])->findOrFail($submissionId);
         $submission->update(['status' => 'approved']);
 
-        return back()->with('status', 'Submission approved.');
+        try {
+            $task = $submission->task;
+            $course = $task?->lesson?->course;
+            \App\Models\AppNotification::notify(
+                $submission->user_id,
+                'grading',
+                'Task Approved! 🎉',
+                "Your submission for \"{$task->title}\" in {$task->lesson->title} was approved by your instructor.",
+                $course ? route('courses.lessons.show', [$course->slug, $task->lesson_id]) : null,
+                'fa-check-circle',
+                'green'
+            );
+        } catch (\Throwable $e) {}
+
+        return back()->with('status', 'Submission approved and student notified!');
     }
 
     /**
@@ -130,9 +144,24 @@ class LessonTaskController extends Controller
      */
     public function rejectSubmission($taskId, $submissionId)
     {
-        $submission = Submission::findOrFail($submissionId);
+        $submission = Submission::with(['task.lesson.course', 'user'])->findOrFail($submissionId);
         $submission->update(['status' => 'rejected']);
 
-        return back()->with('status', 'Submission rejected.');
+        try {
+            $task = $submission->task;
+            $course = $task?->lesson?->course;
+            \App\Models\AppNotification::notify(
+                $submission->user_id,
+                'grading',
+                'Task Needs Revision ⚠️',
+                "Your submission for \"{$task->title}\" in {$task->lesson->title} was reviewed and requires revision.",
+                $course ? route('courses.lessons.show', [$course->slug, $task->lesson_id]) : null,
+                'fa-exclamation-circle',
+                'red'
+            );
+        } catch (\Throwable $e) {}
+
+        return back()->with('status', 'Submission marked for revision and student notified.');
     }
 }
+

@@ -115,9 +115,37 @@ class PaymentController extends Controller
                 ]
             );
 
+            // Send in-app and email notifications
+            try {
+                // 1. Notify Student
+                \App\Models\AppNotification::notify(
+                    $user->id,
+                    'enrollment',
+                    'Enrolled in Course! 🎓',
+                    "You have successfully enrolled in \"{$course->title}\". Start learning now!",
+                    route('course.detail', $course->slug),
+                    'fa-graduation-cap',
+                    'blue'
+                );
+
+                // 2. Notify Instructor
+                if ($course->instructor_id) {
+                    \App\Models\AppNotification::notify(
+                        $course->instructor_id,
+                        'enrollment',
+                        'New Student Enrolled 👤',
+                        "{$user->name} has just enrolled in your course \"{$course->title}\"" . ($couponCode ? " using coupon {$couponCode}." : "."),
+                        route('instructor.courses.students', $course->id),
+                        'fa-user-plus',
+                        'green'
+                    );
+                }
+            } catch (\Throwable $e) {}
+
             return redirect()->route('course.detail', $course->slug)
                 ->with('status', 'Successfully enrolled in course!');
         }
+
 
         // Check if Paystack is configured (supports PAYSTACK_SECRET_KEY, JLM_PAYSTACK_SECRET_KEY, and config)
         $secretKey = config('services.paystack.secret_key')
