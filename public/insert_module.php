@@ -186,16 +186,21 @@ try {
     $createdLessons = [];
 
     foreach ($lessonsData as $lData) {
-        $lesson = Lesson::create([
-            'course_id'        => $course->id,
-            'module_id'        => $module->id,
-            'title'            => $lData['title'],
-            'description'      => $lData['description'],
-            'video_url'        => $lData['video_url'],
-            'content'          => $lData['content'],
-            'order'            => $lessonOrder++,
-            'duration_minutes' => $lData['duration'],
-        ]);
+        $lessonData = [
+            'course_id'   => $course->id,
+            'module_id'   => $module->id,
+            'title'       => $lData['title'],
+            'description' => $lData['description'],
+            'video_url'   => $lData['video_url'],
+            'content'     => $lData['content'],
+            'order'       => $lessonOrder++,
+        ];
+
+        if (\Illuminate\Support\Facades\Schema::hasColumn('lessons', 'duration_minutes')) {
+            $lessonData['duration_minutes'] = $lData['duration'];
+        }
+
+        $lesson = Lesson::create($lessonData);
         $createdLessons[] = $lesson;
         logMsg($log, "Added Lesson {$lesson->order}: '{$lesson->title}' (ID: {$lesson->id})", 'success');
     }
@@ -274,7 +279,10 @@ try {
     logMsg($log, "Created Practical Task: '{$task->title}' (ID: {$task->id})", 'success');
 
     // Recalculate total course duration
-    $totalMinutes = (int) $course->lessons()->sum('duration_minutes');
+    $totalMinutes = 120;
+    if (\Illuminate\Support\Facades\Schema::hasColumn('lessons', 'duration_minutes')) {
+        $totalMinutes = (int) $course->lessons()->sum('duration_minutes');
+    }
     $course->update(['duration_minutes' => max(60, $totalMinutes)]);
     logMsg($log, "Updated total course duration: {$totalMinutes} minutes", 'success');
 

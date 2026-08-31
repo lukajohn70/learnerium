@@ -221,6 +221,10 @@ Route::any('/updatedb.php', function () {
                     $table->unsignedBigInteger('module_id')->nullable()->after('course_id');
                     logRouteMsg($log, "Added column 'module_id' to lessons table.", 'success');
                 }
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('lessons', 'duration_minutes')) {
+                    $table->integer('duration_minutes')->default(15)->after('video_url');
+                    logRouteMsg($log, "Added column 'duration_minutes' to lessons table.", 'success');
+                }
             });
             $recordMigration('2026_08_20_175303_add_module_id_to_lessons_table');
         }
