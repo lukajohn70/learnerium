@@ -9,6 +9,7 @@ use App\Models\Submission;
 use App\Http\Controllers\StudentTaskController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class LessonController extends Controller
 {
@@ -179,6 +180,11 @@ class LessonController extends Controller
             unset($validated['duration_minutes']);
         }
 
+        // Sanitize rich-text HTML content to prevent stored XSS
+        if (!empty($validated['content'])) {
+            $validated['content'] = $this->sanitizeLessonContent($validated['content']);
+        }
+
         $lesson = $course->lessons()->create($validated);
 
         // Auto-recalculate course duration
@@ -225,6 +231,11 @@ class LessonController extends Controller
             unset($validated['duration_minutes']);
         }
 
+        // Sanitize rich-text HTML content to prevent stored XSS
+        if (!empty($validated['content'])) {
+            $validated['content'] = $this->sanitizeLessonContent($validated['content']);
+        }
+
         $lesson->update($validated);
 
         // Auto-recalculate course duration
@@ -262,6 +273,32 @@ class LessonController extends Controller
 
         return redirect()->route('instructor.courses.edit', $course)->with('success', 'Lesson deleted successfully!');
     }
+
+    /**
+     * Sanitize rich-text HTML content using a strict tag allowlist.
+     * Strips <script>, <iframe>, event handler attributes, and javascript: URIs
+     * while preserving all safe formatting tags from WYSIWYG editors.
+     */
+    private function sanitizeLessonContent(string $html): string
+    {
+        // Safe tags produced by WYSIWYG editors (TipTap, Quill, etc.)
+        $allowedTags = '<p><br><strong><b><em><i><u><s><del><ins><mark><small><sup><sub>'.
+                       '<h1><h2><h3><h4><h5><h6>'.
+                       '<ul><ol><li><dl><dt><dd>'.
+                       '<blockquote><pre><code><kbd><samp>'.
+                       '<table><thead><tbody><tfoot><tr><th><td><caption>'.
+                       '<a><img><figure><figcaption>'.
+                       '<div><span><hr><section><article>';
+
+        $clean = strip_tags($html, $allowedTags);
+
+        // Remove event handler attributes (onclick, onload, onerror, oninput, etc.)
+        $clean = preg_replace('/\s+on\w+\s*=\s*(["\']).*?\1/is', '', $clean);
+        $clean = preg_replace('/\s+on\w+\s*=\s*[^\s>]+/i', '', $clean);
+
+        // Strip javascript:, vbscript:, and data: in href/src attributes
+        $clean = preg_replace('/(href|src|action)\s*=\s*(["\'])\s*(?:javascript|vbscript|data):/i', '$1=$2#', $clean);
+
+        return $clean;
+    }
 }
-
-
