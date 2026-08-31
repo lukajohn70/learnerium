@@ -40,6 +40,8 @@
         border-radius: 1rem;
         overflow: hidden;
         background: #000;
+        width: 100%;
+        height: 100%;
     }
     .plyr--video .plyr__control--overlaid {
         background: rgba(27, 34, 153, 0.9);
@@ -47,11 +49,6 @@
     }
     .plyr--video .plyr__control--overlaid:hover {
         background: #e4306d;
-    }
-    /* Hide all YouTube chrome & title hover tooltips */
-    .plyr__video-embed iframe {
-        top: -50% !important;
-        height: 200% !important;
     }
 </style>
 @endpush
@@ -78,13 +75,29 @@
                         }
                     @endphp
 
-                    <div class="bg-black relative select-none rounded-2xl overflow-hidden shadow-2xl" id="videoContainer" oncontextmenu="return false;">
+                    <div class="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl bg-black relative select-none" id="videoContainer" oncontextmenu="return false;">
                         @if($provider === 'youtube')
-                            <div class="js-player" data-plyr-provider="youtube" data-plyr-embed-id="{{ $embedId }}"></div>
+                            <div class="plyr__video-embed js-player w-full h-full">
+                                <iframe
+                                    src="https://www.youtube-nocookie.com/embed/{{ $embedId }}?origin={{ urlencode(url('/')) }}&amp;iv_load_policy=3&amp;modestbranding=1&amp;playsinline=1&amp;showinfo=0&amp;rel=0&amp;enablejsapi=1"
+                                    allowfullscreen
+                                    allowtransparency
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                                    class="w-full h-full border-0">
+                                </iframe>
+                            </div>
                         @elseif($provider === 'vimeo')
-                            <div class="js-player" data-plyr-provider="vimeo" data-plyr-embed-id="{{ $embedId }}"></div>
+                            <div class="plyr__video-embed js-player w-full h-full">
+                                <iframe
+                                    src="https://player.vimeo.com/video/{{ $embedId }}?loop=false&amp;byline=false&amp;portrait=false&amp;title=false&amp;speed=true&amp;transparent=0&amp;gesture=media"
+                                    allowfullscreen
+                                    allowtransparency
+                                    allow="autoplay; fullscreen; picture-in-picture"
+                                    class="w-full h-full border-0">
+                                </iframe>
+                            </div>
                         @elseif($provider === 'drive')
-                            <div class="aspect-video w-full relative overflow-hidden">
+                            <div class="w-full h-full relative overflow-hidden">
                                 <iframe id="lessonVideoIframe" class="w-full h-full border-0"
                                     src="{{ $embedId }}"
                                     sandbox="allow-scripts allow-same-origin allow-presentation allow-fullscreen"
