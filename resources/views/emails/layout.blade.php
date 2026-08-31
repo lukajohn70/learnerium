@@ -10,9 +10,15 @@
 
         {{-- JLM GRADIENT HEADER WITH LOGO --}}
         <div style="background:linear-gradient(135deg,#1b2299 0%,#7b1fa2 50%,#e4306d 100%);padding:36px 24px 32px;text-align:center;color:#ffffff;">
-            {{-- App Logo --}}
+            {{-- App Logo — inlined as Base64 so it loads instantly with no HTTP request --}}
+            @php
+                $logoPath = public_path('logo-only-email.png');
+                $logoSrc  = file_exists($logoPath)
+                    ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath))
+                    : config('app.url') . '/logo-only.png';
+            @endphp
             <div style="margin-bottom:16px;">
-                <img src="{{ config('app.url') }}/logo-only.png"
+                <img src="{{ $logoSrc }}"
                      alt="Learnerium"
                      width="72" height="72"
                      style="display:inline-block;width:72px;height:72px;object-fit:contain;background:rgba(255,255,255,0.15);border-radius:50%;padding:10px;border:2px solid rgba(255,255,255,0.35);"
@@ -28,6 +34,7 @@
                 Bringing Your Creative Vision to Life — Powered by JLM
             </div>
         </div>
+
 
         {{-- EMAIL BODY --}}
         <div style="padding:36px 32px;line-height:1.8;font-size:15px;color:#111827;">
