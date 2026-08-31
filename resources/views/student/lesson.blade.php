@@ -25,46 +25,67 @@
         <div class="lg:col-span-3 space-y-6">
             <div class="bg-white rounded-2xl shadow-md overflow-hidden">
 
-                <!-- Smart Video/Media Player -->
+                <!-- Secure Video Player — source URL is never exposed to the browser -->
                 @if($lesson->video_url)
                     @php
-                        $embedUrl = null;
-                        $isIframe = false;
-                        $rawUrl = trim($lesson->video_url);
-
-                        if (preg_match('/drive\.google\.com\/(?:file\/d\/|open\?id=)([^\/\?&]+)/i', $rawUrl, $matches)) {
-                            $embedUrl = 'https://drive.google.com/file/d/' . $matches[1] . '/preview';
-                            $isIframe = true;
-                        } elseif (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i', $rawUrl, $matches)) {
-                            $embedUrl = 'https://www.youtube.com/embed/' . $matches[1];
-                            $isIframe = true;
-                        } elseif (preg_match('/vimeo\.com\/(\d+)/i', $rawUrl, $matches)) {
-                            $embedUrl = 'https://player.vimeo.com/video/' . $matches[1];
-                            $isIframe = true;
-                        } elseif (strpos($rawUrl, 'youtube.com/embed/') !== false) {
-                            $embedUrl = $rawUrl;
-                            $isIframe = true;
-                        } else {
-                            $embedUrl = $rawUrl;
-                            $isIframe = false;
-                        }
+                        $rawUrl   = trim($lesson->video_url);
+                        $isLocal  = !str_starts_with($rawUrl, 'http') || str_contains($rawUrl, config('app.url'));
+                        $isEmbed  = !$isLocal; // YouTube / Vimeo / Drive
+                        // Signed URL expires in 2 hours — student must be authenticated
+                        $signedVideoUrl = \URL::temporarySignedRoute('lesson.video', now()->addHours(2), ['lesson' => $lesson->id]);
                     @endphp
 
-                    <div class="bg-black">
-                        @if($isIframe)
+                    <div class="bg-black relative select-none" id="videoContainer"
+                         oncontextmenu="return false;"
+                         onselectstart="return false;">
+
+                        @if($isLocal)
+                            {{-- LOCAL VIDEO: served through signed proxy, real path never in DOM --}}
                             <div class="aspect-video w-full">
-                                <iframe id="lessonVideoIframe" class="w-full h-full border-0" src="{{ $embedUrl . (strpos($embedUrl, '?') !== false ? '&' : '?') . 'enablejsapi=1' }}"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowfullscreen></iframe>
+                                <video id="lessonVideoPlayer"
+                                       class="w-full h-full"
+                                       controls
+                                       controlsList="nodownload nofullscreen noremoteplayback"
+                                       disablePictureInPicture
+                                       disableRemotePlayback
+                                       oncontextmenu="return false;"
+                                       preload="metadata">
+                                    {{-- src is the signed proxy URL — not the real file path --}}
+                                    <source src="{{ $signedVideoUrl }}" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
                             </div>
                         @else
-                            <video id="lessonVideoPlayer" class="w-full max-h-[480px]" controls>
-                                <source src="{{ $embedUrl }}" type="video/mp4">
-                                Your browser does not support the video tag.
-                            </video>
+                            {{-- EXTERNAL EMBED: iframe src loaded via JS AJAX after page load --}}
+                            {{-- The real embed URL is NEVER written into the HTML source --}}
+                            <div class="aspect-video w-full relative" id="embedWrapper">
+                                {{-- Placeholder shown while loading --}}
+                                <div id="videoLoadingPlaceholder"
+                                     class="w-full h-full flex items-center justify-center bg-gray-900 text-white text-sm gap-3 absolute inset-0 z-10">
+                                    <svg class="animate-spin h-6 w-6 text-white" viewBox="0 0 24 24" fill="none">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                    </svg>
+                                    <span>Loading video...</span>
+                                </div>
+                                {{-- iframe is injected by JS — src never appears in page source --}}
+                                <div id="iframeMount" class="w-full h-full absolute inset-0"></div>
+                                {{-- Transparent overlay: blocks right-click & drag on iframe --}}
+                                <div id="iframeShield"
+                                     class="absolute inset-0 z-20"
+                                     style="pointer-events:none;"
+                                     oncontextmenu="return false;"></div>
+                            </div>
                         @endif
                     </div>
+
+                    {{-- Data attribute carries the signed proxy URL — JS fetches the embed --}}
+                    <div id="videoMeta"
+                         data-is-local="{{ $isLocal ? 'true' : 'false' }}"
+                         data-proxy="{{ $signedVideoUrl }}"
+                         class="hidden"></div>
                 @endif
+
 
                 <!-- Lesson Content -->
                 <div class="p-6 md:p-8">
@@ -506,12 +527,80 @@ function toggleReplyForm(commentId) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    const hasVideo = {{ $lesson->video_url && !$lessonCompleted ? 'true' : 'false' }};
+    const hasVideo    = {{ $lesson->video_url && !$lessonCompleted ? 'true' : 'false' }};
     const completeBtn = document.getElementById('completeLessonBtn');
     const completeBtnTxt = document.getElementById('completeBtnTxt');
     const watchPercentTxt = document.getElementById('watchPercentTxt');
-    const videoGateMsg = document.getElementById('videoGateMsg');
-    
+    const videoGateMsg    = document.getElementById('videoGateMsg');
+    const videoMeta       = document.getElementById('videoMeta');
+
+    // =====================================================================
+    // SECURITY: Block context menu, keyboard shortcuts that expose source
+    // =====================================================================
+    const videoContainer = document.getElementById('videoContainer');
+    if (videoContainer) {
+        videoContainer.addEventListener('contextmenu', e => e.preventDefault());
+    }
+    document.addEventListener('keydown', function (e) {
+        // Block Ctrl/Cmd + U (View Source), Ctrl+S (Save), Ctrl+Shift+I/J (DevTools), F12
+        const forbidden = (
+            (e.ctrlKey || e.metaKey) && ['u', 's'].includes(e.key.toLowerCase())
+        ) || (
+            (e.ctrlKey || e.metaKey) && e.shiftKey && ['i', 'j', 'c'].includes(e.key.toLowerCase())
+        ) || e.key === 'F12';
+        if (forbidden && videoContainer) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    });
+
+    // =====================================================================
+    // EXTERNAL EMBED: Fetch embed URL server-side, inject iframe dynamically
+    // The src NEVER appears in the page HTML source
+    // =====================================================================
+    const isLocal = videoMeta && videoMeta.dataset.isLocal === 'true';
+    const proxyUrl = videoMeta && videoMeta.dataset.proxy;
+
+    let injectedIframe = null;
+
+    if (!isLocal && proxyUrl && document.getElementById('iframeMount')) {
+        fetch(proxyUrl, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+            credentials: 'same-origin'
+        })
+        .then(r => r.ok ? r.json() : Promise.reject(r.status))
+        .then(data => {
+            if (!data.embed) return;
+            const mount = document.getElementById('iframeMount');
+            const placeholder = document.getElementById('videoLoadingPlaceholder');
+            const shield = document.getElementById('iframeShield');
+
+            // Build iframe element — NOT via innerHTML to avoid string injection
+            injectedIframe = document.createElement('iframe');
+            injectedIframe.id = 'lessonVideoIframe';
+            injectedIframe.className = 'w-full h-full border-0 absolute inset-0';
+            injectedIframe.allow = 'accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen';
+            injectedIframe.setAttribute('allowfullscreen', '');
+            // Sandbox: allow scripts (needed for players) but block navigation away & popups
+            injectedIframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-presentation allow-fullscreen');
+            injectedIframe.onload = () => {
+                if (placeholder) placeholder.style.display = 'none';
+                // Enable shield after load to block interaction edge cases
+                if (shield) shield.style.pointerEvents = 'none';
+            };
+            // Set src LAST — this is the only moment the URL is assigned
+            injectedIframe.src = data.embed;
+            if (mount) mount.appendChild(injectedIframe);
+        })
+        .catch(() => {
+            const placeholder = document.getElementById('videoLoadingPlaceholder');
+            if (placeholder) placeholder.innerHTML = '<span class="text-red-400">⚠ Video could not be loaded. Please refresh.</span>';
+        });
+    }
+
+    // =====================================================================
+    // VIDEO GATE: Track watch progress, unlock "Mark Complete" at 80%
+    // =====================================================================
     if (hasVideo && completeBtn) {
         let maxPercentWatched = 0;
         const requiredPercent = 80;
@@ -525,10 +614,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        // Lock button initially
         completeBtn.disabled = true;
 
-        // 1. Native HTML5 Video Player
+        // 1. Native HTML5 Video Player (local / proxied)
         const videoPlayer = document.getElementById('lessonVideoPlayer');
         if (videoPlayer) {
             videoPlayer.addEventListener('timeupdate', function () {
@@ -538,9 +626,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         maxPercentWatched = currentPercent;
                         if (watchPercentTxt) watchPercentTxt.textContent = maxPercentWatched + '%';
                     }
-                    if (maxPercentWatched >= requiredPercent) {
-                        unlockCompletion();
-                    }
+                    if (maxPercentWatched >= requiredPercent) unlockCompletion();
                 }
             });
             videoPlayer.addEventListener('ended', function () {
@@ -550,13 +636,15 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
 
-        // 2. Embedded Video Watch Timer (YouTube / Vimeo / External)
-        const iframe = document.getElementById('lessonVideoIframe');
-        if (iframe) {
-            let activeWatchSeconds = 0;
-            const targetWatchSeconds = Math.min(120, Math.max(30, {{ (int)($lesson->duration_minutes ? $lesson->duration_minutes * 60 * 0.8 : 60) }}));
-            
-            const watchInterval = setInterval(() => {
+        // 2. Embedded Video Watch Timer (YouTube / Vimeo / Drive)
+        // Starts after the iframe is successfully injected
+        const targetWatchSeconds = Math.min(120, Math.max(30, {{ (int)($lesson->duration_minutes ? $lesson->duration_minutes * 60 * 0.8 : 60) }}));
+        let activeWatchSeconds = 0;
+        let watchInterval = null;
+
+        function startEmbedTimer() {
+            if (watchInterval) return;
+            watchInterval = setInterval(() => {
                 activeWatchSeconds += 1;
                 const estPercent = Math.min(100, Math.round((activeWatchSeconds / targetWatchSeconds) * 100));
                 if (estPercent > maxPercentWatched) {
@@ -569,6 +657,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }, 1000);
         }
+
+        // Start the embed timer once the iframe mounts
+        const mountObserver = new MutationObserver((mutations) => {
+            for (const m of mutations) {
+                for (const n of m.addedNodes) {
+                    if (n.id === 'lessonVideoIframe') {
+                        startEmbedTimer();
+                        mountObserver.disconnect();
+                    }
+                }
+            }
+        });
+        const iframeMount = document.getElementById('iframeMount');
+        if (iframeMount) mountObserver.observe(iframeMount, { childList: true });
     }
 });
 </script>
