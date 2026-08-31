@@ -39,9 +39,12 @@
     @stack('head')
     @stack('styles')
 
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" sizes="64x64" href="{{ asset('favicon.png') }}">
-    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+    <!-- Favicons (multi-format with cache busting) -->
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}?v=4">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('favicon.ico') }}?v=4">
+    <link rel="icon" type="image/png" sizes="64x64" href="{{ asset('favicon.png') }}?v=4">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon.png') }}?v=4">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('favicon.png') }}?v=4">
 
 
     <!-- Fonts -->

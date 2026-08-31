@@ -387,18 +387,56 @@ Route::any('/insert-module', function () {
 });
 
 
-// Media / Uploads file serving route (Guarantees online image delivery on cPanel shared hosting)
+// Media / Uploads file serving route (Guarantees online image delivery & video streaming on cPanel shared hosting)
 Route::get('/uploads/{folder}/{filename}', function ($folder, $filename) {
     $path = public_path("uploads/{$folder}/{$filename}");
-    if (file_exists($path)) {
-        return response()->file($path);
+    if (!file_exists($path)) {
+        $path = base_path("public/uploads/{$folder}/{$filename}");
     }
-    $rootPath = base_path("public/uploads/{$folder}/{$filename}");
-    if (file_exists($rootPath)) {
-        return response()->file($rootPath);
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+    $mime = match($ext) {
+        'mp4' => 'video/mp4',
+        'webm' => 'video/webm',
+        'mov', 'quicktime' => 'video/quicktime',
+        'avi' => 'video/x-msvideo',
+        'png' => 'image/png',
+        'jpg', 'jpeg' => 'image/jpeg',
+        'svg' => 'image/svg+xml',
+        'webp' => 'image/webp',
+        'pdf' => 'application/pdf',
+        default => mime_content_type($path) ?: 'application/octet-stream',
+    };
+
+    return response()->file($path, [
+        'Content-Type' => $mime,
+        'Accept-Ranges' => 'bytes',
+        'Cache-Control' => 'public, max-age=604800',
+    ]);
+})->where('folder', 'thumbnails|avatars|materials|videos|receipts|submissions|tasks');
+
+// Explicit Favicon Delivery Routes (Prevents 404s and browser icon misses on all sub-routes)
+Route::get('/favicon.ico', function () {
+    $path = public_path('favicon.ico');
+    if (file_exists($path)) {
+        return response()->file($path, ['Content-Type' => 'image/x-icon', 'Cache-Control' => 'public, max-age=604800']);
+    }
+    $pngPath = public_path('favicon.png');
+    if (file_exists($pngPath)) {
+        return response()->file($pngPath, ['Content-Type' => 'image/png', 'Cache-Control' => 'public, max-age=604800']);
     }
     abort(404);
-})->where('folder', 'thumbnails|avatars|materials|videos|receipts|submissions|tasks');
+});
+Route::get('/favicon.png', function () {
+    $path = public_path('favicon.png');
+    if (file_exists($path)) {
+        return response()->file($path, ['Content-Type' => 'image/png', 'Cache-Control' => 'public, max-age=604800']);
+    }
+    abort(404);
+});
 
 // Authentication Routes (Email Verification Enabled)
 Auth::routes(['verify' => true]);

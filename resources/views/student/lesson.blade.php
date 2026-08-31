@@ -127,7 +127,7 @@
                                      ontouchstart="event.stopPropagation(); event.preventDefault(); return false;"></div>
                             </div>
                         @else
-                            <video class="js-player w-full h-full" playsinline controls controlsList="nodownload nofullscreen noremoteplayback" disablePictureInPicture>
+                            <video class="js-player w-full h-full" playsinline controls preload="metadata" src="{{ $embedId }}" oncontextmenu="return false;">
                                 <source src="{{ $embedId }}" type="video/mp4">
                                 Your browser does not support the video tag.
                             </video>
