@@ -77,14 +77,38 @@
 
                     <div class="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl bg-black relative select-none" id="videoContainer" oncontextmenu="return false;">
                         @if($provider === 'youtube')
-                            <div class="plyr__video-embed js-player w-full h-full">
+                            {{-- YouTube branding overlay system:
+                                 - Top bar overlay: covers the title/channel that YouTube shows before play & on pause
+                                 - Bottom-right overlay: covers the YouTube logo watermark
+                                 - Pause overlay: full dark overlay shown when paused so "More videos" is hidden
+                                 These overlays are controlled via Plyr events below.
+                            --}}
+                            <div class="plyr__video-embed js-player w-full h-full" id="ytPlayerWrapper">
                                 <iframe
-                                    src="https://www.youtube.com/embed/{{ $embedId }}?controls=0&amp;rel=0&amp;modestbranding=1&amp;playsinline=1&amp;enablejsapi=1&amp;disablekb=1&amp;fs=0&amp;iv_load_policy=3"
+                                    src="https://www.youtube.com/embed/{{ $embedId }}?controls=0&amp;rel=0&amp;modestbranding=1&amp;playsinline=1&amp;enablejsapi=1&amp;disablekb=1&amp;fs=0&amp;iv_load_policy=3&amp;showinfo=0&amp;color=white&amp;hl=en"
                                     allowfullscreen
                                     allowtransparency
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                                    class="w-full h-full border-0">
+                                    class="w-full h-full border-0"
+                                    id="ytIframe">
                                 </iframe>
+                            </div>
+                            {{-- Top bar: blocks title, channel name & YouTube branding shown before play / on pause --}}
+                            <div id="ytTopBar"
+                                 style="pointer-events:none; position:absolute; top:0; left:0; right:0; height:72px; background:linear-gradient(to bottom,#000 0%,rgba(0,0,0,0.85) 60%,transparent 100%); z-index:10; transition:opacity .3s ease;"
+                                 aria-hidden="true"></div>
+                            {{-- Bottom-right: covers the "YouTube" logo watermark --}}
+                            <div id="ytLogoMask"
+                                 style="pointer-events:none; position:absolute; bottom:52px; right:0; width:120px; height:36px; background:#000; z-index:10; border-radius:4px 0 0 4px;"
+                                 aria-hidden="true"></div>
+                            {{-- Pause overlay: full dark cover hiding "More videos" end/pause screen --}}
+                            <div id="ytPauseOverlay"
+                                 style="pointer-events:none; position:absolute; inset:0; background:rgba(0,0,0,0.92); z-index:9; opacity:1; transition:opacity .25s ease; display:flex; align-items:center; justify-content:center;"
+                                 aria-hidden="true">
+                                <svg style="width:64px;height:64px;opacity:0.5;" viewBox="0 0 64 64" fill="white">
+                                    <circle cx="32" cy="32" r="30" fill="rgba(255,255,255,0.1)" stroke="white" stroke-width="2"/>
+                                    <polygon points="26,20 26,44 48,32" fill="white"/>
+                                </svg>
                             </div>
                         @elseif($provider === 'vimeo')
                             <div class="plyr__video-embed js-player w-full h-full">
@@ -646,6 +670,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 keyboard: { focused: true, global: false },
                 fullscreen: { enabled: true, fallback: true, iosNative: true }
             });
+
+            // ── YouTube Branding Overlay Control ──────────────────────────────
+            const ytPauseOverlay = document.getElementById('ytPauseOverlay');
+            const ytTopBar       = document.getElementById('ytTopBar');
+            const ytLogoMask     = document.getElementById('ytLogoMask');
+
+            function showYtOverlay() {
+                if (ytPauseOverlay) ytPauseOverlay.style.opacity = '1';
+                if (ytTopBar)       ytTopBar.style.opacity       = '1';
+            }
+            function hideYtOverlay() {
+                if (ytPauseOverlay) ytPauseOverlay.style.opacity = '0';
+                // Keep top bar and logo mask always visible to suppress branding
+            }
+
+            // On play: hide pause overlay so video is fully visible
+            player.on('play playing', hideYtOverlay);
+            // On pause / end: show overlay to block YouTube's "More Videos" screen
+            player.on('pause ended', showYtOverlay);
+            // ─────────────────────────────────────────────────────────────────
 
             player.on('timeupdate', function () {
                 if (player.duration > 0 && player.playing) {

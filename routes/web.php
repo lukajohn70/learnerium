@@ -448,7 +448,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     // Student Quiz Routes
     Route::get('/courses/{course}/lessons/{lesson}/quizzes/{quiz}', [StudentQuizController::class, 'show'])->name('student.quiz.show');
-    Route::post('/courses/{course}/lessons/{lesson}/quizzes/{quiz}/submit', [StudentQuizController::class, 'submit'])->name('student.quiz.submit');
+    Route::post('/courses/{course}/lessons/{lesson}/quizzes/{quiz}/submit', [StudentQuizController::class, 'submit'])->middleware('throttle:20,1')->name('student.quiz.submit');
     Route::get('/courses/{course}/lessons/{lesson}/quizzes/{quiz}/result', [StudentQuizController::class, 'result'])->name('student.quiz.result');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -458,9 +458,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('profile');
     Route::post('/profile/avatar', [DashboardController::class, 'updateAvatar'])->name('profile.avatar');
     Route::get('/settings', [DashboardController::class, 'settings'])->name('settings');
-    Route::post('/settings/profile', [DashboardController::class, 'updateProfile'])->name('settings.profile');
-    Route::post('/settings/password', [DashboardController::class, 'updatePassword'])->name('settings.password');
-    Route::post('/settings/request-deletion', [DashboardController::class, 'requestAccountDeletion'])->name('settings.account.request-deletion');
+    Route::post('/settings/profile', [DashboardController::class, 'updateProfile'])->middleware('throttle:10,1')->name('settings.profile');
+    Route::post('/settings/password', [DashboardController::class, 'updatePassword'])->middleware('throttle:5,1')->name('settings.password');
+    Route::post('/settings/request-deletion', [DashboardController::class, 'requestAccountDeletion'])->middleware('throttle:3,1')->name('settings.account.request-deletion');
 
     Route::get('/student/dashboard', [DashboardController::class, 'studentDashboard'])
          ->name('student.dashboard');
@@ -520,7 +520,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
          ->middleware(IsInstructor::class)
          ->name('instructor.bank-details.update');
     Route::post('/instructor/payout/request', [DashboardController::class, 'requestPayout'])
-         ->middleware(IsInstructor::class)
+         ->middleware([IsInstructor::class, 'throttle:2,1'])
          ->name('instructor.payout.request');
     Route::get('/instructor/submissions', [DashboardController::class, 'instructorSubmissions'])
          ->middleware(IsInstructor::class)
@@ -536,13 +536,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
          ->name('instructor.coupons.destroy');
 
 
-    // Checkout & Payment Routes
+    // Checkout & Payment Routes — rate-limited to prevent duplicate charges
     Route::get('/courses/{course}/checkout', [PaymentController::class, 'checkout'])->name('courses.checkout');
-    Route::post('/courses/{course}/checkout/initialize', [PaymentController::class, 'initialize'])->name('courses.checkout.initialize');
-    Route::post('/courses/{course}/checkout/coupon', [PaymentController::class, 'applyCoupon'])->name('courses.checkout.coupon');
+    Route::post('/courses/{course}/checkout/initialize', [PaymentController::class, 'initialize'])->middleware('throttle:3,1')->name('courses.checkout.initialize');
+    Route::post('/courses/{course}/checkout/coupon', [PaymentController::class, 'applyCoupon'])->middleware('throttle:10,1')->name('courses.checkout.coupon');
 
-    // Lesson Discussion Routes
-    Route::post('/courses/{course}/lessons/{lesson}/discussions', [LessonDiscussionController::class, 'store'])->name('lesson.discussion.store');
+    // Lesson Discussion Routes — rate-limited to prevent comment spam
+    Route::post('/courses/{course}/lessons/{lesson}/discussions', [LessonDiscussionController::class, 'store'])->middleware('throttle:10,1')->name('lesson.discussion.store');
     Route::delete('/discussions/{discussion}', [LessonDiscussionController::class, 'destroy'])->name('lesson.discussion.destroy');
 
     // Wishlist Routes
@@ -559,9 +559,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/settings/notifications', [NotificationController::class, 'preferences'])->name('notifications.preferences');
     Route::post('/settings/notifications', [NotificationController::class, 'savePreferences'])->name('notifications.save');
 
-    // Bank Verification & Account Resolution APIs
+    // Bank Verification & Account Resolution APIs — rate-limited to prevent enumeration attacks
     Route::get('/api/banks', [BankVerificationController::class, 'getBanks'])->name('api.banks');
-    Route::post('/api/banks/resolve', [BankVerificationController::class, 'resolveAccount'])->name('api.banks.resolve');
+    Route::post('/api/banks/resolve', [BankVerificationController::class, 'resolveAccount'])->middleware('throttle:10,1')->name('api.banks.resolve');
 });
 
 
