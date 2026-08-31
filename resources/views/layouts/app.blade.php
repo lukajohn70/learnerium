@@ -855,6 +855,24 @@
             showAlert(msg, 'Notice', 'info');
         };
 
+        // ── Automatic Session Keep-Alive & CSRF Token Refresher ─────────────
+        // Pings /csrf-token every 15 minutes to keep authenticated sessions active
+        // and updates all hidden _token inputs on the page so forms never throw 419 Page Expired
+        setInterval(function () {
+            fetch('{{ route("csrf.token") }}', { credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(data => {
+                    if (data && data.token) {
+                        const meta = document.querySelector('meta[name="csrf-token"]');
+                        if (meta) meta.setAttribute('content', data.token);
+                        document.querySelectorAll('input[name="_token"]').forEach(input => {
+                            input.value = data.token;
+                        });
+                    }
+                })
+                .catch(() => {});
+        }, 10 * 60 * 1000); // Every 10 minutes
+
     </script>
 
     <!-- Global Responsive Universal Modal Dialog -->

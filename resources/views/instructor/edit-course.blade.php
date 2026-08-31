@@ -999,6 +999,10 @@ function switchVideoSource(id, mode) {
 
     const form = (urlWrap || uploadWrap || gdriveWrap)?.closest('form');
 
+    const urlInput    = urlWrap?.querySelector('input[name="video_url"]');
+    const gdriveInput = gdriveWrap?.querySelector('input[name="gdrive_import_url"]');
+    const fileInput   = uploadWrap?.querySelector('input[type="file"]');
+
     // Reset all tabs to inactive style
     const setInactive = (btns) => btns.forEach(b => {
         b.classList.remove('bg-blue-600', 'text-white');
@@ -1021,19 +1025,22 @@ function switchVideoSource(id, mode) {
     if (mode === 'upload') {
         if (uploadWrap) uploadWrap.classList.remove('hidden');
         setActive(upBtns);
+        if (fileInput)   fileInput.disabled = false;
+        if (urlInput)    urlInput.disabled = true;
+        if (gdriveInput) gdriveInput.disabled = true;
         if (form) form.setAttribute('enctype', 'multipart/form-data');
     } else if (mode === 'gdrive') {
         if (gdriveWrap) gdriveWrap.classList.remove('hidden');
         setActive(gdriveBtns);
-        // Clear standard url and file input
-        const fileInput = uploadWrap?.querySelector('input[type="file"]');
-        if (fileInput) fileInput.value = '';
+        if (gdriveInput) gdriveInput.disabled = false;
+        if (urlInput)    urlInput.disabled = true;
+        if (fileInput)   fileInput.disabled = true;
     } else {
         if (urlWrap) urlWrap.classList.remove('hidden');
         setActive(urlBtns);
-        // Clear file input
-        const fileInput = uploadWrap?.querySelector('input[type="file"]');
-        if (fileInput) fileInput.value = '';
+        if (urlInput)    urlInput.disabled = false;
+        if (gdriveInput) gdriveInput.disabled = true;
+        if (fileInput)   fileInput.disabled = true;
     }
 }
 
@@ -1045,6 +1052,27 @@ document.addEventListener('DOMContentLoaded', function () {
             const id = wrap.id.replace('vsUploadWrap-', '');
             switchVideoSource(id, 'upload');
         }
+    });
+
+    // Add submit progress indicator for lesson forms
+    document.querySelectorAll('form[action*="/instructor/lessons"]').forEach(form => {
+        form.addEventListener('submit', function (e) {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const gdriveInput = form.querySelector('input[name="gdrive_import_url"]');
+            const fileInput = form.querySelector('input[type="file"][name="video_file"]');
+
+            if (submitBtn) {
+                if (gdriveInput && !gdriveInput.disabled && gdriveInput.value.trim()) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1.5"></i> Downloading from Drive to Server...';
+                    submitBtn.classList.add('opacity-75', 'cursor-wait');
+                } else if (fileInput && !fileInput.disabled && fileInput.files && fileInput.files.length > 0) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1.5"></i> Uploading Video File...';
+                    submitBtn.classList.add('opacity-75', 'cursor-wait');
+                }
+            }
+        });
     });
 });
 

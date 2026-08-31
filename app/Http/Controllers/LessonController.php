@@ -303,7 +303,11 @@ class LessonController extends Controller
             }
         }
 
-        return redirect()->route('instructor.courses.edit', $course)->with('success', 'Lesson updated successfully!');
+        $statusMsg = isset($importedPath) && $importedPath 
+            ? 'Lesson updated and Google Drive video successfully imported to server!' 
+            : 'Lesson updated successfully!';
+
+        return redirect()->route('instructor.courses.edit', $course)->with('success', $statusMsg);
     }
 
     /**
@@ -368,6 +372,9 @@ class LessonController extends Controller
      */
     private function importVideoFromGoogleDrive(string $driveUrl): ?string
     {
+        @set_time_limit(600);
+        @ini_set('max_execution_time', '600');
+
         // Extract Google Drive File ID
         $fileId = null;
         if (preg_match('/(?:drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?.*id=)|docs\.google\.com\/(?:file\/d\/|open\?id=|uc\?.*id=))([a-zA-Z0-9_-]{20,})/i', $driveUrl, $m)) {
@@ -377,6 +384,7 @@ class LessonController extends Controller
         }
 
         if (!$fileId) {
+            \Illuminate\Support\Facades\Log::warning("Google Drive import failed: could not extract File ID from URL '{$driveUrl}'");
             return null;
         }
 

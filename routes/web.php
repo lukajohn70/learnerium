@@ -55,6 +55,11 @@ Route::get('/terms-of-service', function () { return view('eua'); })->name('eua'
 // SEO: Dynamic XML Sitemap
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 
+// Session Keep-Alive & Fresh CSRF Token Endpoint (Prevents 419 Page Expired errors)
+Route::get('/csrf-token', function () {
+    return response()->json(['token' => csrf_token()]);
+})->name('csrf.token');
+
 // Shopping Cart Routes (Publicly accessible; persists across sessions and logouts)
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::post('/cart/{course}', [CartController::class, 'store'])->name('cart.store');
