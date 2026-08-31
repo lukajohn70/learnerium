@@ -25,63 +25,81 @@
         <div class="lg:col-span-3 space-y-6">
             <div class="bg-white rounded-2xl shadow-md overflow-hidden">
 
-                <!-- Video Player -->
+@push('styles')
+<link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+<style>
+    :root {
+        --plyr-color-main: #1b2299;
+        --plyr-video-control-color: #ffffff;
+        --plyr-video-control-color-hover: #f7de7a;
+        --plyr-control-icon-size: 16px;
+        --plyr-control-spacing: 10px;
+        --plyr-badge-text-color: #1b2299;
+    }
+    .plyr--video {
+        border-radius: 1rem;
+        overflow: hidden;
+        background: #000;
+    }
+    .plyr--video .plyr__control--overlaid {
+        background: rgba(27, 34, 153, 0.9);
+        border: 2px solid rgba(247, 222, 122, 0.5);
+    }
+    .plyr--video .plyr__control--overlaid:hover {
+        background: #e4306d;
+    }
+    /* Hide all YouTube chrome & title hover tooltips */
+    .plyr__video-embed iframe {
+        top: -50% !important;
+        height: 200% !important;
+    }
+</style>
+@endpush
+
+                <!-- High Performance Buttery-Smooth Video Player -->
                 @if($lesson->video_url)
                     @php
                         $rawUrl   = trim($lesson->video_url);
-                        $embedUrl = null;
-                        $isIframe = false;
+                        $provider = 'html5';
+                        $embedId  = $rawUrl;
 
-                        if (preg_match('/drive\.google\.com\/(?:file\/d\/|open\?id=)([^\/\?&]+)/i', $rawUrl, $matches)) {
-                            $embedUrl = 'https://drive.google.com/file/d/' . $matches[1] . '/preview';
-                            $isIframe = true;
-                        } elseif (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i', $rawUrl, $matches)) {
-                            $embedUrl = 'https://www.youtube-nocookie.com/embed/' . $matches[1] . '?rel=0&modestbranding=1&iv_load_policy=3&enablejsapi=1';
-                            $isIframe = true;
+                        if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i', $rawUrl, $matches)) {
+                            $provider = 'youtube';
+                            $embedId  = $matches[1];
                         } elseif (preg_match('/vimeo\.com\/(\d+)/i', $rawUrl, $matches)) {
-                            $embedUrl = 'https://player.vimeo.com/video/' . $matches[1] . '?dnt=1';
-                            $isIframe = true;
-                        } elseif (str_contains($rawUrl, 'youtube.com/embed/') || str_contains($rawUrl, 'player.vimeo.com/')) {
-                            $embedUrl = $rawUrl;
-                            $isIframe = true;
+                            $provider = 'vimeo';
+                            $embedId  = $matches[1];
+                        } elseif (preg_match('/drive\.google\.com\/(?:file\/d\/|open\?id=)([^\/\?&]+)/i', $rawUrl, $matches)) {
+                            $provider = 'drive';
+                            $embedId  = 'https://drive.google.com/file/d/' . $matches[1] . '/preview';
                         } else {
-                            $embedUrl = $rawUrl;
-                            $isIframe = false;
+                            $provider = 'html5';
+                            $embedId  = $rawUrl;
                         }
                     @endphp
 
-                    <div class="bg-black relative select-none" id="videoContainer" oncontextmenu="return false;">
-                        @if($isIframe)
+                    <div class="bg-black relative select-none rounded-2xl overflow-hidden shadow-2xl" id="videoContainer" oncontextmenu="return false;">
+                        @if($provider === 'youtube')
+                            <div class="js-player" data-plyr-provider="youtube" data-plyr-embed-id="{{ $embedId }}"></div>
+                        @elseif($provider === 'vimeo')
+                            <div class="js-player" data-plyr-provider="vimeo" data-plyr-embed-id="{{ $embedId }}"></div>
+                        @elseif($provider === 'drive')
                             <div class="aspect-video w-full relative overflow-hidden">
                                 <iframe id="lessonVideoIframe" class="w-full h-full border-0"
-                                    src="{{ $embedUrl }}"
+                                    src="{{ $embedId }}"
                                     sandbox="allow-scripts allow-same-origin allow-presentation allow-fullscreen"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                                     allowfullscreen></iframe>
-                                
-                                {{-- Top-Right Click Shield: Prevents tapping/clicking the Google Drive pop-out / source button --}}
-                                <div class="absolute top-0 right-0 h-16 w-24 z-20 cursor-default bg-transparent"
+                                {{-- Click shield overlay over Google Drive header --}}
+                                <div class="absolute top-0 right-0 h-16 w-28 z-20 cursor-default bg-transparent"
                                      onclick="event.stopPropagation(); event.preventDefault(); return false;"
-                                     ontouchstart="event.stopPropagation(); event.preventDefault(); return false;"
-                                     onmousedown="event.stopPropagation(); event.preventDefault(); return false;"
-                                     title=""></div>
-                                {{-- Top Bar Shield: Prevents header interaction while allowing center play & bottom controls --}}
-                                <div class="absolute top-0 left-0 right-0 h-14 z-10 cursor-default bg-transparent"
-                                     onclick="event.stopPropagation(); event.preventDefault(); return false;"
-                                     ontouchstart="event.stopPropagation(); event.preventDefault(); return false;"
-                                     onmousedown="event.stopPropagation(); event.preventDefault(); return false;"></div>
+                                     ontouchstart="event.stopPropagation(); event.preventDefault(); return false;"></div>
                             </div>
                         @else
-                            <div class="aspect-video w-full">
-                                <video id="lessonVideoPlayer" class="w-full h-full"
-                                       controls
-                                       controlsList="nodownload nofullscreen noremoteplayback"
-                                       disablePictureInPicture
-                                       oncontextmenu="return false;">
-                                    <source src="{{ $embedUrl }}" type="video/mp4">
-                                    Your browser does not support the video tag.
-                                </video>
-                            </div>
+                            <video class="js-player w-full h-full" playsinline controls controlsList="nodownload nofullscreen noremoteplayback" disablePictureInPicture>
+                                <source src="{{ $embedId }}" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
                         @endif
                     </div>
                 @endif
@@ -515,6 +533,7 @@
     </div>
     <script>setTimeout(() => { const el = document.getElementById('flash-err'); if(el) el.remove(); }, 5000);</script>
 @endif
+<script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
 <script>
 function toggleReplyForm(commentId) {
     const form = document.getElementById('reply-form-' + commentId);
@@ -532,7 +551,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const completeBtnTxt = document.getElementById('completeBtnTxt');
     const watchPercentTxt = document.getElementById('watchPercentTxt');
     const videoGateMsg    = document.getElementById('videoGateMsg');
-    const videoMeta       = document.getElementById('videoMeta');
 
     // =====================================================================
     // SECURITY: Block context menu on video player
@@ -550,6 +568,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const requiredPercent = 80;
 
         function unlockCompletion() {
+            if (!completeBtn) return;
             completeBtn.disabled = false;
             if (completeBtnTxt) completeBtnTxt.textContent = 'Mark as Complete';
             if (videoGateMsg) {
@@ -560,12 +579,46 @@ document.addEventListener('DOMContentLoaded', function () {
 
         completeBtn.disabled = true;
 
-        // 1. Native HTML5 Video Player
-        const videoPlayer = document.getElementById('lessonVideoPlayer');
-        if (videoPlayer) {
-            videoPlayer.addEventListener('timeupdate', function () {
-                if (videoPlayer.duration > 0) {
-                    const currentPercent = Math.min(100, Math.round((videoPlayer.currentTime / videoPlayer.duration) * 100));
+        // 1. Initialize Plyr Player (HTML5 / YouTube / Vimeo)
+        const playerEl = document.querySelector('.js-player');
+        if (playerEl && typeof Plyr !== 'undefined') {
+            const player = new Plyr(playerEl, {
+                controls: [
+                    'play-large',
+                    'play',
+                    'progress',
+                    'current-time',
+                    'duration',
+                    'mute',
+                    'volume',
+                    'settings',
+                    'pip',
+                    'fullscreen'
+                ],
+                settings: ['speed'],
+                speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
+                youtube: {
+                    noCookie: true,
+                    rel: 0,
+                    showinfo: 0,
+                    iv_load_policy: 3,
+                    modestbranding: 1,
+                    customControls: true
+                },
+                vimeo: {
+                    byline: false,
+                    portrait: false,
+                    title: false,
+                    dnt: true
+                },
+                tooltips: { controls: true, seek: true },
+                keyboard: { focused: true, global: false },
+                fullscreen: { enabled: true, fallback: true, iosNative: true }
+            });
+
+            player.on('timeupdate', function () {
+                if (player.duration > 0) {
+                    const currentPercent = Math.min(100, Math.round((player.currentTime / player.duration) * 100));
                     if (currentPercent > maxPercentWatched) {
                         maxPercentWatched = currentPercent;
                         if (watchPercentTxt) watchPercentTxt.textContent = maxPercentWatched + '%';
@@ -573,16 +626,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (maxPercentWatched >= requiredPercent) unlockCompletion();
                 }
             });
-            videoPlayer.addEventListener('ended', function () {
+
+            player.on('ended', function () {
                 maxPercentWatched = 100;
                 if (watchPercentTxt) watchPercentTxt.textContent = '100%';
                 unlockCompletion();
             });
         }
 
-        // 2. Embedded Video Watch Timer (YouTube / Vimeo / Drive)
-        const iframe = document.getElementById('lessonVideoIframe');
-        if (iframe) {
+        // 2. Timer fallback for Google Drive iframes
+        const driveIframe = document.getElementById('lessonVideoIframe');
+        if (driveIframe) {
             const targetWatchSeconds = Math.min(120, Math.max(30, {{ (int)($lesson->duration_minutes ? $lesson->duration_minutes * 60 * 0.8 : 60) }}));
             let activeWatchSeconds = 0;
 
@@ -599,8 +653,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }, 1000);
         }
-    }
-
     }
 });
 </script>

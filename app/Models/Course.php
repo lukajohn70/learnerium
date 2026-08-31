@@ -122,9 +122,9 @@ class Course extends Model
             }
         }
 
-        // Guaranteed SVG Data URI fallback styled with JLM colors — zero external network dependency!
-        $title = rawurlencode(substr($this->title ?? 'Learnerium Course', 0, 32));
-        $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400"><rect width="600" height="400" fill="%231b2299"/><circle cx="500" cy="80" r="120" fill="%23e4306d" opacity="0.4"/><circle cx="100" cy="320" r="140" fill="%23f7de7a" opacity="0.3"/><text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" fill="%23ffffff" font-family="sans-serif" font-size="26" font-weight="bold">'.$title.'</text><text x="50%" y="62%" dominant-baseline="middle" text-anchor="middle" fill="%23f7de7a" font-family="sans-serif" font-size="16" font-weight="bold">Learnerium Course</text></svg>';
-        return 'data:image/svg+xml,' . $svg;
+        // Guaranteed instant Base64 SVG Data URI fallback styled with JLM colors
+        $title = htmlspecialchars(substr($this->title ?? 'Learnerium Course', 0, 32), ENT_QUOTES, 'UTF-8');
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400"><rect width="600" height="400" fill="#1b2299"/><circle cx="500" cy="80" r="120" fill="#e4306d" opacity="0.4"/><circle cx="100" cy="320" r="140" fill="#f7de7a" opacity="0.3"/><text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="bold">'.$title.'</text><text x="50%" y="62%" dominant-baseline="middle" text-anchor="middle" fill="#f7de7a" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="bold">Learnerium Course</text></svg>';
+        return 'data:image/svg+xml;base64,' . base64_encode($svg);
     }
 }

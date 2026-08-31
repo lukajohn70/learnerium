@@ -40,8 +40,9 @@
     @stack('styles')
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{{ asset('logo-only.png') }}">
-    <link rel="shortcut icon" href="{{ asset('logo-only.png') }}">
+    <link rel="icon" type="image/png" sizes="64x64" href="{{ asset('favicon.png') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -158,7 +159,7 @@
         <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200/60 shadow-sm">
             <div class="container mx-auto px-4 lg:px-8 flex justify-between items-center h-16">
                 <a href="{{ url('/') }}" class="flex items-center gap-2.5 group">
-                    <img src="{{ asset('logo-only.png') }}" alt="Learnerium Logo" class="h-10 w-auto object-contain transition group-hover:scale-105">
+                    <img src="{{ asset('logo-only.png') }}" alt="Learnerium Logo" class="h-10 w-auto object-contain transition group-hover:scale-105" width="40" height="40" fetchpriority="high" loading="eager">
                     <span class="text-2xl font-black bg-gradient-to-r from-[#1b2299] to-[#e4306d] bg-clip-text text-transparent tracking-tight">Learnerium</span>
                 </a>
                 

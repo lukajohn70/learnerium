@@ -5,13 +5,15 @@
  * Or via CLI: php public/insert_module.php
  */
 
-// 1. Bootstrap Laravel
-require __DIR__ . '/../vendor/autoload.php';
-$app = require_once __DIR__ . '/../bootstrap/app.php';
-$kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
-$response = $kernel->handle(
-    $request = Illuminate\Http\Request::capture()
-);
+// 1. Bootstrap Laravel if not already in Laravel request lifecycle
+if (!class_exists('App\Models\Course')) {
+    require __DIR__ . '/../vendor/autoload.php';
+    $app = require_once __DIR__ . '/../bootstrap/app.php';
+    $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
+    $response = $kernel->handle(
+        $request = Illuminate\Http\Request::capture()
+    );
+}
 
 use App\Models\Course;
 use App\Models\Module;

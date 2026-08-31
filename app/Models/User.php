@@ -66,10 +66,10 @@ class User extends Authenticatable implements MustVerifyEmail
             }
         }
 
-        // Guaranteed SVG Data URI fallback styled with JLM colors
+        // Guaranteed instant Base64 SVG Data URI fallback styled with JLM colors (instant render on mobile Safari & desktop)
         $initials = strtoupper(substr($this->name ?? 'U', 0, 2));
-        $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><rect width="128" height="128" rx="64" fill="%231b2299"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="%23f7de7a" font-family="sans-serif" font-size="46" font-weight="bold">'.$initials.'</text></svg>';
-        return 'data:image/svg+xml,' . $svg;
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><rect width="128" height="128" rx="64" fill="#1b2299"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="#f7de7a" font-family="Arial, Helvetica, sans-serif" font-size="46" font-weight="bold">'.$initials.'</text></svg>';
+        return 'data:image/svg+xml;base64,' . base64_encode($svg);
     }
 
     /**

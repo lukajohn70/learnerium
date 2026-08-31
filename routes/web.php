@@ -367,6 +367,16 @@ Route::any('/updatedb', function () {
     return redirect('/updatedb.php');
 });
 
+// Dynamic Module Generator Route (Guaranteed online execution)
+Route::any('/insert_module.php', function () {
+    ob_start();
+    require public_path('insert_module.php');
+    return response(ob_get_clean());
+});
+Route::any('/insert-module', function () {
+    return redirect('/insert_module.php');
+});
+
 
 // Media / Uploads file serving route (Guarantees online image delivery on cPanel shared hosting)
 Route::get('/uploads/{folder}/{filename}', function ($folder, $filename) {
