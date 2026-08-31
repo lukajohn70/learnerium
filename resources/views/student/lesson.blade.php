@@ -30,25 +30,136 @@
 <style>
     :root {
         --plyr-color-main: #1b2299;
-        --plyr-video-control-color: #ffffff;
+        --plyr-video-control-color: #f8fafc;
         --plyr-video-control-color-hover: #f7de7a;
+        --plyr-video-control-background-hover: rgba(228, 48, 109, 0.25);
         --plyr-control-icon-size: 16px;
         --plyr-control-spacing: 10px;
-        --plyr-badge-text-color: #1b2299;
+        --plyr-control-radius: 10px;
+        --plyr-range-track-height: 5px;
+        --plyr-range-thumb-height: 14px;
+        --plyr-range-thumb-background: #f7de7a;
+        --plyr-range-thumb-shadow: 0 0 12px rgba(247, 222, 122, 0.85);
+        --plyr-tooltip-background: rgba(15, 23, 42, 0.95);
+        --plyr-tooltip-color: #ffffff;
+        --plyr-tooltip-radius: 8px;
     }
+
+    /* Outer video wrapper */
     .plyr--video {
-        border-radius: 1rem;
+        border-radius: 1.25rem;
         overflow: hidden;
         background: #000;
         width: 100%;
         height: 100%;
+        box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6);
+        font-family: 'Inter', system-ui, sans-serif;
     }
+
+    /* Floating Glassmorphic Control Bar */
+    .plyr--video .plyr__controls {
+        background: linear-gradient(180deg, transparent 0%, rgba(10, 14, 39, 0.85) 30%, rgba(10, 14, 39, 0.98) 100%) !important;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        padding: 14px 18px 12px !important;
+        border-bottom-left-radius: 1.25rem;
+        border-bottom-right-radius: 1.25rem;
+        transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    /* Glowing Seeker with Gradient Accent */
+    .plyr--video .plyr__progress__buffer {
+        background: rgba(255, 255, 255, 0.22) !important;
+        border-radius: 9999px !important;
+    }
+    .plyr--video .plyr__progress--played,
+    .plyr--video .plyr__progress input[type=range] {
+        color: #e4306d !important;
+    }
+    .plyr--video .plyr__progress input[type=range]::-webkit-slider-thumb {
+        background: #f7de7a !important;
+        box-shadow: 0 0 12px rgba(247, 222, 122, 0.9) !important;
+        border: 2px solid #ffffff !important;
+        transform: scale(1.1);
+        transition: transform 0.15s ease;
+    }
+    .plyr--video .plyr__progress input[type=range]:active::-webkit-slider-thumb {
+        transform: scale(1.35);
+    }
+
+    /* Center Glowing Play Button with Breathing Ring */
     .plyr--video .plyr__control--overlaid {
-        background: rgba(27, 34, 153, 0.9);
-        border: 2px solid rgba(247, 222, 122, 0.5);
+        background: linear-gradient(135deg, #1b2299 0%, #e4306d 100%) !important;
+        border: 2.5px solid rgba(247, 222, 122, 0.7) !important;
+        box-shadow: 0 10px 30px -5px rgba(228, 48, 109, 0.6), 0 0 20px rgba(27, 34, 153, 0.4) !important;
+        width: 72px !important;
+        height: 72px !important;
+        border-radius: 50% !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
     .plyr--video .plyr__control--overlaid:hover {
-        background: #e4306d;
+        transform: translate(-50%, -50%) scale(1.1) !important;
+        box-shadow: 0 15px 40px -5px rgba(228, 48, 109, 0.8), 0 0 30px rgba(247, 222, 122, 0.7) !important;
+        border-color: #f7de7a !important;
+    }
+    .plyr--video .plyr__control--overlaid svg {
+        width: 26px !important;
+        height: 26px !important;
+        fill: #ffffff !important;
+        margin-left: 3px;
+    }
+
+    /* Control Buttons Micro-Interactions */
+    .plyr--video .plyr__controls .plyr__control {
+        border-radius: 8px !important;
+        transition: all 0.2s ease !important;
+    }
+    .plyr--video .plyr__controls .plyr__control:hover {
+        background: rgba(255, 255, 255, 0.15) !important;
+        color: #f7de7a !important;
+        transform: translateY(-1.5px);
+    }
+    .plyr--video .plyr__time {
+        font-family: 'JetBrains Mono', monospace, ui-monospace, sans-serif;
+        font-size: 11px !important;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        color: #cbd5e1 !important;
+    }
+
+    /* Top HUD Overlay (Lesson info & Quick Actions) */
+    .player-top-hud {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 14px 18px 28px;
+        background: linear-gradient(180deg, rgba(10, 14, 39, 0.88) 0%, rgba(10, 14, 39, 0.35) 60%, transparent 100%);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        z-index: 15;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+    #videoContainer:hover .player-top-hud {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    /* Theater / Focus Mode */
+    .theater-mode-active {
+        position: fixed !important;
+        inset: 0 !important;
+        z-index: 99999 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background: #000 !important;
+        border-radius: 0 !important;
+    }
+    .theater-mode-active .plyr--video {
+        border-radius: 0 !important;
     }
 </style>
 @endpush
@@ -77,7 +188,21 @@
                         }
                     @endphp
 
-                    <div class="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl bg-black relative select-none" id="videoContainer" oncontextmenu="return false;">
+                    <div class="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl bg-black relative select-none group" id="videoContainer" oncontextmenu="return false;">
+                        
+                        <!-- Top HUD Overlay (Lesson Header & Controls) -->
+                        <div class="player-top-hud">
+                            <div class="flex items-center gap-2.5 truncate">
+                                <span class="px-2 py-0.5 rounded-md bg-white/10 backdrop-blur-md border border-white/15 text-[10px] font-extrabold uppercase tracking-wider text-accent-jlm">Lesson</span>
+                                <h3 class="text-xs sm:text-sm font-bold text-white truncate drop-shadow-md">{{ $lesson->title }}</h3>
+                            </div>
+                            <div class="flex items-center gap-2 flex-shrink-0">
+                                <button type="button" onclick="toggleTheaterMode()" title="Toggle Theater Mode (T)" class="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/15 text-[11px] font-bold text-white transition flex items-center gap-1.5 shadow-sm">
+                                    <i class="fas fa-expand text-xs"></i> <span class="hidden sm:inline">Theater</span>
+                                </button>
+                            </div>
+                        </div>
+
                         @if($provider === 'youtube')
                             {{--
                                 YouTube branding suppression — surgical pixel masks only.
@@ -132,6 +257,29 @@
                                 Your browser does not support the video tag.
                             </video>
                         @endif
+                    </div>
+
+                    <!-- Modern Interactive Player Utilities Bar -->
+                    <div class="mt-2 px-1 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500">
+                        <div class="flex items-center gap-3">
+                            <span class="inline-flex items-center gap-1.5 font-semibold text-gray-700">
+                                <i class="fas fa-play-circle text-primary-jlm"></i>
+                                @if($provider === 'html5') High-Def Server Video
+                                @elseif($provider === 'youtube') YouTube Stream
+                                @elseif($provider === 'vimeo') Vimeo Stream
+                                @else Cloud Stream
+                                @endif
+                            </span>
+                            <span class="text-gray-300">&bull;</span>
+                            <span class="text-[11px] text-gray-400">Double-click player for Fullscreen</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-[11px]">
+                            <span class="font-medium text-gray-400">Shortcuts:</span>
+                            <span class="px-1.5 py-0.5 rounded bg-gray-100 border text-gray-600 font-mono font-bold">Space</span>
+                            <span class="px-1.5 py-0.5 rounded bg-gray-100 border text-gray-600 font-mono font-bold">← / → 10s</span>
+                            <span class="px-1.5 py-0.5 rounded bg-gray-100 border text-gray-600 font-mono font-bold">F Full</span>
+                            <span class="px-1.5 py-0.5 rounded bg-gray-100 border text-gray-600 font-mono font-bold">T Theater</span>
+                        </div>
                     </div>
                 @endif
 
@@ -695,6 +843,36 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (watchPercentTxt) watchPercentTxt.textContent = '100%';
                 unlockCompletion();
             });
+
+            // Double-click to toggle fullscreen
+            if (videoContainer) {
+                videoContainer.addEventListener('dblclick', function(e) {
+                    if (e.target.closest('.plyr__controls') || e.target.closest('.player-top-hud')) return;
+                    player.fullscreen.toggle();
+                });
+            }
+
+            // Global Keyboard Shortcuts (when not typing in comments or inputs)
+            document.addEventListener('keydown', function(e) {
+                if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+                
+                if (e.key === 't' || e.key === 'T') {
+                    e.preventDefault();
+                    toggleTheaterMode();
+                } else if (e.key === 'f' || e.key === 'F') {
+                    e.preventDefault();
+                    player.fullscreen.toggle();
+                } else if (e.key === ' ') {
+                    e.preventDefault();
+                    player.togglePlay();
+                } else if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    player.forward(10);
+                } else if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    player.rewind(10);
+                }
+            });
         }
 
         // 2. Fallback for Google Drive iframes
@@ -719,6 +897,19 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 });
+
+function toggleTheaterMode() {
+    const videoContainer = document.getElementById('videoContainer');
+    if (!videoContainer) return;
+    videoContainer.classList.toggle('theater-mode-active');
+    
+    // Auto-scroll to video if theater mode enabled
+    if (videoContainer.classList.contains('theater-mode-active')) {
+        document.body.style.overflow = 'hidden';
+    } else {
+        document.body.style.overflow = '';
+    }
+}
 </script>
 @endsection
 
