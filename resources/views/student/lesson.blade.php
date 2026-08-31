@@ -579,6 +579,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
         completeBtn.disabled = true;
 
+        // LocalStorage progress key for persistence
+        const progressStorageKey = 'learnerium_watch_progress_{{ $lesson->id }}_{{ auth()->id() }}';
+        let savedProgress = parseInt(localStorage.getItem(progressStorageKey) || '0', 10);
+        if (savedProgress >= requiredPercent) {
+            maxPercentWatched = savedProgress;
+            if (watchPercentTxt) watchPercentTxt.textContent = maxPercentWatched + '%';
+            unlockCompletion();
+        }
+
+        // Set to track unique seconds watched (anti-cheat: prevents fast-forwarding to cheat the 80% rule)
+        const watchedSecondsSet = new Set();
+
         // 1. Initialize Plyr Player (HTML5 / YouTube / Vimeo)
         const playerEl = document.querySelector('.js-player');
         if (playerEl && typeof Plyr !== 'undefined') {
@@ -603,13 +615,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     showinfo: 0,
                     iv_load_policy: 3,
                     modestbranding: 1,
-                    customControls: true
+                    customControls: true,
+                    playsinline: 1
                 },
                 vimeo: {
                     byline: false,
                     portrait: false,
                     title: false,
-                    dnt: true
+                    dnt: true,
+                    playsinline: true
                 },
                 tooltips: { controls: true, seek: true },
                 keyboard: { focused: true, global: false },
@@ -617,24 +631,36 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             player.on('timeupdate', function () {
-                if (player.duration > 0) {
-                    const currentPercent = Math.min(100, Math.round((player.currentTime / player.duration) * 100));
-                    if (currentPercent > maxPercentWatched) {
-                        maxPercentWatched = currentPercent;
+                if (player.duration > 0 && player.playing) {
+                    const currentSec = Math.floor(player.currentTime);
+                    watchedSecondsSet.add(currentSec);
+
+                    // Calculate real progress based on unique seconds watched AND timestamp position
+                    const uniqueWatchedPercent = Math.round((watchedSecondsSet.size / player.duration) * 100);
+                    const positionPercent = Math.round((player.currentTime / player.duration) * 100);
+                    const effectivePercent = Math.min(100, Math.max(uniqueWatchedPercent, Math.min(positionPercent, maxPercentWatched + 1)));
+
+                    if (effectivePercent > maxPercentWatched) {
+                        maxPercentWatched = effectivePercent;
+                        localStorage.setItem(progressStorageKey, maxPercentWatched.toString());
                         if (watchPercentTxt) watchPercentTxt.textContent = maxPercentWatched + '%';
                     }
-                    if (maxPercentWatched >= requiredPercent) unlockCompletion();
+
+                    if (maxPercentWatched >= requiredPercent) {
+                        unlockCompletion();
+                    }
                 }
             });
 
             player.on('ended', function () {
                 maxPercentWatched = 100;
+                localStorage.setItem(progressStorageKey, '100');
                 if (watchPercentTxt) watchPercentTxt.textContent = '100%';
                 unlockCompletion();
             });
         }
 
-        // 2. Timer fallback for Google Drive iframes
+        // 2. Fallback for Google Drive iframes
         const driveIframe = document.getElementById('lessonVideoIframe');
         if (driveIframe) {
             const targetWatchSeconds = Math.min(120, Math.max(30, {{ (int)($lesson->duration_minutes ? $lesson->duration_minutes * 60 * 0.8 : 60) }}));
@@ -645,6 +671,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const estPercent = Math.min(100, Math.round((activeWatchSeconds / targetWatchSeconds) * 100));
                 if (estPercent > maxPercentWatched) {
                     maxPercentWatched = estPercent;
+                    localStorage.setItem(progressStorageKey, maxPercentWatched.toString());
                     if (watchPercentTxt) watchPercentTxt.textContent = maxPercentWatched + '%';
                 }
                 if (maxPercentWatched >= requiredPercent) {
