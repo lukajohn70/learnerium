@@ -405,7 +405,7 @@
                                                     <i class="fas fa-times text-lg"></i>
                                                 </button>
                                             </div>
-                                            <form action="{{ route('instructor.lessons.update', [$course, $lesson]) }}" method="POST" class="space-y-4">
+                                            <form action="{{ route('instructor.lessons.update', [$course, $lesson]) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                                                 @csrf
                                                 @method('PUT')
 
@@ -415,8 +415,40 @@
                                                 </div>
 
                                                 <div>
-                                                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">Video / Media URL (YouTube, Vimeo, MP4, Google Drive)</label>
-                                                    <input type="url" name="video_url" value="{{ old('video_url', $lesson->video_url) }}" placeholder="https://youtube.com/watch?v=..." class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-600">
+                                                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">Video Source</label>
+                                                    {{-- Source Tab Toggle --}}
+                                                    <div class="flex rounded-xl border border-gray-200 overflow-hidden mb-3 text-xs font-bold" id="vsToggle-{{ $lesson->id }}">
+                                                        <button type="button" onclick="switchVideoSource('{{ $lesson->id }}', 'url')"
+                                                            class="vs-tab-url-{{ $lesson->id }} flex-1 px-4 py-2.5 bg-blue-600 text-white transition-colors"
+                                                            id="vsTabUrl-{{ $lesson->id }}">
+                                                            🔗 Paste URL
+                                                        </button>
+                                                        <button type="button" onclick="switchVideoSource('{{ $lesson->id }}', 'upload')"
+                                                            class="vs-tab-up-{{ $lesson->id }} flex-1 px-4 py-2.5 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
+                                                            id="vsTabUp-{{ $lesson->id }}">
+                                                            📁 Upload File
+                                                        </button>
+                                                    </div>
+                                                    {{-- URL Input --}}
+                                                    <div id="vsUrlWrap-{{ $lesson->id }}">
+                                                        <input type="url" name="video_url"
+                                                            value="{{ old('video_url', (!$lesson->video_url || str_starts_with($lesson->video_url, 'http')) ? $lesson->video_url : '') }}"
+                                                            placeholder="https://youtube.com/watch?v=... or Google Drive / Vimeo link"
+                                                            class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-600">
+                                                    </div>
+                                                    {{-- File Upload Input --}}
+                                                    <div id="vsUploadWrap-{{ $lesson->id }}" class="hidden">
+                                                        @if($lesson->video_url && !str_starts_with($lesson->video_url, 'http'))
+                                                            <p class="text-[11px] text-green-700 bg-green-50 border border-green-200 rounded-xl px-3 py-2 mb-2 font-semibold">
+                                                                ✅ Current: <span class="font-mono">{{ basename($lesson->video_url) }}</span>
+                                                            </p>
+                                                        @endif
+                                                        <input type="file" name="video_file"
+                                                            accept="video/mp4,video/webm,video/mov,video/quicktime,video/x-msvideo,.mp4,.webm,.mov,.avi"
+                                                            class="w-full px-4 py-2.5 border border-dashed border-blue-300 bg-blue-50/50 rounded-xl text-sm focus:outline-none focus:border-blue-600
+                                                                   file:mr-3 file:py-1.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700">
+                                                        <p class="text-[11px] text-gray-400 mt-1.5">Accepted: MP4, WebM, MOV, AVI &mdash; max 500 MB. Stored securely on the server.</p>
+                                                    </div>
                                                 </div>
 
                                                 <div>
@@ -498,7 +530,7 @@
                                         <i class="fas fa-times text-lg"></i>
                                     </button>
                                 </div>
-                                <form action="{{ route('instructor.lessons.store', $course) }}" method="POST" class="space-y-4">
+                                <form action="{{ route('instructor.lessons.store', $course) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                                     @csrf
                                     <input type="hidden" name="module_id" value="{{ $mod->id }}">
                                     <input type="hidden" name="order" value="{{ $mod->lessons->count() + 1 }}">
@@ -514,8 +546,31 @@
                                     </div>
 
                                     <div>
-                                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">Video / Media URL (Optional)</label>
-                                        <input type="url" name="video_url" placeholder="https://youtube.com/watch?v=..." class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary-jlm">
+                                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">Video Source</label>
+                                        {{-- Source Tab Toggle --}}
+                                        <div class="flex rounded-xl border border-gray-200 overflow-hidden mb-3 text-xs font-bold">
+                                            <button type="button" onclick="switchVideoSource('new-{{ $mod->id }}', 'url')"
+                                                class="vs-tab-url-new-{{ $mod->id }} flex-1 px-4 py-2.5 bg-blue-600 text-white transition-colors">
+                                                🔗 Paste URL
+                                            </button>
+                                            <button type="button" onclick="switchVideoSource('new-{{ $mod->id }}', 'upload')"
+                                                class="vs-tab-up-new-{{ $mod->id }} flex-1 px-4 py-2.5 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors">
+                                                📁 Upload File
+                                            </button>
+                                        </div>
+                                        {{-- URL Input --}}
+                                        <div id="vsUrlWrap-new-{{ $mod->id }}">
+                                            <input type="url" name="video_url" placeholder="https://youtube.com/watch?v=... or Google Drive / Vimeo link"
+                                                class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary-jlm">
+                                        </div>
+                                        {{-- File Upload Input --}}
+                                        <div id="vsUploadWrap-new-{{ $mod->id }}" class="hidden">
+                                            <input type="file" name="video_file"
+                                                accept="video/mp4,video/webm,video/mov,video/quicktime,video/x-msvideo,.mp4,.webm,.mov,.avi"
+                                                class="w-full px-4 py-2.5 border border-dashed border-blue-300 bg-blue-50/50 rounded-xl text-sm focus:outline-none focus:border-blue-600
+                                                       file:mr-3 file:py-1.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700">
+                                            <p class="text-[11px] text-gray-400 mt-1.5">MP4, WebM, MOV, AVI &mdash; max 500 MB.</p>
+                                        </div>
                                     </div>
 
                                     <!-- Drip Schedule Options -->
@@ -902,6 +957,50 @@ async function showOutlineModal() {
         });
     }
 }
+
+// ── Video Source Switcher (URL tab vs Upload tab) ───────────────────────────
+function switchVideoSource(id, mode) {
+    const urlWrap    = document.getElementById('vsUrlWrap-' + id);
+    const uploadWrap = document.getElementById('vsUploadWrap-' + id);
+    const urlBtns    = document.querySelectorAll('.vs-tab-url-' + id);
+    const upBtns     = document.querySelectorAll('.vs-tab-up-' + id);
+
+    if (!urlWrap || !uploadWrap) return;
+
+    // Find the closest form to update enctype
+    const form = urlWrap.closest('form');
+
+    if (mode === 'upload') {
+        urlWrap.classList.add('hidden');
+        uploadWrap.classList.remove('hidden');
+        urlBtns.forEach(b => { b.classList.remove('bg-blue-600','text-white'); b.classList.add('bg-gray-50','text-gray-600'); });
+        upBtns.forEach(b  => { b.classList.remove('bg-gray-50','text-gray-600'); b.classList.add('bg-blue-600','text-white'); });
+        // Clear URL so it doesn't conflict
+        const urlInput = urlWrap.querySelector('input[name="video_url"]');
+        if (urlInput) urlInput.value = '';
+        if (form) form.setAttribute('enctype', 'multipart/form-data');
+    } else {
+        urlWrap.classList.remove('hidden');
+        uploadWrap.classList.add('hidden');
+        urlBtns.forEach(b => { b.classList.add('bg-blue-600','text-white'); b.classList.remove('bg-gray-50','text-gray-600'); });
+        upBtns.forEach(b  => { b.classList.add('bg-gray-50','text-gray-600'); b.classList.remove('bg-blue-600','text-white'); });
+        // Clear file input
+        const fileInput = uploadWrap.querySelector('input[type="file"]');
+        if (fileInput) fileInput.value = '';
+    }
+}
+
+// Auto-detect upload tab for lessons that already have a server-side video path
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[id^="vsUploadWrap-"]').forEach(wrap => {
+        // If the lesson has a local path (not http), switch to upload tab on load
+        const currentBadge = wrap.querySelector('p');
+        if (currentBadge && currentBadge.textContent.includes('Current:')) {
+            const id = wrap.id.replace('vsUploadWrap-', '');
+            switchVideoSource(id, 'upload');
+        }
+    });
+});
 
 </script>
 @endsection

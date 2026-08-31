@@ -167,11 +167,20 @@ class LessonController extends Controller
             'description'      => 'nullable|string',
             'order'            => 'required|integer|min:0',
             'video_url'        => 'nullable|url',
+            'video_file'       => 'nullable|file|mimes:mp4,webm,mov,avi,quicktime|max:512000', // 500 MB
             'duration_minutes' => 'nullable|integer|min:0',
             'content'          => 'nullable|string',
             'drip_date'        => 'nullable|date',
             'drip_days'        => 'nullable|integer|min:0',
         ]);
+
+        // Handle video upload vs URL
+        if ($request->hasFile('video_file') && $request->file('video_file')->isValid()) {
+            $file = $request->file('video_file');
+            $filename = time() . '_' . preg_replace('/[^a-z0-9._-]/i', '_', $file->getClientOriginalName());
+            $file->move(public_path('uploads/videos'), $filename);
+            $validated['video_url'] = 'uploads/videos/' . $filename;
+        }
 
         $validated['drip_date'] = $request->drip_date ?: null;
         $validated['drip_days'] = $request->drip_days !== null && $request->drip_days !== '' ? (int)$request->drip_days : null;
@@ -218,11 +227,27 @@ class LessonController extends Controller
             'description'      => 'nullable|string',
             'order'            => 'required|integer|min:0',
             'video_url'        => 'nullable|url',
+            'video_file'       => 'nullable|file|mimes:mp4,webm,mov,avi,quicktime|max:512000', // 500 MB
             'duration_minutes' => 'nullable|integer|min:0',
             'content'          => 'nullable|string',
             'drip_date'        => 'nullable|date',
             'drip_days'        => 'nullable|integer|min:0',
         ]);
+
+        // Handle video upload vs URL
+        if ($request->hasFile('video_file') && $request->file('video_file')->isValid()) {
+            // Delete old uploaded video if it was a server file (not a URL)
+            if ($lesson->video_url && !str_starts_with($lesson->video_url, 'http')) {
+                $oldPath = public_path($lesson->video_url);
+                if (file_exists($oldPath)) {
+                    @unlink($oldPath);
+                }
+            }
+            $file = $request->file('video_file');
+            $filename = time() . '_' . preg_replace('/[^a-z0-9._-]/i', '_', $file->getClientOriginalName());
+            $file->move(public_path('uploads/videos'), $filename);
+            $validated['video_url'] = 'uploads/videos/' . $filename;
+        }
 
         $validated['drip_date'] = $request->drip_date ?: null;
         $validated['drip_days'] = $request->drip_days !== null && $request->drip_days !== '' ? (int)$request->drip_days : null;

@@ -71,7 +71,9 @@
                             $embedId  = 'https://drive.google.com/file/d/' . $matches[1] . '/preview';
                         } else {
                             $provider = 'html5';
-                            $embedId  = $rawUrl;
+                            $embedId  = (str_starts_with($rawUrl, 'http://') || str_starts_with($rawUrl, 'https://') || str_starts_with($rawUrl, '//'))
+                                ? $rawUrl
+                                : asset($rawUrl);
                         }
                     @endphp
 

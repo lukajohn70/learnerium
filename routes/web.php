@@ -393,7 +393,7 @@ Route::get('/uploads/{folder}/{filename}', function ($folder, $filename) {
         return response()->file($rootPath);
     }
     abort(404);
-})->where('folder', 'thumbnails|avatars|materials');
+})->where('folder', 'thumbnails|avatars|materials|videos|receipts|submissions|tasks');
 
 // Authentication Routes (Email Verification Enabled)
 Auth::routes(['verify' => true]);
