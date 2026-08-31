@@ -149,9 +149,10 @@
 
             {{-- Instructor line --}}
             <div class="flex items-center gap-2.5 mb-2">
-                <img src="{{ $course->instructor ? $course->instructor->avatarUrl() : 'https://ui-avatars.com/api/?name=Instructor' }}"
+                <img src="{{ $course->instructor ? $course->instructor->avatarUrl() : 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgMTI4IDEyOCI+PHJlY3Qgd2lkdGg9IjEyOCIgaGVpZ2h0PSIxMjgiIHJ4PSI2NCIgZmlsbD0iIzFiMjI5OSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTQlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjZjdkZTdhIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSI0NiIgZm9udC13ZWlnaHQ9ImJvbGQiPklSPC90ZXh0Pjwvc3ZnPg==' }}"
                      alt="{{ $course->instructor?->name }}"
-                     class="w-9 h-9 rounded-full border-2 border-secondary-jlm object-cover">
+                     class="w-9 h-9 rounded-full border-2 border-secondary-jlm object-cover"
+                     width="36" height="36" loading="eager">
                 <span class="text-sm text-gray-400">Created by
                     <span class="text-secondary-jlm font-semibold">{{ $course->instructor?->name ?? 'Learnerium Instructor' }}</span>
                 </span>

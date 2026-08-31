@@ -35,41 +35,30 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function avatarUrl(): string
     {
-        if (!empty($this->avatar)) {
-            $av = trim(str_replace('primary-jlm', '1b2299', $this->avatar));
-            if (str_starts_with($av, 'http://') || str_starts_with($av, 'https://') || str_starts_with($av, 'data:image')) {
-                if (!str_contains($av, 'primary-jlm')) {
-                    return $av;
-                }
+        $defaultSvg = function() {
+            $initials = strtoupper(substr($this->name ?? 'U', 0, 2));
+            $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><rect width="128" height="128" rx="64" fill="#1b2299"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="#f7de7a" font-family="Arial, Helvetica, sans-serif" font-size="46" font-weight="bold">'.$initials.'</text></svg>';
+            return 'data:image/svg+xml;base64,' . base64_encode($svg);
+        };
+
+        $raw = $this->avatar ?: $this->profile_picture;
+        if (!empty($raw)) {
+            $raw = trim($raw);
+            if (str_starts_with($raw, 'data:image/')) {
+                return $raw;
             }
-            $filename = basename($av);
-            if (file_exists(public_path('uploads/avatars/' . $filename)) || file_exists(base_path('public/uploads/avatars/' . $filename))) {
-                return asset('uploads/avatars/' . $filename);
+            // If external placeholder service, use instant local SVG instead of waiting for slow external network
+            if (str_contains($raw, 'ui-avatars.com') || str_contains($raw, 'placehold.co') || str_contains($raw, 'gravatar.com')) {
+                return $defaultSvg();
             }
-            if (file_exists(public_path($av))) {
-                return asset($av);
+            if (str_starts_with($raw, 'http://') || str_starts_with($raw, 'https://')) {
+                return $raw;
             }
-        }
-        if (!empty($this->profile_picture)) {
-            $pic = trim(str_replace('primary-jlm', '1b2299', $this->profile_picture));
-            if (str_starts_with($pic, 'http://') || str_starts_with($pic, 'https://') || str_starts_with($pic, 'data:image')) {
-                if (!str_contains($pic, 'primary-jlm')) {
-                    return $pic;
-                }
-            }
-            $filename = basename($pic);
-            if (file_exists(public_path('uploads/avatars/' . $filename)) || file_exists(base_path('public/uploads/avatars/' . $filename))) {
-                return asset('uploads/avatars/' . $filename);
-            }
-            if (file_exists(public_path($pic))) {
-                return asset($pic);
-            }
+            $filename = basename($raw);
+            return asset('uploads/avatars/' . $filename);
         }
 
-        // Guaranteed instant Base64 SVG Data URI fallback styled with JLM colors (instant render on mobile Safari & desktop)
-        $initials = strtoupper(substr($this->name ?? 'U', 0, 2));
-        $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><rect width="128" height="128" rx="64" fill="#1b2299"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="#f7de7a" font-family="Arial, Helvetica, sans-serif" font-size="46" font-weight="bold">'.$initials.'</text></svg>';
-        return 'data:image/svg+xml;base64,' . base64_encode($svg);
+        return $defaultSvg();
     }
 
     /**

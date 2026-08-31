@@ -79,7 +79,7 @@
                         @if($provider === 'youtube')
                             <div class="plyr__video-embed js-player w-full h-full">
                                 <iframe
-                                    src="https://www.youtube-nocookie.com/embed/{{ $embedId }}?origin={{ urlencode(url('/')) }}&amp;iv_load_policy=3&amp;modestbranding=1&amp;playsinline=1&amp;showinfo=0&amp;rel=0&amp;enablejsapi=1"
+                                    src="https://www.youtube.com/embed/{{ $embedId }}?rel=0&amp;modestbranding=1&amp;playsinline=1&amp;enablejsapi=1"
                                     allowfullscreen
                                     allowtransparency
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
@@ -623,12 +623,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 settings: ['speed'],
                 speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
                 youtube: {
-                    noCookie: true,
+                    noCookie: false,
                     rel: 0,
                     showinfo: 0,
                     iv_load_policy: 3,
                     modestbranding: 1,
-                    customControls: true,
                     playsinline: 1
                 },
                 vimeo: {
