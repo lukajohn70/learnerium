@@ -1094,7 +1094,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-// ── Google Drive Standalone Video Fetcher ──────────────────────────────────
+// ── Google Drive Standalone Video Fetcher with Live Progress Bar ─────────────
 async function fetchGDriveVideo(id) {
     const input      = document.getElementById('gdriveInput-' + id);
     const btn        = document.getElementById('gdriveFetchBtn-' + id);
@@ -1103,8 +1103,8 @@ async function fetchGDriveVideo(id) {
 
     if (!input || !input.value.trim()) {
         if (statusBox) {
-            statusBox.className = 'text-xs rounded-xl p-3 border bg-amber-50 border-amber-200 text-amber-800';
-            statusBox.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i> Please paste a valid Google Drive link first.';
+            statusBox.className = 'text-xs rounded-2xl p-3.5 border bg-amber-50 border-amber-200 text-amber-900 flex items-center gap-2';
+            statusBox.innerHTML = '<i class="fas fa-exclamation-triangle text-amber-600 text-sm"></i> <span>Please paste a valid Google Drive link first.</span>';
             statusBox.classList.remove('hidden');
         }
         return;
@@ -1116,14 +1116,91 @@ async function fetchGDriveVideo(id) {
     if (btn) {
         btn.disabled = true;
         btn.classList.add('opacity-75', 'cursor-wait');
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1.5"></i> Downloading from Google Drive to Server...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1.5"></i> Downloading to Server...';
     }
 
+    // Render Rich Animated Progress Bar
     if (statusBox) {
-        statusBox.className = 'text-xs rounded-xl p-3 border bg-blue-50 border-blue-200 text-blue-800 flex items-center gap-2';
-        statusBox.innerHTML = '<i class="fas fa-circle-notch fa-spin text-blue-600 flex-shrink-0"></i> <span>Connecting to Google Drive and streaming video file directly to server storage... Please wait a moment.</span>';
+        statusBox.className = 'text-xs rounded-2xl p-4 border bg-indigo-50/70 border-indigo-200/90 shadow-sm space-y-3';
+        statusBox.innerHTML = `
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs flex-shrink-0">
+                        <i class="fas fa-cloud-arrow-down fa-spin text-sm" style="animation-duration: 2.5s;"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-indigo-950" id="gdriveProgressTitle-${id}">Streaming Video to Server...</h4>
+                        <p class="text-[10px] text-indigo-600 font-medium" id="gdriveProgressSubtitle-${id}">Connecting to Google Drive</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <span class="text-xs font-extrabold text-indigo-700" id="gdriveProgressPct-${id}">5%</span>
+                    <span class="block text-[10px] text-gray-400 font-mono" id="gdriveProgressTimer-${id}">00:00</span>
+                </div>
+            </div>
+
+            <!-- Progress Bar Track -->
+            <div class="w-full bg-indigo-100 rounded-full h-2.5 overflow-hidden p-0.5 shadow-inner">
+                <div class="bg-gradient-to-r from-indigo-600 via-primary-jlm to-secondary-jlm h-full rounded-full transition-all duration-300 relative overflow-hidden" 
+                     id="gdriveProgressBar-${id}" style="width: 5%;">
+                    <div class="absolute inset-0 bg-white/25 animate-pulse"></div>
+                </div>
+            </div>
+
+            <!-- Live Steps -->
+            <div class="flex items-center justify-between text-[10px] font-semibold pt-0.5">
+                <span id="gdriveStep1-${id}" class="text-indigo-900 font-bold"><i class="fas fa-circle-notch fa-spin text-indigo-600 mr-1"></i> Handshake</span>
+                <span id="gdriveStep2-${id}" class="text-gray-400"><i class="far fa-circle mr-1"></i> Stream Chunks</span>
+                <span id="gdriveStep3-${id}" class="text-gray-400"><i class="far fa-circle mr-1"></i> Save to Storage</span>
+            </div>
+        `;
         statusBox.classList.remove('hidden');
     }
+
+    // Dynamic Progress Simulator & Elapsed Timer
+    let progress = 5;
+    let secondsElapsed = 0;
+    const barElem      = document.getElementById('gdriveProgressBar-' + id);
+    const pctElem      = document.getElementById('gdriveProgressPct-' + id);
+    const timerElem    = document.getElementById('gdriveProgressTimer-' + id);
+    const subElem      = document.getElementById('gdriveProgressSubtitle-' + id);
+    const step1Elem    = document.getElementById('gdriveStep1-' + id);
+    const step2Elem    = document.getElementById('gdriveStep2-' + id);
+    const step3Elem    = document.getElementById('gdriveStep3-' + id);
+
+    const timerInterval = setInterval(() => {
+        secondsElapsed++;
+        const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+        const secs = String(secondsElapsed % 60).padStart(2, '0');
+        if (timerElem) timerElem.textContent = `${mins}:${secs}`;
+    }, 1000);
+
+    const progressInterval = setInterval(() => {
+        if (progress < 25) {
+            progress += 3;
+            if (subElem) subElem.textContent = 'Bypassing virus scan check...';
+        } else if (progress < 65) {
+            progress += 1.8;
+            if (subElem) subElem.textContent = 'Downloading video stream from Google servers...';
+            if (step1Elem) step1Elem.innerHTML = '<i class="fas fa-check-circle text-emerald-500 mr-1"></i> Connected';
+            if (step2Elem) {
+                step2Elem.className = 'text-indigo-900 font-bold';
+                step2Elem.innerHTML = '<i class="fas fa-circle-notch fa-spin text-indigo-600 mr-1"></i> Streaming File';
+            }
+        } else if (progress < 92) {
+            progress += 0.6;
+            if (subElem) subElem.textContent = 'Writing and verifying MP4 binary on disk...';
+            if (step2Elem) step2Elem.innerHTML = '<i class="fas fa-check-circle text-emerald-500 mr-1"></i> Streamed';
+            if (step3Elem) {
+                step3Elem.className = 'text-indigo-900 font-bold';
+                step3Elem.innerHTML = '<i class="fas fa-circle-notch fa-spin text-indigo-600 mr-1"></i> Writing Disk';
+            }
+        }
+
+        const currentPct = Math.min(94, Math.round(progress));
+        if (barElem) barElem.style.width = currentPct + '%';
+        if (pctElem) pctElem.textContent = currentPct + '%';
+    }, 400);
 
     try {
         const response = await fetch('{{ route("instructor.lessons.import-gdrive") }}', {
@@ -1136,23 +1213,40 @@ async function fetchGDriveVideo(id) {
             body: JSON.stringify({ gdrive_url: driveUrl })
         });
 
+        clearInterval(progressInterval);
+        clearInterval(timerInterval);
+
         const data = await response.json();
 
         if (response.ok && data.success) {
+            if (barElem) {
+                barElem.style.width = '100%';
+                barElem.className = 'bg-emerald-500 h-full rounded-full transition-all duration-300';
+            }
+            if (pctElem) pctElem.textContent = '100%';
+
             if (hiddenPath) hiddenPath.value = data.path;
 
-            if (statusBox) {
-                statusBox.className = 'text-xs rounded-xl p-3 border bg-emerald-50 border-emerald-200 text-emerald-800 space-y-1';
-                statusBox.innerHTML = `
-                    <div class="font-bold flex items-center gap-1.5 text-emerald-700">
-                        <i class="fas fa-check-circle text-emerald-600"></i> Video downloaded and saved to server storage!
-                    </div>
-                    <div class="text-[11px] text-emerald-700">
-                        Saved file: <span class="font-mono font-semibold">${data.filename}</span> (${data.size}) &bull; Ready to save with lesson.
-                    </div>
-                `;
-                statusBox.classList.remove('hidden');
-            }
+            setTimeout(() => {
+                if (statusBox) {
+                    statusBox.className = 'text-xs rounded-2xl p-4 border bg-emerald-50 border-emerald-200 text-emerald-900 space-y-2';
+                    statusBox.innerHTML = `
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs flex-shrink-0">
+                                <i class="fas fa-check text-sm"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-emerald-950">Video Successfully Saved on Server!</h4>
+                                <p class="text-[11px] text-emerald-700">File: <span class="font-mono font-semibold">${data.filename}</span> (${data.size})</p>
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-emerald-700/90 pl-10">
+                            ⚡ The video is stored in server storage and will play smoothly in your custom Plyr player. Click <strong>Update / Save Lesson</strong> below to complete.
+                        </p>
+                    `;
+                    statusBox.classList.remove('hidden');
+                }
+            }, 300);
 
             if (btn) {
                 btn.disabled = false;
@@ -1164,14 +1258,20 @@ async function fetchGDriveVideo(id) {
             throw new Error(data.message || 'Download failed.');
         }
     } catch (err) {
+        clearInterval(progressInterval);
+        clearInterval(timerInterval);
+
         if (statusBox) {
-            statusBox.className = 'text-xs rounded-xl p-3 border bg-red-50 border-red-200 text-red-800';
+            statusBox.className = 'text-xs rounded-2xl p-4 border bg-red-50 border-red-200 text-red-900 space-y-2';
             statusBox.innerHTML = `
-                <div class="font-bold flex items-center gap-1.5 text-red-700">
-                    <i class="fas fa-times-circle text-red-600"></i> Could not download from Google Drive
-                </div>
-                <div class="text-[11px] text-red-600 mt-1">
-                    ${err.message || 'Please check that the file sharing on Google Drive is set to "Anyone with the link can view".'}
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-red-600 text-white flex items-center justify-center shadow-xs flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle text-sm"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-red-950">Could Not Download from Google Drive</h4>
+                        <p class="text-[11px] text-red-700">${err.message || 'Please check that the file is shared with "Anyone with the link can view".'}</p>
+                    </div>
                 </div>
             `;
             statusBox.classList.remove('hidden');
