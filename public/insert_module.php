@@ -89,12 +89,12 @@ try {
         logMsg($log, "Created New Module: '{$module->title}' (ID: {$module->id})", 'success');
     }
 
-    // 3. Define the 4 Exact Lessons from the Curriculum
+    // 3. Define the 4 Exact Lessons from the Curriculum with Provided Video Links
     $lessonsData = [
         [
             'title'       => 'Week 2.0 - HTML Update',
             'description' => 'Reviewing and preparing our semantic HTML structure for CSS styling, classes, IDs, and responsive component architecture.',
-            'video_url'   => 'https://www.youtube.com/watch?v=UB1O30fR-EE',
+            'video_url'   => 'https://drive.google.com/file/d/1tc7ads1E51QLqia8gid5vJR5dW-o4lIw/view?usp=drive_link',
             'content'     => "<h2>Week 2.0: HTML Semantic Refactoring</h2>
 <p>Before applying styling, we review our HTML markup to ensure proper semantic hierarchy, accessible tag usage, and well-structured classes.</p>
 
@@ -109,7 +109,7 @@ try {
         [
             'title'       => 'Week 2.1 — The Box Model & CSS Variables',
             'description' => 'Deep dive into Content, Padding, Border, Margin, box-sizing: border-box, and modern CSS Custom Properties (:root variables).',
-            'video_url'   => 'https://www.youtube.com/watch?v=yfoY53QXEnI',
+            'video_url'   => 'https://drive.google.com/file/d/1RJ02YpR994wXDkAB8VGZQMZAD97xMBeB/view?usp=drive_link',
             'content'     => "<h2>Week 2.1: The CSS Box Model & Custom Properties</h2>
 <p>Every element in CSS is a rectangular box. Mastering the Box Model is the foundation of professional web layout design.</p>
 
@@ -148,7 +148,7 @@ try {
         [
             'title'       => 'Week 2.2 — Flexbox for the Navbar',
             'description' => 'One-dimensional layout mastery: building responsive navigation bars, space distribution, alignment, and mobile layout toggles.',
-            'video_url'   => 'https://www.youtube.com/watch?v=fYq5PXgSsbE',
+            'video_url'   => 'https://drive.google.com/file/d/1v73y9QuCRWXNxNbw8p44Bgiq7spKDvSJ/view?usp=drive_link',
             'content'     => "<h2>Week 2.2: Building Responsive Navigation with Flexbox</h2>
 <p>CSS Flexbox (Flexible Box Layout) is designed for laying out items in a single dimension — either as a row or a column.</p>
 
@@ -191,7 +191,7 @@ try {
         [
             'title'       => 'Week 2.3 — CSS Grid for Content Layout',
             'description' => 'Two-dimensional grid layouts: grid-template-columns, auto-fit, minmax(), fractional units (fr), and responsive card galleries.',
-            'video_url'   => 'https://www.youtube.com/watch?v=9zBsdydE1TU',
+            'video_url'   => 'https://drive.google.com/file/d/1cpc5xoaMjaQ6aokkdKs_MLRF8BPfsUh3/view?usp=drive_link',
             'content'     => "<h2>Week 2.3: Mastering Two-Dimensional CSS Grid</h2>
 <p>CSS Grid Layout is the most powerful layout system available in CSS. It handles both columns and rows simultaneously.</p>
 
@@ -259,7 +259,7 @@ try {
         'module_id'   => $module->id,
         'title'       => 'Week 2 Complete Companion Guide (PDF)',
         'type'        => 'document',
-        'url_or_path' => 'materials/week2-complete-companion-guide.pdf',
+        'url_or_path' => 'https://drive.google.com/file/d/1-ll6SLd3mf-_skJONQmeSqnYPyJOj75C/view?usp=drive_link',
         'file_name'   => 'week2-complete-companion-guide.pdf',
     ]);
     logMsg($log, "Attached Material: '{$material->title}' ({$material->file_name})", 'success');

@@ -156,7 +156,7 @@ class LessonController extends Controller
     public function store(Request $request, Course $course)
     {
         $user = Auth::user();
-        if ($user->id !== $course->instructor_id) {
+        if ($user->id !== $course->instructor_id && $user->role !== 'admin') {
             abort(403, 'You are not the instructor of this course.');
         }
 
@@ -175,12 +175,18 @@ class LessonController extends Controller
         $validated['drip_date'] = $request->drip_date ?: null;
         $validated['drip_days'] = $request->drip_days !== null && $request->drip_days !== '' ? (int)$request->drip_days : null;
 
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('lessons', 'duration_minutes')) {
+            unset($validated['duration_minutes']);
+        }
+
         $lesson = $course->lessons()->create($validated);
 
         // Auto-recalculate course duration
-        $totalMinutes = (int) $course->lessons()->sum('duration_minutes');
-        if ($totalMinutes > 0) {
-            $course->update(['duration_minutes' => $totalMinutes]);
+        if (\Illuminate\Support\Facades\Schema::hasColumn('lessons', 'duration_minutes')) {
+            $totalMinutes = (int) $course->lessons()->sum('duration_minutes');
+            if ($totalMinutes > 0) {
+                $course->update(['duration_minutes' => $totalMinutes]);
+            }
         }
 
         return redirect()->route('instructor.courses.edit', $course)->with('success', 'Lesson created successfully!');
@@ -196,7 +202,7 @@ class LessonController extends Controller
         }
 
         $user = Auth::user();
-        if ($user->id !== $course->instructor_id) {
+        if ($user->id !== $course->instructor_id && $user->role !== 'admin') {
             abort(403, 'You are not the instructor of this course.');
         }
 
@@ -215,12 +221,18 @@ class LessonController extends Controller
         $validated['drip_date'] = $request->drip_date ?: null;
         $validated['drip_days'] = $request->drip_days !== null && $request->drip_days !== '' ? (int)$request->drip_days : null;
 
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('lessons', 'duration_minutes')) {
+            unset($validated['duration_minutes']);
+        }
+
         $lesson->update($validated);
 
         // Auto-recalculate course duration
-        $totalMinutes = (int) $course->lessons()->sum('duration_minutes');
-        if ($totalMinutes > 0) {
-            $course->update(['duration_minutes' => $totalMinutes]);
+        if (\Illuminate\Support\Facades\Schema::hasColumn('lessons', 'duration_minutes')) {
+            $totalMinutes = (int) $course->lessons()->sum('duration_minutes');
+            if ($totalMinutes > 0) {
+                $course->update(['duration_minutes' => $totalMinutes]);
+            }
         }
 
         return redirect()->route('instructor.courses.edit', $course)->with('success', 'Lesson updated successfully!');
@@ -236,15 +248,17 @@ class LessonController extends Controller
         }
 
         $user = Auth::user();
-        if ($user->id !== $course->instructor_id) {
+        if ($user->id !== $course->instructor_id && $user->role !== 'admin') {
             abort(403, 'You are not the instructor of this course.');
         }
 
         $lesson->delete();
 
         // Auto-recalculate course duration
-        $totalMinutes = (int) $course->lessons()->sum('duration_minutes');
-        $course->update(['duration_minutes' => max(1, $totalMinutes)]);
+        if (\Illuminate\Support\Facades\Schema::hasColumn('lessons', 'duration_minutes')) {
+            $totalMinutes = (int) $course->lessons()->sum('duration_minutes');
+            $course->update(['duration_minutes' => max(1, $totalMinutes)]);
+        }
 
         return redirect()->route('instructor.courses.edit', $course)->with('success', 'Lesson deleted successfully!');
     }
