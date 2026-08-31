@@ -1,6 +1,6 @@
 <?php
 /**
- * Learnerium — Dynamic Course & Module Generator Script
+ * Learnerium — Module 3: Introduction to CSS Generator & Updater
  * Can be run via Browser: https://learnerium.jlm.com.ng/insert_module.php
  * Or via CLI: php public/insert_module.php
  */
@@ -17,12 +17,14 @@ if (!class_exists('App\Models\Course')) {
 
 use App\Models\Course;
 use App\Models\Module;
+use App\Models\ModuleMaterial;
 use App\Models\Lesson;
 use App\Models\Quiz;
 use App\Models\Question;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 // Output styling for browser & CLI
@@ -39,148 +41,194 @@ function logMsg(&$log, $msg, $type = 'info') {
 }
 
 try {
-    logMsg($log, "Starting Module Insertion Process...");
+    logMsg($log, "Starting Module 3 Update Process...");
 
     DB::beginTransaction();
 
-    // 1. Find or create instructor
-    $instructor = User::where('role', 'instructor')->first() 
-               ?? User::where('role', 'admin')->first() 
-               ?? User::first();
-
-    if (!$instructor) {
-        throw new Exception("No user found in the database. Please register an admin or instructor first.");
-    }
-    logMsg($log, "Using Instructor/Author: {$instructor->name} ({$instructor->email})");
-
-    // 2. Find or create the Course: "Introduction to HTML, CSS and JavaScript"
-    $targetTitle = 'Introduction to HTML, CSS and JavaScript';
+    // 1. Find the Course: "Introduction to HTML, CSS and JavaScript"
     $course = Course::where('title', 'LIKE', '%HTML%')
                     ->where('title', 'LIKE', '%CSS%')
                     ->first();
 
     if (!$course) {
-        $course = Course::where('title', $targetTitle)->first();
+        $course = Course::first();
     }
 
     if (!$course) {
-        $slug = Str::slug($targetTitle);
-        $course = Course::create([
-            'instructor_id'      => $instructor->id,
-            'title'              => $targetTitle,
-            'slug'               => $slug,
-            'description'        => 'Master the fundamentals of modern front-end web development with HTML5, CSS3, and JavaScript. Learn step-by-step from beginner to building interactive web applications.',
-            'price'              => 0.00,
-            'level'              => 'Beginner',
-            'category'           => 'Web Development',
-            'duration_minutes'   => 240,
-            'published_at'       => now(),
-            'requirements'       => [
-                'A computer or laptop with internet access',
-                'A free code editor like VS Code or Notepad++',
-                'No prior coding experience required'
-            ],
-            'what_you_will_learn' => [
-                'Understand HTML document structure and semantic tags',
-                'Style websites using CSS3, Flexbox, and responsive layouts',
-                'Write JavaScript for interactivity, DOM manipulation, and event handling',
-                'Build and deploy real-world web pages from scratch'
-            ]
+        throw new Exception("No Course found in database.");
+    }
+    logMsg($log, "Target Course: '{$course->title}' (ID: {$course->id})", 'success');
+
+    // 2. Find or Create Module 3: "Module 3: Introduction to CSS"
+    $module = Module::where('course_id', $course->id)
+                    ->where(function($q) {
+                        $q->where('order', 3)
+                          ->orWhere('title', 'LIKE', '%Module 3%')
+                          ->orWhere('title', 'LIKE', '%Introduction to CSS%')
+                          ->orWhere('title', 'LIKE', '%Getting Started%');
+                    })
+                    ->first();
+
+    $moduleTitle = 'Module 3: Introduction to CSS';
+    $moduleDescription = 'Master CSS fundamentals, styling workflows, the Box Model, CSS Custom Properties (Variables), Flexbox navigation layouts, CSS Grid systems, and responsive design.';
+
+    if ($module) {
+        $module->update([
+            'title'       => $moduleTitle,
+            'description' => $moduleDescription,
+            'order'       => 3,
         ]);
-        logMsg($log, "Created Course: '{$course->title}' (ID: {$course->id})", 'success');
+        logMsg($log, "Updated Existing Module (ID: {$module->id}) to '{$module->title}'", 'success');
     } else {
-        logMsg($log, "Found Existing Course: '{$course->title}' (ID: {$course->id})", 'success');
+        $module = Module::create([
+            'course_id'   => $course->id,
+            'title'       => $moduleTitle,
+            'description' => $moduleDescription,
+            'order'       => 3,
+        ]);
+        logMsg($log, "Created New Module: '{$module->title}' (ID: {$module->id})", 'success');
     }
 
-    // 3. Determine module order
-    $nextModuleOrder = (Module::where('course_id', $course->id)->max('order') ?? 0) + 1;
-
-    // 4. Create the Module
-    $moduleTitle = 'Module ' . $nextModuleOrder . ': Getting Started & Web Fundamentals';
-    $module = Module::create([
-        'course_id'   => $course->id,
-        'title'       => $moduleTitle,
-        'description' => 'Comprehensive orientation and foundational concepts of HTML5 semantic structure, CSS3 responsive styling, and modern JavaScript interactivity.',
-        'order'       => $nextModuleOrder,
-    ]);
-    logMsg($log, "Created Module: '{$module->title}' (ID: {$module->id})", 'success');
-
-    // 5. Insert Comprehensive Lessons into the Module
+    // 3. Define the 4 Exact Lessons from the Curriculum
     $lessonsData = [
         [
-            'title'       => '1. Platform Orientation & Student Guide',
-            'description' => 'A complete walkthrough on how to navigate Learnerium, track lesson progress, submit tasks, and interact with instructors.',
-            'video_url'   => 'https://www.youtube.com/watch?v=kUMe1FH4CHE',
-            'content'     => "<h2>Welcome to Learnerium!</h2>
-<p>In this orientation lesson, you will learn how to maximize your learning experience on Learnerium.</p>
-<h3>Key Learning Features</h3>
-<ul>
-    <li><strong>Curriculum Navigation:</strong> Use the sidebar on your left to explore modules and lessons.</li>
-    <li><strong>Watch Progress Tracker:</strong> Watch at least 80% of each lesson video to unlock the <em>Mark as Complete</em> button.</li>
-    <li><strong>Practical Tasks:</strong> Some lessons include assignments that require submitting links, code, or files for instructor review.</li>
-    <li><strong>Module Assessments:</strong> Test your knowledge at the end of each module with interactive quizzes.</li>
-    <li><strong>Discussion & Support:</strong> Post questions in the discussion tab below any lesson to receive guidance from instructors and peers.</li>
-</ul>
-<p><em>Tip: Complete each lesson in sequence to earn your verified course completion certificate.</em></p>",
-            'duration'    => 15
-        ],
-        [
-            'title'       => '2. HTML5 Structure & Semantic Markup',
-            'description' => 'Learn the building blocks of every website: elements, tags, document anatomy, headings, paragraphs, links, and semantic tags.',
+            'title'       => 'Week 2.0 - HTML Update',
+            'description' => 'Reviewing and preparing our semantic HTML structure for CSS styling, classes, IDs, and responsive component architecture.',
             'video_url'   => 'https://www.youtube.com/watch?v=UB1O30fR-EE',
-            'content'     => "<h2>Anatomy of an HTML5 Document</h2>
-<p>HTML (HyperText Markup Language) gives structure and meaning to web content.</p>
-<pre><code>&lt;!DOCTYPE html&gt;
-&lt;html lang=\"en\"&gt;
-&lt;head&gt;
-    &lt;meta charset=\"UTF-8\"&gt;
-    &lt;title&gt;My First Web Page&lt;/title&gt;
-&lt;/head&gt;
-&lt;body&gt;
-    &lt;header&gt;
-        &lt;h1&gt;Hello, World!&lt;/h1&gt;
-    &lt;/header&gt;
-    &lt;main&gt;
-        &lt;p&gt;Welcome to web development.&lt;/p&gt;
-    &lt;/main&gt;
-&lt;/body&gt;
-&lt;/html&gt;</code></pre>
-<h3>Essential Semantic Elements</h3>
+            'content'     => "<h2>Week 2.0: HTML Semantic Refactoring</h2>
+<p>Before applying styling, we review our HTML markup to ensure proper semantic hierarchy, accessible tag usage, and well-structured classes.</p>
+
+<h3>Key Concepts Covered</h3>
 <ul>
-    <li><code>&lt;header&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;main&gt;</code>, <code>&lt;section&gt;</code>, <code>&lt;article&gt;</code>, <code>&lt;footer&gt;</code></li>
+    <li><strong>Document Structure:</strong> Ensuring proper nesting of <code>&lt;header&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;main&gt;</code>, <code>&lt;section&gt;</code>, and <code>&lt;footer&gt;</code>.</li>
+    <li><strong>Class & ID Naming Conventions:</strong> Writing clean, scalable CSS class names.</li>
+    <li><strong>Linking External Stylesheets:</strong> Connecting your <code>styles.css</code> file in the HTML <code>&lt;head&gt;</code> with <code>&lt;link rel=\"stylesheet\" href=\"styles.css\"&gt;</code>.</li>
 </ul>",
-            'duration'    => 25
+            'duration'    => 20
         ],
         [
-            'title'       => '3. CSS3 Styling, Box Model & Responsive Design',
-            'description' => 'Master selectors, colors, typography, margin, padding, borders, and modern Flexbox layouts.',
+            'title'       => 'Week 2.1 — The Box Model & CSS Variables',
+            'description' => 'Deep dive into Content, Padding, Border, Margin, box-sizing: border-box, and modern CSS Custom Properties (:root variables).',
             'video_url'   => 'https://www.youtube.com/watch?v=yfoY53QXEnI',
-            'content'     => "<h2>Mastering CSS3</h2>
-<p>CSS (Cascading Style Sheets) controls the visual presentation, styling, and layout of your HTML elements.</p>
-<h3>The CSS Box Model</h3>
-<p>Every element in CSS is represented as a rectangular box consisting of: <strong>Content</strong>, <strong>Padding</strong>, <strong>Border</strong>, and <strong>Margin</strong>.</p>
-<pre><code>.card {
-    background: #ffffff;
-    border-radius: 12px;
-    padding: 24px;
-    margin: 16px auto;
-    max-width: 600px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            'content'     => "<h2>Week 2.1: The CSS Box Model & Custom Properties</h2>
+<p>Every element in CSS is a rectangular box. Mastering the Box Model is the foundation of professional web layout design.</p>
+
+<h3>1. The 4 Layers of the Box Model</h3>
+<ol>
+    <li><strong>Content:</strong> The actual text, image, or video.</li>
+    <li><strong>Padding:</strong> Space inside the border, clearing area around content.</li>
+    <li><strong>Border:</strong> A border that goes around the padding and content.</li>
+    <li><strong>Margin:</strong> Space outside the border, separating elements from each other.</li>
+</ol>
+
+<h3>2. The Universal Box-Sizing Reset</h3>
+<pre><code>*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}</code></pre>
+
+<h3>3. Defining CSS Variables (Custom Properties)</h3>
+<pre><code>:root {
+    --primary-color: #1b2299;
+    --secondary-color: #e4306d;
+    --accent-color: #f7de7a;
+    --font-main: 'Inter', sans-serif;
+    --spacing-md: 16px;
+}
+
+.button {
+    background-color: var(--primary-color);
+    color: #ffffff;
+    padding: var(--spacing-md);
+    border-radius: 8px;
+}</code></pre>",
+            'duration'    => 35
+        ],
+        [
+            'title'       => 'Week 2.2 — Flexbox for the Navbar',
+            'description' => 'One-dimensional layout mastery: building responsive navigation bars, space distribution, alignment, and mobile layout toggles.',
+            'video_url'   => 'https://www.youtube.com/watch?v=fYq5PXgSsbE',
+            'content'     => "<h2>Week 2.2: Building Responsive Navigation with Flexbox</h2>
+<p>CSS Flexbox (Flexible Box Layout) is designed for laying out items in a single dimension — either as a row or a column.</p>
+
+<h3>Essential Flexbox Properties for Navbars</h3>
+<ul>
+    <li><code>display: flex;</code> — Activates the flex formatting context.</li>
+    <li><code>justify-content: space-between;</code> — Pushes brand logo to the left and navigation links to the right.</li>
+    <li><code>align-items: center;</code> — Vertically centers all items along the cross axis.</li>
+    <li><code>gap: 20px;</code> — Clean spacing between navigation items without margin hacks.</li>
+</ul>
+
+<h3>Navbar Implementation Example</h3>
+<pre><code>.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 32px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.nav-links {
+    display: flex;
+    gap: 24px;
+    list-style: none;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: #333333;
+    font-weight: 600;
+    transition: color 0.2s ease;
+}
+
+.nav-links a:hover {
+    color: #e4306d;
 }</code></pre>",
             'duration'    => 30
         ],
         [
-            'title'       => '4. JavaScript Fundamentals & DOM Manipulation',
-            'description' => 'Add dynamic interactivity to your pages using variables, functions, event listeners, and DOM manipulation.',
-            'video_url'   => 'https://www.youtube.com/watch?v=W6NZfCO5SIk',
-            'content'     => "<h2>Introduction to JavaScript</h2>
-<p>JavaScript is the programming language of the web. It enables interactivity, user event handling, and dynamic content updates without reloading the page.</p>
-<pre><code>document.querySelector('#myButton').addEventListener('click', () => {
-    alert('Hello from JavaScript!');
-});</code></pre>",
-            'duration'    => 35
+            'title'       => 'Week 2.3 — CSS Grid for Content Layout',
+            'description' => 'Two-dimensional grid layouts: grid-template-columns, auto-fit, minmax(), fractional units (fr), and responsive card galleries.',
+            'video_url'   => 'https://www.youtube.com/watch?v=9zBsdydE1TU',
+            'content'     => "<h2>Week 2.3: Mastering Two-Dimensional CSS Grid</h2>
+<p>CSS Grid Layout is the most powerful layout system available in CSS. It handles both columns and rows simultaneously.</p>
+
+<h3>1. Responsive Card Grid without Media Queries</h3>
+<p>Using <code>repeat(auto-fit, minmax(280px, 1fr))</code> creates a fluid grid that automatically adjusts column count based on screen width!</p>
+
+<pre><code>.course-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    padding: 24px;
+}
+
+.course-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.course-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}</code></pre>
+
+<h3>Flexbox vs. Grid Rule of Thumb</h3>
+<ul>
+    <li>Use <strong>Flexbox</strong> when you need 1D alignment (navbars, button groups, form inputs).</li>
+    <li>Use <strong>CSS Grid</strong> when you need 2D layout control (page structures, card galleries, dashboard layouts).</li>
+</ul>",
+            'duration'    => 40
         ],
     ];
+
+    // Clean up existing lessons in this module and re-populate accurately
+    Lesson::where('module_id', $module->id)->delete();
 
     $lessonOrder = 1;
     $createdLessons = [];
@@ -196,62 +244,83 @@ try {
             'order'       => $lessonOrder++,
         ];
 
-        if (\Illuminate\Support\Facades\Schema::hasColumn('lessons', 'duration_minutes')) {
+        if (Schema::hasColumn('lessons', 'duration_minutes')) {
             $lessonData['duration_minutes'] = $lData['duration'];
         }
 
         $lesson = Lesson::create($lessonData);
         $createdLessons[] = $lesson;
-        logMsg($log, "Added Lesson {$lesson->order}: '{$lesson->title}' (ID: {$lesson->id})", 'success');
+        logMsg($log, "Created Lesson: '{$lesson->title}' (ID: {$lesson->id})", 'success');
     }
 
-    // 6. Create End-of-Module Assessment Quiz on Lesson 4
-    $quizLesson = end($createdLessons);
+    // 4. Attach Module Material / PDF Companion Guide
+    ModuleMaterial::where('module_id', $module->id)->delete();
+    $material = ModuleMaterial::create([
+        'module_id'   => $module->id,
+        'title'       => 'Week 2 Complete Companion Guide (PDF)',
+        'type'        => 'pdf',
+        'url_or_path' => 'materials/week2-complete-companion-guide.pdf',
+        'file_name'   => 'week2-complete-companion-guide.pdf',
+    ]);
+    logMsg($log, "Attached Material: '{$material->title}' ({$material->file_name})", 'success');
+
+    // 5. Create End-of-Module Assessment Quiz on Lesson 4
+    $lastLesson = end($createdLessons);
     $quiz = Quiz::create([
-        'lesson_id'          => $quizLesson->id,
-        'title'              => 'End of Module Assessment: HTML, CSS & JS Mastery',
-        'description'        => 'Test your understanding of the core concepts covered across this module. Passing score is 70%.',
+        'lesson_id'          => $lastLesson->id,
+        'title'              => 'Module 3 Assessment: CSS Mastery (Box Model, Flexbox & Grid)',
+        'description'        => 'Test your understanding of the CSS Box Model, CSS Variables, Flexbox navigation layouts, and CSS Grid systems. Passing score is 70%.',
         'is_published'       => 1,
         'time_limit_seconds' => 600, // 10 minutes
     ]);
     logMsg($log, "Created Assessment Quiz: '{$quiz->title}' (ID: {$quiz->id})", 'success');
 
-    // 7. Add Questions with options array
+    // 6. Add High-Quality Assessment Questions
     $questions = [
         [
-            'text'    => 'What does HTML stand for?',
+            'text'    => 'Which CSS property configuration ensures padding and border are included in an element\'s total width and height?',
             'type'    => 'multiple_choice',
             'options' => [
-                'HyperText Markup Language',
-                'HighText Machine Language',
-                'Hyperlink and Text Management Language',
-                'Home Tool Markup Language'
+                'box-sizing: border-box;',
+                'box-sizing: content-box;',
+                'display: flex;',
+                'margin: 0 auto;'
             ],
-            'correct' => 'HyperText Markup Language'
+            'correct' => 'box-sizing: border-box;'
         ],
         [
-            'text'    => 'Which HTML5 semantic element is used to represent the primary navigation links of a website?',
+            'text'    => 'How do you access a CSS Custom Property (Variable) named --primary-color in a CSS declaration?',
             'type'    => 'multiple_choice',
-            'options' => ['<nav>', '<header>', '<menu>', '<links>'],
-            'correct' => '<nav>'
+            'options' => [
+                'var(--primary-color)',
+                '$primary-color',
+                'css(--primary-color)',
+                '@primary-color'
+            ],
+            'correct' => 'var(--primary-color)'
         ],
         [
-            'text'    => 'In the CSS Box Model, what is the space directly between the content and the border?',
+            'text'    => 'In CSS Flexbox, which property is used to align items along the primary axis (e.g. horizontally across a navbar)?',
             'type'    => 'multiple_choice',
-            'options' => ['Padding', 'Margin', 'Outline', 'Gap'],
-            'correct' => 'Padding'
+            'options' => ['justify-content', 'align-items', 'flex-direction', 'align-content'],
+            'correct' => 'justify-content'
         ],
         [
-            'text'    => 'JavaScript is an interpreted, client-side and server-side programming language.',
+            'text'    => 'In CSS Grid, repeat(auto-fit, minmax(280px, 1fr)) automatically creates a responsive multi-column layout without media queries.',
             'type'    => 'true_false',
             'options' => ['True', 'False'],
             'correct' => 'True'
         ],
         [
-            'text'    => 'Which JavaScript method is used to attach an event listener to an HTML element?',
+            'text'    => 'What is the primary difference between CSS Flexbox and CSS Grid?',
             'type'    => 'multiple_choice',
-            'options' => ['addEventListener()', 'attachEvent()', 'listen()', 'onClick()'],
-            'correct' => 'addEventListener()'
+            'options' => [
+                'Flexbox is 1-dimensional (row or column), whereas CSS Grid is 2-dimensional (rows and columns simultaneously)',
+                'Flexbox only works for text, Grid only works for images',
+                'Grid requires JavaScript, Flexbox does not',
+                'There is no difference'
+            ],
+            'correct' => 'Flexbox is 1-dimensional (row or column), whereas CSS Grid is 2-dimensional (rows and columns simultaneously)'
         ]
     ];
 
@@ -266,28 +335,28 @@ try {
             'order'          => $qOrder++,
         ]);
     }
-    logMsg($log, "Added " . count($questions) . " Questions to Assessment Quiz.", 'success');
+    logMsg($log, "Added " . count($questions) . " Questions to Module Assessment Quiz.", 'success');
 
-    // 8. Create a Practical Task Assignment
+    // 7. Create Practical Project Assignment (Task)
     $task = Task::create([
-        'lesson_id'    => $quizLesson->id,
-        'title'        => 'Hands-on Project: Build a Responsive Personal Portfolio Page',
-        'description'  => 'Create an HTML page with semantic tags, CSS styling (colors, flexbox, fonts), and a JavaScript interactive button. Submit your code file or GitHub/CodePen link.',
+        'lesson_id'    => $lastLesson->id,
+        'title'        => 'Hands-on Project: Build a Responsive Webpage with Flexbox & CSS Grid',
+        'description'  => 'Create a web page using CSS Variables for colors, a responsive Flexbox navbar, and a responsive CSS Grid card section. Submit your GitHub repository or CodePen link for peer review.',
         'type'         => 'link',
         'is_required'  => true,
     ]);
     logMsg($log, "Created Practical Task: '{$task->title}' (ID: {$task->id})", 'success');
 
     // Recalculate total course duration
-    $totalMinutes = 120;
-    if (\Illuminate\Support\Facades\Schema::hasColumn('lessons', 'duration_minutes')) {
+    $totalMinutes = 180;
+    if (Schema::hasColumn('lessons', 'duration_minutes')) {
         $totalMinutes = (int) $course->lessons()->sum('duration_minutes');
     }
     $course->update(['duration_minutes' => max(60, $totalMinutes)]);
     logMsg($log, "Updated total course duration: {$totalMinutes} minutes", 'success');
 
     DB::commit();
-    logMsg($log, "🎉 All modules, lessons, quizzes, and tasks inserted successfully!", 'success');
+    logMsg($log, "🎉 'Module 3: Introduction to CSS' updated successfully with all 4 lessons, companion PDF, quiz, and project task!", 'success');
 
 } catch (\Throwable $e) {
     DB::rollBack();
@@ -300,17 +369,17 @@ if (!$isCli): ?>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Module Generator — Learnerium</title>
+    <title>Module 3: Introduction to CSS — Learnerium</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-6">
     <div class="max-w-2xl w-full bg-gray-800 rounded-2xl shadow-2xl p-8 border border-gray-700">
         <div class="flex items-center gap-3 mb-6">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-r from-blue-600 to-pink-600 flex items-center justify-center text-xl font-bold">L</div>
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-r from-[#1b2299] to-[#e4306d] flex items-center justify-center text-xl font-bold">L</div>
             <div>
-                <h1 class="text-xl font-bold">Learnerium Module Generator</h1>
-                <p class="text-xs text-gray-400">Course & Curriculum Insertion Tool</p>
+                <h1 class="text-xl font-bold">Learnerium Curriculum Updater</h1>
+                <p class="text-xs text-gray-400">Module 3: Introduction to CSS</p>
             </div>
         </div>
         <div class="bg-black/50 rounded-xl p-5 font-mono text-sm space-y-2 border border-gray-700/50 max-h-96 overflow-y-auto mb-6">
@@ -322,7 +391,7 @@ if (!$isCli): ?>
         </div>
         <div class="flex justify-between items-center">
             <a href="/" class="text-sm text-gray-400 hover:text-white transition">← Return to Homepage</a>
-            <a href="/courses" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-6 py-2.5 rounded-xl transition shadow">View Courses →</a>
+            <a href="/courses" class="bg-gradient-to-r from-[#1b2299] to-[#e4306d] text-white text-sm font-bold px-6 py-2.5 rounded-xl transition shadow hover:opacity-90">View Courses →</a>
         </div>
     </div>
 </body>
