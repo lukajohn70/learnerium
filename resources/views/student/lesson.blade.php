@@ -79,7 +79,7 @@
                         @if($provider === 'youtube')
                             <div class="plyr__video-embed js-player w-full h-full">
                                 <iframe
-                                    src="https://www.youtube.com/embed/{{ $embedId }}?rel=0&amp;modestbranding=1&amp;playsinline=1&amp;enablejsapi=1"
+                                    src="https://www.youtube.com/embed/{{ $embedId }}?controls=0&amp;rel=0&amp;modestbranding=1&amp;playsinline=1&amp;enablejsapi=1&amp;disablekb=1&amp;fs=0&amp;iv_load_policy=3"
                                     allowfullscreen
                                     allowtransparency
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
@@ -608,9 +608,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const playerEl = document.querySelector('.js-player');
         if (playerEl && typeof Plyr !== 'undefined') {
             const player = new Plyr(playerEl, {
+                seekTime: 10,
                 controls: [
                     'play-large',
+                    'restart',
+                    'rewind',
                     'play',
+                    'fast-forward',
                     'progress',
                     'current-time',
                     'duration',
@@ -628,7 +632,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     showinfo: 0,
                     iv_load_policy: 3,
                     modestbranding: 1,
-                    playsinline: 1
+                    playsinline: 1,
+                    controls: 0
                 },
                 vimeo: {
                     byline: false,
