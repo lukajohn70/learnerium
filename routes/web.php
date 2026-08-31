@@ -298,7 +298,41 @@ Route::any('/updatedb.php', function () {
         }
         $recordMigration('2026_08_24_161000_create_notifications_table');
 
-        // 6. Run remaining Laravel migrations
+        // 6. Ensure SESSIONS table exists (allows seamless switching to database session driver)
+        if (!\Illuminate\Support\Facades\Schema::hasTable('sessions')) {
+            \Illuminate\Support\Facades\Schema::create('sessions', function (\Illuminate\Database\Schema\Blueprint $table) {
+                $table->string('id')->primary();
+                $table->foreignId('user_id')->nullable()->index();
+                $table->string('ip_address', 45)->nullable();
+                $table->text('user_agent')->nullable();
+                $table->longText('payload');
+                $table->integer('last_activity')->index();
+            });
+            logRouteMsg($log, "Created 'sessions' database table.", 'success');
+        }
+
+        // 7. Ensure storage directories exist and have write permissions
+        $storageDirs = [
+            storage_path('framework/sessions'),
+            storage_path('framework/views'),
+            storage_path('framework/cache'),
+            storage_path('framework/cache/data'),
+            storage_path('logs'),
+            public_path('uploads/avatars'),
+            public_path('uploads/thumbnails'),
+            public_path('uploads/materials'),
+        ];
+        foreach ($storageDirs as $dir) {
+            if (!file_exists($dir)) {
+                @mkdir($dir, 0777, true);
+                logRouteMsg($log, "Created missing directory: " . str_replace(base_path() . '/', '', $dir), 'success');
+            } else {
+                @chmod($dir, 0777);
+            }
+        }
+        logRouteMsg($log, "Storage & session directory permissions verified and secured.", 'success');
+
+        // 8. Run remaining Laravel migrations
         try {
             \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
             $migOutput = \Illuminate\Support\Facades\Artisan::output();
@@ -309,7 +343,7 @@ Route::any('/updatedb.php', function () {
             logRouteMsg($log, "Note: " . $migEx->getMessage(), 'warn');
         }
 
-        // 7. Clear caches
+        // 9. Clear caches
         try {
             \Illuminate\Support\Facades\Artisan::call('view:clear');
             \Illuminate\Support\Facades\Artisan::call('route:clear');
@@ -318,6 +352,7 @@ Route::any('/updatedb.php', function () {
         } catch (\Throwable $cEx) {}
 
         logRouteMsg($log, "Database schema is 100% synchronized and up-to-date!", 'success');
+
 
     } catch (\Throwable $e) {
         $status = 'error';

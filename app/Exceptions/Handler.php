@@ -37,5 +37,15 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+
+        // Gracefully handle expired CSRF session tokens instead of showing raw 419 page
+        $this->renderable(function (\Illuminate\Session\TokenMismatchException $e, $request) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Your session expired. Please refresh and try again.'], 419);
+            }
+            return redirect()->back()
+                ->withInput($request->except(['password', 'password_confirmation', '_token']))
+                ->with('error', 'Your session expired or was refreshed. Please sign in again.');
+        });
     }
 }
