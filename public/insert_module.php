@@ -258,7 +258,7 @@ try {
     $material = ModuleMaterial::create([
         'module_id'   => $module->id,
         'title'       => 'Week 2 Complete Companion Guide (PDF)',
-        'type'        => 'pdf',
+        'type'        => 'document',
         'url_or_path' => 'materials/week2-complete-companion-guide.pdf',
         'file_name'   => 'week2-complete-companion-guide.pdf',
     ]);
