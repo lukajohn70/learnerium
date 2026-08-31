@@ -52,11 +52,24 @@
 
                     <div class="bg-black relative select-none" id="videoContainer" oncontextmenu="return false;">
                         @if($isIframe)
-                            <div class="aspect-video w-full">
+                            <div class="aspect-video w-full relative overflow-hidden">
                                 <iframe id="lessonVideoIframe" class="w-full h-full border-0"
                                     src="{{ $embedUrl }}"
+                                    sandbox="allow-scripts allow-same-origin allow-presentation allow-fullscreen"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                                     allowfullscreen></iframe>
+                                
+                                {{-- Top-Right Click Shield: Prevents tapping/clicking the Google Drive pop-out / source button --}}
+                                <div class="absolute top-0 right-0 h-16 w-24 z-20 cursor-default bg-transparent"
+                                     onclick="event.stopPropagation(); event.preventDefault(); return false;"
+                                     ontouchstart="event.stopPropagation(); event.preventDefault(); return false;"
+                                     onmousedown="event.stopPropagation(); event.preventDefault(); return false;"
+                                     title=""></div>
+                                {{-- Top Bar Shield: Prevents header interaction while allowing center play & bottom controls --}}
+                                <div class="absolute top-0 left-0 right-0 h-14 z-10 cursor-default bg-transparent"
+                                     onclick="event.stopPropagation(); event.preventDefault(); return false;"
+                                     ontouchstart="event.stopPropagation(); event.preventDefault(); return false;"
+                                     onmousedown="event.stopPropagation(); event.preventDefault(); return false;"></div>
                             </div>
                         @else
                             <div class="aspect-video w-full">
