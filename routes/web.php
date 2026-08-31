@@ -590,8 +590,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Lesson Routes
     Route::get('/courses/{course}/lessons/{lesson}', [LessonController::class, 'show'])->name('lesson.show');
     Route::post('/courses/{course}/lessons/{lesson}/complete', [LessonController::class, 'markComplete'])->name('lesson.complete');
-    // Signed video proxy — hides the real video source from the browser
-    Route::get('/lesson-video/{lesson}', [LessonController::class, 'serveVideo'])->name('lesson.video')->middleware('signed');
+
 
 
     // Student Task Submission Routes
