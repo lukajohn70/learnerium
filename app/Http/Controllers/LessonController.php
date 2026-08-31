@@ -414,7 +414,7 @@ class LessonController extends Controller
 
     /**
      * Download and save a public Google Drive video directly to server storage.
-     * Handles Google Drive confirm tokens for large file virus scan bypass.
+     * Handles Google Drive confirm tokens, uuid parameters, and large file virus scan bypass.
      *
      * @param string $driveUrl
      * @return string|null Relative video path (e.g. 'uploads/videos/gdrive_123.mp4') or null on failure
@@ -444,9 +444,9 @@ class LessonController extends Controller
 
         $cookieFile = tempnam(sys_get_temp_dir(), 'gdrive_cookie_');
         $tempTarget = tempnam(sys_get_temp_dir(), 'gdrive_vid_');
-        $initUrl = "https://docs.google.com/uc?export=download&id={$fileId}";
+        $initUrl = "https://drive.usercontent.google.com/download?id={$fileId}&export=download";
 
-        // Step 1: Probe request to obtain download tokens / cookies / redirects
+        // Step 1: Probe request to obtain download tokens, cookies, redirects, or virus warning form
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $initUrl);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -464,17 +464,29 @@ class LessonController extends Controller
 
         // Check if Google Drive returned a "Large file virus scan warning" confirmation page
         if ($response && str_contains($contentType ?: '', 'text/html')) {
-            $confirmToken = null;
-            if (preg_match('/confirm=([a-zA-Z0-9_-]+)/i', $response, $cm)) {
-                $confirmToken = $cm[1];
-            } elseif (preg_match('/name="confirm"\s+value="([^"]+)"/i', $response, $cm)) {
-                $confirmToken = $cm[1];
-            } elseif (preg_match('/download_warning_([a-zA-Z0-9_-]+)=([a-zA-Z0-9_-]+)/i', @file_get_contents($cookieFile) ?: '', $cm)) {
-                $confirmToken = $cm[2];
+            $formAction = 'https://drive.usercontent.google.com/download';
+            if (preg_match('/<form[^>]+action=["\']([^"\']+)["\']/i', $response, $m)) {
+                $formAction = html_entity_decode($m[1]);
+            }
+            preg_match_all('/<input[^>]+type=["\']hidden["\'][^>]*>/i', $response, $inputs);
+            $params = [];
+            foreach ($inputs[0] as $input) {
+                if (preg_match('/name=["\']([^"\']+)["\']/', $input, $n) && preg_match('/value=["\']([^"\']*)["\']/', $input, $v)) {
+                    $params[$n[1]] = html_entity_decode($v[1]);
+                }
             }
 
-            if ($confirmToken) {
-                $downloadUrl = "https://docs.google.com/uc?export=download&id={$fileId}&confirm={$confirmToken}";
+            if (!empty($params)) {
+                $downloadUrl = $formAction . '?' . http_build_query($params);
+            } else {
+                // Fallback token extraction
+                $confirmToken = null;
+                if (preg_match('/confirm=([a-zA-Z0-9_-]+)/i', $response, $cm)) {
+                    $confirmToken = $cm[1];
+                }
+                if ($confirmToken) {
+                    $downloadUrl = "https://drive.usercontent.google.com/download?id={$fileId}&export=download&confirm={$confirmToken}";
+                }
             }
         }
 
@@ -508,6 +520,7 @@ class LessonController extends Controller
         }
 
         @unlink($tempTarget);
+        \Illuminate\Support\Facades\Log::warning("Google Drive download failed. HTTP: {$httpCode}, Size: {$downloadedSize}, Content-Type: {$finalContentType}");
         return null;
     }
 }
