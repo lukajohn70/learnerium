@@ -588,6 +588,7 @@ Route::middleware(['auth', 'instructor'])->group(function () {
     Route::delete('/instructor/courses/{course}/modules/{module}/materials/{material}', [ModuleController::class, 'deleteMaterial'])->name('instructor.modules.materials.destroy');
 
     // Lesson Routes (instructor only)
+    Route::post('/instructor/lessons/import-gdrive', [LessonController::class, 'ajaxImportGoogleDrive'])->name('instructor.lessons.import-gdrive');
     Route::post('/instructor/courses/{course}/lessons', [LessonController::class, 'store'])->name('instructor.lessons.store');
     Route::put('/instructor/courses/{course}/lessons/{lesson}', [LessonController::class, 'update'])->name('instructor.lessons.update');
     Route::delete('/instructor/courses/{course}/lessons/{lesson}', [LessonController::class, 'destroy'])->name('instructor.lessons.destroy');

@@ -443,13 +443,22 @@
                                                         <p class="text-[11px] text-gray-400 mt-1">Streams directly from YouTube, Vimeo, or external media server.</p>
                                                     </div>
                                                     {{-- Option 2: Google Drive Direct Import to Server --}}
-                                                    <div id="vsGdriveWrap-{{ $lesson->id }}" class="hidden">
-                                                        <input type="url" name="gdrive_import_url"
-                                                            placeholder="https://drive.google.com/file/d/.../view?usp=sharing"
-                                                            class="w-full px-4 py-3 border border-indigo-200 bg-indigo-50/30 rounded-xl text-sm focus:outline-none focus:border-indigo-600">
-                                                        <p class="text-[11px] text-indigo-700/80 mt-1.5 leading-relaxed">
-                                                            ⚡ <strong>Server Direct Import:</strong> The server will download the video from Google Drive into server storage. Ensure file sharing is set to <em>"Anyone with the link can view"</em>.
-                                                        </p>
+                                                    <div id="vsGdriveWrap-{{ $lesson->id }}" class="hidden space-y-2.5">
+                                                        <input type="hidden" name="imported_video_path" id="gdriveImportedPath-{{ $lesson->id }}" value="">
+                                                        <div>
+                                                            <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">Google Drive Share Link</label>
+                                                            <input type="url" id="gdriveInput-{{ $lesson->id }}" name="gdrive_import_url"
+                                                                placeholder="https://drive.google.com/file/d/.../view?usp=sharing"
+                                                                class="w-full px-4 py-3 border border-indigo-200 bg-indigo-50/30 rounded-xl text-sm focus:outline-none focus:border-indigo-600">
+                                                        </div>
+                                                        <div class="flex flex-wrap items-center gap-2 pt-0.5">
+                                                            <button type="button" onclick="fetchGDriveVideo('{{ $lesson->id }}')" id="gdriveFetchBtn-{{ $lesson->id }}"
+                                                                class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-sm">
+                                                                <i class="fas fa-cloud-arrow-down"></i> <span>Download & Save to Server</span>
+                                                            </button>
+                                                            <span class="text-[11px] text-gray-400">Click to fetch the video into server storage first.</span>
+                                                        </div>
+                                                        <div id="gdriveStatus-{{ $lesson->id }}" class="hidden text-xs rounded-xl p-3 border"></div>
                                                     </div>
                                                     {{-- Option 3: File Upload Input --}}
                                                     <div id="vsUploadWrap-{{ $lesson->id }}" class="hidden">
@@ -584,13 +593,22 @@
                                             <p class="text-[11px] text-gray-400 mt-1">Streams directly from YouTube, Vimeo, or external media server.</p>
                                         </div>
                                         {{-- Option 2: Google Drive Direct Import to Server --}}
-                                        <div id="vsGdriveWrap-new-{{ $mod->id }}" class="hidden">
-                                            <input type="url" name="gdrive_import_url"
-                                                placeholder="https://drive.google.com/file/d/.../view?usp=sharing"
-                                                class="w-full px-4 py-3 border border-indigo-200 bg-indigo-50/30 rounded-xl text-sm focus:outline-none focus:border-indigo-600">
-                                            <p class="text-[11px] text-indigo-700/80 mt-1.5 leading-relaxed">
-                                                ⚡ <strong>Server Direct Import:</strong> The server will download the video from Google Drive into server storage. Ensure file sharing is set to <em>"Anyone with the link can view"</em>.
-                                            </p>
+                                        <div id="vsGdriveWrap-new-{{ $mod->id }}" class="hidden space-y-2.5">
+                                            <input type="hidden" name="imported_video_path" id="gdriveImportedPath-new-{{ $mod->id }}" value="">
+                                            <div>
+                                                <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">Google Drive Share Link</label>
+                                                <input type="url" id="gdriveInput-new-{{ $mod->id }}" name="gdrive_import_url"
+                                                    placeholder="https://drive.google.com/file/d/.../view?usp=sharing"
+                                                    class="w-full px-4 py-3 border border-indigo-200 bg-indigo-50/30 rounded-xl text-sm focus:outline-none focus:border-indigo-600">
+                                            </div>
+                                            <div class="flex flex-wrap items-center gap-2 pt-0.5">
+                                                <button type="button" onclick="fetchGDriveVideo('new-{{ $mod->id }}')" id="gdriveFetchBtn-new-{{ $mod->id }}"
+                                                    class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-sm">
+                                                    <i class="fas fa-cloud-arrow-down"></i> <span>Download & Save to Server</span>
+                                                </button>
+                                                <span class="text-[11px] text-gray-400">Click to fetch the video into server storage first.</span>
+                                            </div>
+                                            <div id="gdriveStatus-new-{{ $mod->id }}" class="hidden text-xs rounded-xl p-3 border"></div>
                                         </div>
                                         {{-- Option 3: File Upload Input --}}
                                         <div id="vsUploadWrap-new-{{ $mod->id }}" class="hidden">
@@ -1075,6 +1093,97 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
+
+// ── Google Drive Standalone Video Fetcher ──────────────────────────────────
+async function fetchGDriveVideo(id) {
+    const input      = document.getElementById('gdriveInput-' + id);
+    const btn        = document.getElementById('gdriveFetchBtn-' + id);
+    const statusBox  = document.getElementById('gdriveStatus-' + id);
+    const hiddenPath = document.getElementById('gdriveImportedPath-' + id);
+
+    if (!input || !input.value.trim()) {
+        if (statusBox) {
+            statusBox.className = 'text-xs rounded-xl p-3 border bg-amber-50 border-amber-200 text-amber-800';
+            statusBox.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i> Please paste a valid Google Drive link first.';
+            statusBox.classList.remove('hidden');
+        }
+        return;
+    }
+
+    const driveUrl = input.value.trim();
+    const originalBtnContent = btn ? btn.innerHTML : '';
+
+    if (btn) {
+        btn.disabled = true;
+        btn.classList.add('opacity-75', 'cursor-wait');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1.5"></i> Downloading from Google Drive to Server...';
+    }
+
+    if (statusBox) {
+        statusBox.className = 'text-xs rounded-xl p-3 border bg-blue-50 border-blue-200 text-blue-800 flex items-center gap-2';
+        statusBox.innerHTML = '<i class="fas fa-circle-notch fa-spin text-blue-600 flex-shrink-0"></i> <span>Connecting to Google Drive and streaming video file directly to server storage... Please wait a moment.</span>';
+        statusBox.classList.remove('hidden');
+    }
+
+    try {
+        const response = await fetch('{{ route("instructor.lessons.import-gdrive") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ gdrive_url: driveUrl })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            if (hiddenPath) hiddenPath.value = data.path;
+
+            if (statusBox) {
+                statusBox.className = 'text-xs rounded-xl p-3 border bg-emerald-50 border-emerald-200 text-emerald-800 space-y-1';
+                statusBox.innerHTML = `
+                    <div class="font-bold flex items-center gap-1.5 text-emerald-700">
+                        <i class="fas fa-check-circle text-emerald-600"></i> Video downloaded and saved to server storage!
+                    </div>
+                    <div class="text-[11px] text-emerald-700">
+                        Saved file: <span class="font-mono font-semibold">${data.filename}</span> (${data.size}) &bull; Ready to save with lesson.
+                    </div>
+                `;
+                statusBox.classList.remove('hidden');
+            }
+
+            if (btn) {
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'cursor-wait', 'bg-indigo-600', 'hover:bg-indigo-700');
+                btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+                btn.innerHTML = '<i class="fas fa-check mr-1.5"></i> Video Saved on Server (Click to re-download)';
+            }
+        } else {
+            throw new Error(data.message || 'Download failed.');
+        }
+    } catch (err) {
+        if (statusBox) {
+            statusBox.className = 'text-xs rounded-xl p-3 border bg-red-50 border-red-200 text-red-800';
+            statusBox.innerHTML = `
+                <div class="font-bold flex items-center gap-1.5 text-red-700">
+                    <i class="fas fa-times-circle text-red-600"></i> Could not download from Google Drive
+                </div>
+                <div class="text-[11px] text-red-600 mt-1">
+                    ${err.message || 'Please check that the file sharing on Google Drive is set to "Anyone with the link can view".'}
+                </div>
+            `;
+            statusBox.classList.remove('hidden');
+        }
+
+        if (btn) {
+            btn.disabled = false;
+            btn.classList.remove('opacity-75', 'cursor-wait');
+            btn.innerHTML = originalBtnContent || '<i class="fas fa-cloud-arrow-down mr-1.5"></i> Download & Save to Server';
+        }
+    }
+}
 
 </script>
 @endsection

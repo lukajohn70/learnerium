@@ -152,6 +152,44 @@ class LessonController extends Controller
     }
 
     /**
+     * AJAX endpoint to download and import video from Google Drive directly to server storage.
+     */
+    public function ajaxImportGoogleDrive(Request $request)
+    {
+        $request->validate([
+            'gdrive_url' => 'required|string',
+        ]);
+
+        $user = Auth::user();
+        if (!$user || ($user->role !== 'admin' && $user->role !== 'instructor' && (!method_exists($user, 'isInstructor') || !$user->isInstructor()))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized.',
+            ], 403);
+        }
+
+        $url = trim($request->input('gdrive_url'));
+        $importedPath = $this->importVideoFromGoogleDrive($url);
+
+        if ($importedPath) {
+            $fullPath = public_path($importedPath);
+            $size = file_exists($fullPath) ? round(filesize($fullPath) / (1024 * 1024), 2) . ' MB' : 'Saved';
+            return response()->json([
+                'success'  => true,
+                'path'     => $importedPath,
+                'filename' => basename($importedPath),
+                'size'     => $size,
+                'message'  => "Video ({$size}) downloaded from Google Drive and saved to server storage successfully!",
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Could not download video from Google Drive. Please make sure the link is set to "Anyone with the link can view", or upload the file directly.',
+        ], 422);
+    }
+
+    /**
      * Store a new lesson (instructor only)
      */
     public function store(Request $request, Course $course)
@@ -162,33 +200,37 @@ class LessonController extends Controller
         }
 
         $validated = $request->validate([
-            'title'              => 'required|string|max:255',
-            'module_id'          => 'nullable|exists:modules,id',
-            'description'        => 'nullable|string',
-            'order'              => 'required|integer|min:0',
-            'video_url'          => 'nullable|url',
-            'gdrive_import_url'  => 'nullable|string',
-            'video_file'         => 'nullable|file|mimes:mp4,webm,mov,avi,quicktime|max:512000', // 500 MB
-            'duration_minutes'   => 'nullable|integer|min:0',
-            'content'            => 'nullable|string',
-            'drip_date'          => 'nullable|date',
-            'drip_days'          => 'nullable|integer|min:0',
+            'title'               => 'required|string|max:255',
+            'module_id'           => 'nullable|exists:modules,id',
+            'description'         => 'nullable|string',
+            'order'               => 'required|integer|min:0',
+            'video_url'           => 'nullable|url',
+            'imported_video_path' => 'nullable|string',
+            'gdrive_import_url'   => 'nullable|string',
+            'video_file'          => 'nullable|file|mimes:mp4,webm,mov,avi,quicktime|max:512000', // 500 MB
+            'duration_minutes'    => 'nullable|integer|min:0',
+            'content'             => 'nullable|string',
+            'drip_date'           => 'nullable|date',
+            'drip_days'           => 'nullable|integer|min:0',
         ]);
 
-        // Priority 1: Handle direct device file upload
-        if ($request->hasFile('video_file') && $request->file('video_file')->isValid()) {
+        // Priority 1: Handle pre-imported Google Drive video path
+        if ($request->filled('imported_video_path')) {
+            $validated['video_url'] = $request->input('imported_video_path');
+        }
+        // Priority 2: Handle direct device file upload
+        elseif ($request->hasFile('video_file') && $request->file('video_file')->isValid()) {
             $file = $request->file('video_file');
             $filename = time() . '_' . preg_replace('/[^a-z0-9._-]/i', '_', $file->getClientOriginalName());
             $file->move(public_path('uploads/videos'), $filename);
             $validated['video_url'] = 'uploads/videos/' . $filename;
         }
-        // Priority 2: Handle Google Drive Direct Import to Server
+        // Priority 3: Handle Google Drive Direct Import to Server fallback
         elseif ($request->filled('gdrive_import_url')) {
             $importedPath = $this->importVideoFromGoogleDrive($request->input('gdrive_import_url'));
             if ($importedPath) {
                 $validated['video_url'] = $importedPath;
             } else {
-                // If download failed (e.g. private file), fall back to original Google Drive link
                 $validated['video_url'] = $request->input('gdrive_import_url');
             }
         }
@@ -205,7 +247,7 @@ class LessonController extends Controller
             $validated['content'] = $this->sanitizeLessonContent($validated['content']);
         }
 
-        unset($validated['gdrive_import_url']);
+        unset($validated['gdrive_import_url'], $validated['imported_video_path']);
         $lesson = $course->lessons()->create($validated);
 
         // Auto-recalculate course duration
@@ -216,11 +258,7 @@ class LessonController extends Controller
             }
         }
 
-        $statusMsg = isset($importedPath) && $importedPath 
-            ? 'Lesson created and Google Drive video successfully imported to server!' 
-            : 'Lesson created successfully!';
-
-        return redirect()->route('instructor.courses.edit', $course)->with('success', $statusMsg);
+        return redirect()->route('instructor.courses.edit', $course)->with('success', 'Lesson created successfully!');
     }
 
     /**
@@ -238,21 +276,32 @@ class LessonController extends Controller
         }
 
         $validated = $request->validate([
-            'title'              => 'required|string|max:255',
-            'module_id'          => 'nullable|exists:modules,id',
-            'description'        => 'nullable|string',
-            'order'              => 'required|integer|min:0',
-            'video_url'          => 'nullable|url',
-            'gdrive_import_url'  => 'nullable|string',
-            'video_file'         => 'nullable|file|mimes:mp4,webm,mov,avi,quicktime|max:512000', // 500 MB
-            'duration_minutes'   => 'nullable|integer|min:0',
-            'content'            => 'nullable|string',
-            'drip_date'          => 'nullable|date',
-            'drip_days'          => 'nullable|integer|min:0',
+            'title'               => 'required|string|max:255',
+            'module_id'           => 'nullable|exists:modules,id',
+            'description'         => 'nullable|string',
+            'order'               => 'required|integer|min:0',
+            'video_url'           => 'nullable|url',
+            'imported_video_path' => 'nullable|string',
+            'gdrive_import_url'   => 'nullable|string',
+            'video_file'          => 'nullable|file|mimes:mp4,webm,mov,avi,quicktime|max:512000', // 500 MB
+            'duration_minutes'    => 'nullable|integer|min:0',
+            'content'             => 'nullable|string',
+            'drip_date'           => 'nullable|date',
+            'drip_days'           => 'nullable|integer|min:0',
         ]);
 
-        // Priority 1: Handle direct device file upload
-        if ($request->hasFile('video_file') && $request->file('video_file')->isValid()) {
+        // Priority 1: Handle pre-imported Google Drive video path
+        if ($request->filled('imported_video_path')) {
+            if ($lesson->video_url && !str_starts_with($lesson->video_url, 'http') && $lesson->video_url !== $request->input('imported_video_path')) {
+                $oldPath = public_path($lesson->video_url);
+                if (file_exists($oldPath)) {
+                    @unlink($oldPath);
+                }
+            }
+            $validated['video_url'] = $request->input('imported_video_path');
+        }
+        // Priority 2: Handle direct device file upload
+        elseif ($request->hasFile('video_file') && $request->file('video_file')->isValid()) {
             if ($lesson->video_url && !str_starts_with($lesson->video_url, 'http')) {
                 $oldPath = public_path($lesson->video_url);
                 if (file_exists($oldPath)) {
@@ -264,7 +313,7 @@ class LessonController extends Controller
             $file->move(public_path('uploads/videos'), $filename);
             $validated['video_url'] = 'uploads/videos/' . $filename;
         }
-        // Priority 2: Handle Google Drive Direct Import to Server
+        // Priority 3: Handle Google Drive Direct Import fallback
         elseif ($request->filled('gdrive_import_url')) {
             $importedPath = $this->importVideoFromGoogleDrive($request->input('gdrive_import_url'));
             if ($importedPath) {
