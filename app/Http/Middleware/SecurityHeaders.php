@@ -15,8 +15,8 @@ class SecurityHeaders
     {
         $response = $next($request);
 
-        // Prevent clickjacking
-        $response->headers->set('X-Frame-Options', 'DENY');
+        // Prevent clickjacking — SAMEORIGIN allows iframes within our own pages (e.g. lesson player)
+        $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
 
         // Prevent MIME type sniffing
         $response->headers->set('X-Content-Type-Options', 'nosniff');
@@ -36,22 +36,24 @@ class SecurityHeaders
         $response->headers->remove('X-Powered-By');
         $response->headers->remove('Server');
 
-        // Content Security Policy — Hardened & Paystack payment gateway compliant
+        // Content Security Policy — allows YouTube/Vimeo/Drive in player, Plyr CDN, Paystack
         $response->headers->set(
             'Content-Security-Policy',
             implode('; ', [
                 "default-src 'self'",
-                "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://js.paystack.co",
-                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
-                "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://js.paystack.co https://cdn.plyr.io https://www.youtube.com https://s.ytimg.com",
+                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://cdn.plyr.io",
+                "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com https://cdn.plyr.io",
                 "img-src 'self' data: https: blob:",
                 "media-src 'self' https: blob:",
-                "frame-src 'self' https://www.youtube.com https://player.vimeo.com https://drive.google.com https://checkout.paystack.com https://*.paystack.com",
-                "connect-src 'self' https://api.paystack.co https://checkout.paystack.com https://*.paystack.com https://*.paystack.co",
+                "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://drive.google.com https://checkout.paystack.com https://*.paystack.com",
+                "connect-src 'self' https://api.paystack.co https://checkout.paystack.com https://*.paystack.com https://*.paystack.co https://cdn.plyr.io",
+                "worker-src blob:",
                 "object-src 'none'",
                 "base-uri 'self'",
                 "form-action 'self' https://checkout.paystack.com https://*.paystack.com https://api.paystack.co",
-                "frame-ancestors 'none'",
+                // frame-ancestors controls who can embed US — 'self' allows our own lesson page to embed YouTube iframes
+                "frame-ancestors 'self'",
             ])
         );
 
