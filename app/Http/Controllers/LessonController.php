@@ -162,24 +162,35 @@ class LessonController extends Controller
         }
 
         $validated = $request->validate([
-            'title'            => 'required|string|max:255',
-            'module_id'        => 'nullable|exists:modules,id',
-            'description'      => 'nullable|string',
-            'order'            => 'required|integer|min:0',
-            'video_url'        => 'nullable|url',
-            'video_file'       => 'nullable|file|mimes:mp4,webm,mov,avi,quicktime|max:512000', // 500 MB
-            'duration_minutes' => 'nullable|integer|min:0',
-            'content'          => 'nullable|string',
-            'drip_date'        => 'nullable|date',
-            'drip_days'        => 'nullable|integer|min:0',
+            'title'              => 'required|string|max:255',
+            'module_id'          => 'nullable|exists:modules,id',
+            'description'        => 'nullable|string',
+            'order'              => 'required|integer|min:0',
+            'video_url'          => 'nullable|url',
+            'gdrive_import_url'  => 'nullable|string',
+            'video_file'         => 'nullable|file|mimes:mp4,webm,mov,avi,quicktime|max:512000', // 500 MB
+            'duration_minutes'   => 'nullable|integer|min:0',
+            'content'            => 'nullable|string',
+            'drip_date'          => 'nullable|date',
+            'drip_days'          => 'nullable|integer|min:0',
         ]);
 
-        // Handle video upload vs URL
+        // Priority 1: Handle direct device file upload
         if ($request->hasFile('video_file') && $request->file('video_file')->isValid()) {
             $file = $request->file('video_file');
             $filename = time() . '_' . preg_replace('/[^a-z0-9._-]/i', '_', $file->getClientOriginalName());
             $file->move(public_path('uploads/videos'), $filename);
             $validated['video_url'] = 'uploads/videos/' . $filename;
+        }
+        // Priority 2: Handle Google Drive Direct Import to Server
+        elseif ($request->filled('gdrive_import_url')) {
+            $importedPath = $this->importVideoFromGoogleDrive($request->input('gdrive_import_url'));
+            if ($importedPath) {
+                $validated['video_url'] = $importedPath;
+            } else {
+                // If download failed (e.g. private file), fall back to original Google Drive link
+                $validated['video_url'] = $request->input('gdrive_import_url');
+            }
         }
 
         $validated['drip_date'] = $request->drip_date ?: null;
@@ -194,6 +205,7 @@ class LessonController extends Controller
             $validated['content'] = $this->sanitizeLessonContent($validated['content']);
         }
 
+        unset($validated['gdrive_import_url']);
         $lesson = $course->lessons()->create($validated);
 
         // Auto-recalculate course duration
@@ -204,7 +216,11 @@ class LessonController extends Controller
             }
         }
 
-        return redirect()->route('instructor.courses.edit', $course)->with('success', 'Lesson created successfully!');
+        $statusMsg = isset($importedPath) && $importedPath 
+            ? 'Lesson created and Google Drive video successfully imported to server!' 
+            : 'Lesson created successfully!';
+
+        return redirect()->route('instructor.courses.edit', $course)->with('success', $statusMsg);
     }
 
     /**
@@ -222,21 +238,21 @@ class LessonController extends Controller
         }
 
         $validated = $request->validate([
-            'title'            => 'required|string|max:255',
-            'module_id'        => 'nullable|exists:modules,id',
-            'description'      => 'nullable|string',
-            'order'            => 'required|integer|min:0',
-            'video_url'        => 'nullable|url',
-            'video_file'       => 'nullable|file|mimes:mp4,webm,mov,avi,quicktime|max:512000', // 500 MB
-            'duration_minutes' => 'nullable|integer|min:0',
-            'content'          => 'nullable|string',
-            'drip_date'        => 'nullable|date',
-            'drip_days'        => 'nullable|integer|min:0',
+            'title'              => 'required|string|max:255',
+            'module_id'          => 'nullable|exists:modules,id',
+            'description'        => 'nullable|string',
+            'order'              => 'required|integer|min:0',
+            'video_url'          => 'nullable|url',
+            'gdrive_import_url'  => 'nullable|string',
+            'video_file'         => 'nullable|file|mimes:mp4,webm,mov,avi,quicktime|max:512000', // 500 MB
+            'duration_minutes'   => 'nullable|integer|min:0',
+            'content'            => 'nullable|string',
+            'drip_date'          => 'nullable|date',
+            'drip_days'          => 'nullable|integer|min:0',
         ]);
 
-        // Handle video upload vs URL
+        // Priority 1: Handle direct device file upload
         if ($request->hasFile('video_file') && $request->file('video_file')->isValid()) {
-            // Delete old uploaded video if it was a server file (not a URL)
             if ($lesson->video_url && !str_starts_with($lesson->video_url, 'http')) {
                 $oldPath = public_path($lesson->video_url);
                 if (file_exists($oldPath)) {
@@ -247,6 +263,21 @@ class LessonController extends Controller
             $filename = time() . '_' . preg_replace('/[^a-z0-9._-]/i', '_', $file->getClientOriginalName());
             $file->move(public_path('uploads/videos'), $filename);
             $validated['video_url'] = 'uploads/videos/' . $filename;
+        }
+        // Priority 2: Handle Google Drive Direct Import to Server
+        elseif ($request->filled('gdrive_import_url')) {
+            $importedPath = $this->importVideoFromGoogleDrive($request->input('gdrive_import_url'));
+            if ($importedPath) {
+                if ($lesson->video_url && !str_starts_with($lesson->video_url, 'http')) {
+                    $oldPath = public_path($lesson->video_url);
+                    if (file_exists($oldPath)) {
+                        @unlink($oldPath);
+                    }
+                }
+                $validated['video_url'] = $importedPath;
+            } else {
+                $validated['video_url'] = $request->input('gdrive_import_url');
+            }
         }
 
         $validated['drip_date'] = $request->drip_date ?: null;
@@ -261,6 +292,7 @@ class LessonController extends Controller
             $validated['content'] = $this->sanitizeLessonContent($validated['content']);
         }
 
+        unset($validated['gdrive_import_url']);
         $lesson->update($validated);
 
         // Auto-recalculate course duration
@@ -326,4 +358,100 @@ class LessonController extends Controller
 
         return $clean;
     }
+
+    /**
+     * Download and save a public Google Drive video directly to server storage.
+     * Handles Google Drive confirm tokens for large file virus scan bypass.
+     *
+     * @param string $driveUrl
+     * @return string|null Relative video path (e.g. 'uploads/videos/gdrive_123.mp4') or null on failure
+     */
+    private function importVideoFromGoogleDrive(string $driveUrl): ?string
+    {
+        // Extract Google Drive File ID
+        $fileId = null;
+        if (preg_match('/(?:drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?.*id=)|docs\.google\.com\/(?:file\/d\/|open\?id=|uc\?.*id=))([a-zA-Z0-9_-]{20,})/i', $driveUrl, $m)) {
+            $fileId = $m[1];
+        } elseif (preg_match('/^[a-zA-Z0-9_-]{25,}$/', trim($driveUrl))) {
+            $fileId = trim($driveUrl);
+        }
+
+        if (!$fileId) {
+            return null;
+        }
+
+        $videosDir = public_path('uploads/videos');
+        if (!file_exists($videosDir)) {
+            @mkdir($videosDir, 0755, true);
+        }
+
+        $cookieFile = tempnam(sys_get_temp_dir(), 'gdrive_cookie_');
+        $tempTarget = tempnam(sys_get_temp_dir(), 'gdrive_vid_');
+        $initUrl = "https://docs.google.com/uc?export=download&id={$fileId}";
+
+        // Step 1: Probe request to obtain download tokens / cookies / redirects
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $initUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_COOKIEJAR, $cookieFile);
+        curl_setopt($ch, CURLOPT_COOKIEFILE, $cookieFile);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $response = curl_exec($ch);
+        $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+        curl_close($ch);
+
+        $downloadUrl = $initUrl;
+
+        // Check if Google Drive returned a "Large file virus scan warning" confirmation page
+        if ($response && str_contains($contentType ?: '', 'text/html')) {
+            $confirmToken = null;
+            if (preg_match('/confirm=([a-zA-Z0-9_-]+)/i', $response, $cm)) {
+                $confirmToken = $cm[1];
+            } elseif (preg_match('/name="confirm"\s+value="([^"]+)"/i', $response, $cm)) {
+                $confirmToken = $cm[1];
+            } elseif (preg_match('/download_warning_([a-zA-Z0-9_-]+)=([a-zA-Z0-9_-]+)/i', @file_get_contents($cookieFile) ?: '', $cm)) {
+                $confirmToken = $cm[2];
+            }
+
+            if ($confirmToken) {
+                $downloadUrl = "https://docs.google.com/uc?export=download&id={$fileId}&confirm={$confirmToken}";
+            }
+        }
+
+        // Step 2: Stream download directly to file
+        $fp = fopen($tempTarget, 'w+');
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $downloadUrl);
+        curl_setopt($ch, CURLOPT_FILE, $fp);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_COOKIEFILE, $cookieFile);
+        curl_setopt($ch, CURLOPT_COOKIEJAR, $cookieFile);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
+        curl_setopt($ch, CURLOPT_TIMEOUT, 600); // 10 minutes max
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $downloadedSize = curl_getinfo($ch, CURLINFO_SIZE_DOWNLOAD);
+        $finalContentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+        curl_close($ch);
+        fclose($fp);
+        @unlink($cookieFile);
+
+        // Verification: ensure file was downloaded and is not an HTML error
+        if ($httpCode >= 200 && $httpCode < 400 && $downloadedSize > 10240 && !str_contains($finalContentType ?: '', 'text/html')) {
+            $filename = 'gdrive_' . time() . '_' . substr($fileId, 0, 10) . '.mp4';
+            $finalPath = $videosDir . '/' . $filename;
+            if (rename($tempTarget, $finalPath)) {
+                @chmod($finalPath, 0644);
+                return 'uploads/videos/' . $filename;
+            }
+        }
+
+        @unlink($tempTarget);
+        return null;
+    }
 }
+

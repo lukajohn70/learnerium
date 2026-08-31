@@ -416,31 +416,46 @@
 
                                                 <div>
                                                     <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">Video Source</label>
-                                                    {{-- Source Tab Toggle --}}
-                                                    <div class="flex rounded-xl border border-gray-200 overflow-hidden mb-3 text-xs font-bold" id="vsToggle-{{ $lesson->id }}">
+                                                    {{-- Source Tab Toggle: 3 Options --}}
+                                                    <div class="grid grid-cols-3 rounded-xl border border-gray-200 overflow-hidden mb-3 text-xs font-bold" id="vsToggle-{{ $lesson->id }}">
                                                         <button type="button" onclick="switchVideoSource('{{ $lesson->id }}', 'url')"
-                                                            class="vs-tab-url-{{ $lesson->id }} flex-1 px-4 py-2.5 bg-blue-600 text-white transition-colors"
+                                                            class="vs-tab-url-{{ $lesson->id }} px-2 py-2.5 bg-blue-600 text-white transition-colors text-center truncate"
                                                             id="vsTabUrl-{{ $lesson->id }}">
-                                                            🔗 Paste URL
+                                                            🔗 Web Link
+                                                        </button>
+                                                        <button type="button" onclick="switchVideoSource('{{ $lesson->id }}', 'gdrive')"
+                                                            class="vs-tab-gdrive-{{ $lesson->id }} px-2 py-2.5 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors text-center truncate"
+                                                            id="vsTabGdrive-{{ $lesson->id }}">
+                                                            ☁️ Drive to Server
                                                         </button>
                                                         <button type="button" onclick="switchVideoSource('{{ $lesson->id }}', 'upload')"
-                                                            class="vs-tab-up-{{ $lesson->id }} flex-1 px-4 py-2.5 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
+                                                            class="vs-tab-up-{{ $lesson->id }} px-2 py-2.5 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors text-center truncate"
                                                             id="vsTabUp-{{ $lesson->id }}">
                                                             📁 Upload File
                                                         </button>
                                                     </div>
-                                                    {{-- URL Input --}}
+                                                    {{-- Option 1: Standard URL (YouTube/Vimeo/Embed) --}}
                                                     <div id="vsUrlWrap-{{ $lesson->id }}">
                                                         <input type="url" name="video_url"
                                                             value="{{ old('video_url', (!$lesson->video_url || str_starts_with($lesson->video_url, 'http')) ? $lesson->video_url : '') }}"
-                                                            placeholder="https://youtube.com/watch?v=... or Google Drive / Vimeo link"
+                                                            placeholder="https://youtube.com/watch?v=... or Vimeo link"
                                                             class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-600">
+                                                        <p class="text-[11px] text-gray-400 mt-1">Streams directly from YouTube, Vimeo, or external media server.</p>
                                                     </div>
-                                                    {{-- File Upload Input --}}
+                                                    {{-- Option 2: Google Drive Direct Import to Server --}}
+                                                    <div id="vsGdriveWrap-{{ $lesson->id }}" class="hidden">
+                                                        <input type="url" name="gdrive_import_url"
+                                                            placeholder="https://drive.google.com/file/d/.../view?usp=sharing"
+                                                            class="w-full px-4 py-3 border border-indigo-200 bg-indigo-50/30 rounded-xl text-sm focus:outline-none focus:border-indigo-600">
+                                                        <p class="text-[11px] text-indigo-700/80 mt-1.5 leading-relaxed">
+                                                            ⚡ <strong>Server Direct Import:</strong> The server will download the video from Google Drive into server storage. Ensure file sharing is set to <em>"Anyone with the link can view"</em>.
+                                                        </p>
+                                                    </div>
+                                                    {{-- Option 3: File Upload Input --}}
                                                     <div id="vsUploadWrap-{{ $lesson->id }}" class="hidden">
                                                         @if($lesson->video_url && !str_starts_with($lesson->video_url, 'http'))
                                                             <p class="text-[11px] text-green-700 bg-green-50 border border-green-200 rounded-xl px-3 py-2 mb-2 font-semibold">
-                                                                ✅ Current: <span class="font-mono">{{ basename($lesson->video_url) }}</span>
+                                                                ✅ Server File: <span class="font-mono">{{ basename($lesson->video_url) }}</span>
                                                             </p>
                                                         @endif
                                                         <input type="file" name="video_file"
@@ -547,23 +562,37 @@
 
                                     <div>
                                         <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">Video Source</label>
-                                        {{-- Source Tab Toggle --}}
-                                        <div class="flex rounded-xl border border-gray-200 overflow-hidden mb-3 text-xs font-bold">
+                                        {{-- Source Tab Toggle: 3 Options --}}
+                                        <div class="grid grid-cols-3 rounded-xl border border-gray-200 overflow-hidden mb-3 text-xs font-bold">
                                             <button type="button" onclick="switchVideoSource('new-{{ $mod->id }}', 'url')"
-                                                class="vs-tab-url-new-{{ $mod->id }} flex-1 px-4 py-2.5 bg-blue-600 text-white transition-colors">
-                                                🔗 Paste URL
+                                                class="vs-tab-url-new-{{ $mod->id }} px-2 py-2.5 bg-blue-600 text-white transition-colors text-center truncate">
+                                                🔗 Web Link
+                                            </button>
+                                            <button type="button" onclick="switchVideoSource('new-{{ $mod->id }}', 'gdrive')"
+                                                class="vs-tab-gdrive-new-{{ $mod->id }} px-2 py-2.5 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors text-center truncate">
+                                                ☁️ Drive to Server
                                             </button>
                                             <button type="button" onclick="switchVideoSource('new-{{ $mod->id }}', 'upload')"
-                                                class="vs-tab-up-new-{{ $mod->id }} flex-1 px-4 py-2.5 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors">
+                                                class="vs-tab-up-new-{{ $mod->id }} px-2 py-2.5 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors text-center truncate">
                                                 📁 Upload File
                                             </button>
                                         </div>
-                                        {{-- URL Input --}}
+                                        {{-- Option 1: Standard URL --}}
                                         <div id="vsUrlWrap-new-{{ $mod->id }}">
-                                            <input type="url" name="video_url" placeholder="https://youtube.com/watch?v=... or Google Drive / Vimeo link"
+                                            <input type="url" name="video_url" placeholder="https://youtube.com/watch?v=... or Vimeo link"
                                                 class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary-jlm">
+                                            <p class="text-[11px] text-gray-400 mt-1">Streams directly from YouTube, Vimeo, or external media server.</p>
                                         </div>
-                                        {{-- File Upload Input --}}
+                                        {{-- Option 2: Google Drive Direct Import to Server --}}
+                                        <div id="vsGdriveWrap-new-{{ $mod->id }}" class="hidden">
+                                            <input type="url" name="gdrive_import_url"
+                                                placeholder="https://drive.google.com/file/d/.../view?usp=sharing"
+                                                class="w-full px-4 py-3 border border-indigo-200 bg-indigo-50/30 rounded-xl text-sm focus:outline-none focus:border-indigo-600">
+                                            <p class="text-[11px] text-indigo-700/80 mt-1.5 leading-relaxed">
+                                                ⚡ <strong>Server Direct Import:</strong> The server will download the video from Google Drive into server storage. Ensure file sharing is set to <em>"Anyone with the link can view"</em>.
+                                            </p>
+                                        </div>
+                                        {{-- Option 3: File Upload Input --}}
                                         <div id="vsUploadWrap-new-{{ $mod->id }}" class="hidden">
                                             <input type="file" name="video_file"
                                                 accept="video/mp4,video/webm,video/mov,video/quicktime,video/x-msvideo,.mp4,.webm,.mov,.avi"
@@ -958,34 +987,52 @@ async function showOutlineModal() {
     }
 }
 
-// ── Video Source Switcher (URL tab vs Upload tab) ───────────────────────────
+// ── Video Source Switcher (URL tab vs GDrive tab vs Upload tab) ─────────────
 function switchVideoSource(id, mode) {
     const urlWrap    = document.getElementById('vsUrlWrap-' + id);
+    const gdriveWrap = document.getElementById('vsGdriveWrap-' + id);
     const uploadWrap = document.getElementById('vsUploadWrap-' + id);
+
     const urlBtns    = document.querySelectorAll('.vs-tab-url-' + id);
+    const gdriveBtns = document.querySelectorAll('.vs-tab-gdrive-' + id);
     const upBtns     = document.querySelectorAll('.vs-tab-up-' + id);
 
-    if (!urlWrap || !uploadWrap) return;
+    const form = (urlWrap || uploadWrap || gdriveWrap)?.closest('form');
 
-    // Find the closest form to update enctype
-    const form = urlWrap.closest('form');
+    // Reset all tabs to inactive style
+    const setInactive = (btns) => btns.forEach(b => {
+        b.classList.remove('bg-blue-600', 'text-white');
+        b.classList.add('bg-gray-50', 'text-gray-600');
+    });
+    const setActive = (btns) => btns.forEach(b => {
+        b.classList.remove('bg-gray-50', 'text-gray-600');
+        b.classList.add('bg-blue-600', 'text-white');
+    });
+
+    // Hide all input wrappers
+    if (urlWrap)    urlWrap.classList.add('hidden');
+    if (gdriveWrap) gdriveWrap.classList.add('hidden');
+    if (uploadWrap) uploadWrap.classList.add('hidden');
+
+    setInactive(urlBtns);
+    setInactive(gdriveBtns);
+    setInactive(upBtns);
 
     if (mode === 'upload') {
-        urlWrap.classList.add('hidden');
-        uploadWrap.classList.remove('hidden');
-        urlBtns.forEach(b => { b.classList.remove('bg-blue-600','text-white'); b.classList.add('bg-gray-50','text-gray-600'); });
-        upBtns.forEach(b  => { b.classList.remove('bg-gray-50','text-gray-600'); b.classList.add('bg-blue-600','text-white'); });
-        // Clear URL so it doesn't conflict
-        const urlInput = urlWrap.querySelector('input[name="video_url"]');
-        if (urlInput) urlInput.value = '';
+        if (uploadWrap) uploadWrap.classList.remove('hidden');
+        setActive(upBtns);
         if (form) form.setAttribute('enctype', 'multipart/form-data');
+    } else if (mode === 'gdrive') {
+        if (gdriveWrap) gdriveWrap.classList.remove('hidden');
+        setActive(gdriveBtns);
+        // Clear standard url and file input
+        const fileInput = uploadWrap?.querySelector('input[type="file"]');
+        if (fileInput) fileInput.value = '';
     } else {
-        urlWrap.classList.remove('hidden');
-        uploadWrap.classList.add('hidden');
-        urlBtns.forEach(b => { b.classList.add('bg-blue-600','text-white'); b.classList.remove('bg-gray-50','text-gray-600'); });
-        upBtns.forEach(b  => { b.classList.add('bg-gray-50','text-gray-600'); b.classList.remove('bg-blue-600','text-white'); });
+        if (urlWrap) urlWrap.classList.remove('hidden');
+        setActive(urlBtns);
         // Clear file input
-        const fileInput = uploadWrap.querySelector('input[type="file"]');
+        const fileInput = uploadWrap?.querySelector('input[type="file"]');
         if (fileInput) fileInput.value = '';
     }
 }
@@ -993,9 +1040,8 @@ function switchVideoSource(id, mode) {
 // Auto-detect upload tab for lessons that already have a server-side video path
 document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('[id^="vsUploadWrap-"]').forEach(wrap => {
-        // If the lesson has a local path (not http), switch to upload tab on load
         const currentBadge = wrap.querySelector('p');
-        if (currentBadge && currentBadge.textContent.includes('Current:')) {
+        if (currentBadge && currentBadge.textContent.includes('Server File:')) {
             const id = wrap.id.replace('vsUploadWrap-', '');
             switchVideoSource(id, 'upload');
         }
