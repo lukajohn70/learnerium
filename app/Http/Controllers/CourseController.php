@@ -109,8 +109,36 @@ class CourseController extends Controller
     {
         $this->authorizeInstructor($course);
 
+        $wasPublished = (bool) $course->published_at;
+
         if (!$course->published_at) {
             $course->update(['published_at' => now()]);
+        }
+
+        if (!$wasPublished) {
+            $user = Auth::user();
+            try {
+                // 1. Notify Instructor
+                \App\Models\AppNotification::notify(
+                    $user->id,
+                    'course',
+                    'Course Published Live! 🚀',
+                    "Your course \"{$course->title}\" is now live and available to students across the world.",
+                    route('course.detail', $course->slug),
+                    'fa-rocket',
+                    'green'
+                );
+
+                // 2. Notify all registered Admins
+                \App\Models\AppNotification::notifyAdmins(
+                    'course',
+                    "🚀 Course Published: {$course->title}",
+                    "Instructor {$user->name} published a new course in category: {$course->category}.",
+                    route('course.detail', $course->slug),
+                    'fa-book-open',
+                    'purple'
+                );
+            } catch (\Throwable $e) {}
         }
 
         return redirect()
@@ -156,6 +184,31 @@ class CourseController extends Controller
         $data['published_at'] = now();
 
         $course = Course::create($data);
+
+        // Notify instructor and all registered admins
+        $user = Auth::user();
+        try {
+            // 1. Notify Instructor
+            \App\Models\AppNotification::notify(
+                $user->id,
+                'course',
+                'Course Created Successfully! 📚',
+                "Your course \"{$course->title}\" has been created. You can now add modules and lessons.",
+                route('instructor.courses.edit', $course),
+                'fa-book-open',
+                'green'
+            );
+
+            // 2. Notify all registered Admins
+            \App\Models\AppNotification::notifyAdmins(
+                'course',
+                "📚 New Course Created: {$course->title}",
+                "Instructor {$user->name} created a new course in {$course->category}.",
+                route('course.detail', $course->slug),
+                'fa-book',
+                'purple'
+            );
+        } catch (\Throwable $e) {}
 
         return redirect()
             ->route('instructor.courses.edit', $course)

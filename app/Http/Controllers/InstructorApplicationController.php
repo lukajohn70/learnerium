@@ -63,20 +63,27 @@ class InstructorApplicationController extends Controller
             ]
         );
 
-        // Notify admins
+        // 1. Notify all registered Admins (both in-app and email)
         try {
-            $admins = User::where('role', 'admin')->get();
-            foreach ($admins as $admin) {
-                \App\Models\AppNotification::notify(
-                    $admin->id,
-                    'support',
-                    "👨‍🏫 New Instructor Application: {$user->name}",
-                    "Headline: {$request->headline} &bull; Area: {$request->expertise_area}",
-                    route('admin.instructor-applications'),
-                    'fa-chalkboard-teacher',
-                    'purple'
-                );
-            }
+            \App\Models\AppNotification::notifyAdmins(
+                'support',
+                "👨‍🏫 New Instructor Application: {$user->name}",
+                "Applicant {$user->name} ({$user->email}) submitted an application.\nHeadline: {$request->headline} • Expertise: {$request->expertise_area}",
+                route('admin.instructor-applications'),
+                'fa-chalkboard-teacher',
+                'purple'
+            );
+
+            // 2. Send confirmation to prospective tutor
+            \App\Models\AppNotification::notify(
+                $user->id,
+                'support',
+                'Instructor Application Received! 📋',
+                "Thank you for applying to teach on Learnerium, {$user->name}! We have received your application for \"{$request->expertise_area}\". Our academic review team will evaluate your profile and get back to you shortly.",
+                route('instructor.apply'),
+                'fa-file-signature',
+                'blue'
+            );
         } catch (\Throwable $e) {}
 
         return redirect()->route('instructor.apply')

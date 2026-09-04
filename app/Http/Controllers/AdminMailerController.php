@@ -186,19 +186,15 @@ class AdminMailerController extends Controller
             'status'             => 'unread',
         ]);
 
-        // Notify admins in-app
-        $admins = User::where('role', 'admin')->get();
-        foreach ($admins as $admin) {
-            AppNotification::notify(
-                $admin->id,
-                'support',
-                "New Inbound Message from {$request->name} ✉️",
-                "Subject: {$request->subject}",
-                route('admin.dashboard'),
-                'fa-envelope',
-                'purple'
-            );
-        }
+        // Notify all registered Admins (in-app and email)
+        AppNotification::notifyAdmins(
+            'support',
+            "New Inbound Message from {$request->name} ✉️",
+            "Subject: {$request->subject}\n" . \Illuminate\Support\Str::limit($request->message, 120),
+            route('admin.dashboard'),
+            'fa-envelope',
+            'purple'
+        );
 
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'message' => 'Your message has been received! Our support team will get back to you shortly.']);
@@ -265,19 +261,15 @@ class AdminMailerController extends Controller
             'status'             => 'unread',
         ]);
 
-        // Notify all admins in-app
-        $admins = User::where('role', 'admin')->get();
-        foreach ($admins as $admin) {
-            AppNotification::notify(
-                $admin->id,
-                'support',
-                "Reply from {$user->name} ✉️",
-                "Re: {$message->subject}",
-                route('admin.dashboard'),
-                'fa-reply',
-                'purple'
-            );
-        }
+        // Notify all registered Admins (in-app and email)
+        AppNotification::notifyAdmins(
+            'support',
+            "Reply from {$user->name} ✉️",
+            "Re: {$message->subject}\n" . \Illuminate\Support\Str::limit($request->reply_text, 120),
+            route('admin.dashboard'),
+            'fa-reply',
+            'purple'
+        );
 
         return back()->with('status', 'Your reply has been sent to the Learnerium team!');
     }

@@ -51,16 +51,23 @@ class AppNotification extends Model
         try {
             $user = User::find($userId);
             if ($user && !empty($user->email)) {
-                $prefs = NotificationPreference::forUser($userId);
-                
-                $shouldSendEmail = match($type) {
-                    'enrollment' => $user->isInstructor() ? $prefs->email_new_student : $prefs->email_enrollment,
-                    'payment'    => $prefs->email_payment,
-                    'payout'     => $prefs->email_payout,
-                    'submission' => $prefs->email_course_updates,
-                    'grading'    => $prefs->email_course_updates,
-                    default      => true,
-                };
+                $shouldSendEmail = true;
+
+                // For non-admin users, check granular preferences if available
+                if (!$user->isAdmin()) {
+                    $prefs = NotificationPreference::forUser($userId);
+                    if ($prefs) {
+                        $shouldSendEmail = match($type) {
+                            'enrollment' => $user->isInstructor() ? ($prefs->email_new_student ?? true) : ($prefs->email_enrollment ?? true),
+                            'payment'    => $prefs->email_payment ?? true,
+                            'payout'     => $prefs->email_payout ?? true,
+                            'submission' => $prefs->email_course_updates ?? true,
+                            'grading'    => $prefs->email_course_updates ?? true,
+                            'marketing'  => $prefs->email_marketing ?? true,
+                            default      => true,
+                        };
+                    }
+                }
 
                 if ($shouldSendEmail) {
                     \Illuminate\Support\Facades\Mail::send(
@@ -78,10 +85,39 @@ class AppNotification extends Model
                 }
             }
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning("Notification email delivery skipped ({$e->getMessage()})");
+            \Illuminate\Support\Facades\Log::warning("Notification email delivery skipped for {$userId}: ({$e->getMessage()})");
         }
 
         return $notification;
+    }
+
+    /**
+     * Dispatch in-app notification and email to ALL registered administrators.
+     */
+    public static function notifyAdmins(
+        string $type,
+        string $title,
+        string $message,
+        ?string $actionUrl = null,
+        string $icon = 'fa-shield-halved',
+        string $color = 'purple'
+    ): void {
+        try {
+            $admins = User::where('role', 'admin')->get();
+            foreach ($admins as $admin) {
+                static::notify(
+                    $admin->id,
+                    $type,
+                    $title,
+                    $message,
+                    $actionUrl,
+                    $icon,
+                    $color
+                );
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Admin notification dispatch error: {$e->getMessage()}");
+        }
     }
 }
 

@@ -288,9 +288,9 @@ class PaymentController extends Controller
 
                     $course = Course::find($enrollment->course_id);
 
-                    // Fire in-app notifications
+                    // Fire in-app and email notifications
                     try {
-                        // Notify the student
+                        // 1. Notify the student
                         \App\Models\AppNotification::notify(
                             $enrollment->user_id,
                             'payment',
@@ -301,18 +301,29 @@ class PaymentController extends Controller
                             'green'
                         );
 
-                        // Notify the instructor
+                        // 2. Notify the instructor
                         if ($course && $course->instructor_id) {
                             \App\Models\AppNotification::notify(
                                 $course->instructor_id,
                                 'payment',
                                 'New Student Enrolled 💰',
                                 "A student just enrolled in \"{$course->title}\" — your share: ₦" . number_format($instructorShare, 2),
-                                null,
+                                route('instructor.courses.students', $course->id),
                                 'fa-graduation-cap',
                                 'blue'
                             );
                         }
+
+                        // 3. Notify all registered Admins of platform revenue
+                        $studentUser = $enrollment->user;
+                        \App\Models\AppNotification::notifyAdmins(
+                            'payment',
+                            "💰 New Course Enrollment: ₦" . number_format($amountPaid, 2),
+                            "Student {$studentUser?->name} enrolled in \"{$course?->title}\". Platform share: ₦" . number_format($platformShare, 2),
+                            route('admin.dashboard'),
+                            'fa-receipt',
+                            'purple'
+                        );
                     } catch (\Exception $notifEx) {
                         Log::warning('Notification error: ' . $notifEx->getMessage());
                     }

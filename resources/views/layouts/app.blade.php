@@ -261,11 +261,15 @@
                             <div class="relative" id="notifBellWrap">
                                 <button id="notifBellBtn" class="relative text-gray-600 hover:text-primary-jlm p-2 rounded-full hover:bg-blue-50 transition" title="Notifications">
                                     <i class="fas fa-bell text-lg"></i>
-                                    <span id="notifBadge" class="absolute -top-1 -right-1 bg-secondary-jlm text-white text-[10px] font-black w-4 h-4 rounded-full items-center justify-center border-2 border-white hidden">0</span>
+                                    <span id="notifBadge" class="absolute -top-1 -right-1 bg-secondary-jlm text-white text-[10px] font-black w-4 h-4 rounded-full items-center justify-center border-2 border-white hidden z-10">0</span>
+                                    <span id="notifPing" class="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-secondary-jlm animate-ping opacity-75 hidden pointer-events-none"></span>
                                 </button>
-                                <div id="notifPanel" class="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 z-30 hidden origin-top-right">
+                                <div id="notifPanel" class="fixed inset-x-4 top-20 sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-84 max-w-sm sm:max-w-none mx-auto bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 hidden origin-top-right">
                                     <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-                                        <span class="font-bold text-gray-900 text-sm">Notifications</span>
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-bold text-gray-900 text-sm">Notifications</span>
+                                            <span id="notifHeaderCount" class="bg-blue-50 text-primary-jlm text-[10px] font-extrabold px-2 py-0.5 rounded-full hidden">0</span>
+                                        </div>
                                         <button onclick="markAllRead()" class="text-xs text-primary-jlm font-bold hover:underline">Mark all read</button>
                                     </div>
                                     <div id="notifList" class="max-h-80 overflow-y-auto divide-y divide-gray-50">
@@ -274,9 +278,12 @@
                                             No notifications yet
                                         </div>
                                     </div>
-                                    <div class="px-4 py-2.5 border-t border-gray-100 text-center">
+                                    <div class="px-4 py-2.5 border-t border-gray-100 text-center flex items-center justify-between">
+                                        <a href="{{ route('user.inbox') }}" class="text-xs text-primary-jlm hover:underline font-semibold transition">
+                                            <i class="fas fa-inbox mr-1"></i>All Messages
+                                        </a>
                                         <a href="{{ route('notifications.preferences') }}" class="text-xs text-gray-400 hover:text-primary-jlm font-semibold transition">
-                                            <i class="fas fa-sliders-h mr-1"></i>Notification Settings
+                                            <i class="fas fa-sliders-h mr-1"></i>Settings
                                         </a>
                                     </div>
                                 </div>
@@ -343,7 +350,7 @@
                     @endguest
                 </div>
 
-                <!-- Mobile Wishlist, Cart & Hamburger Button -->
+                <!-- Mobile Wishlist, Cart, Notifications & Hamburger Button -->
                 <div class="flex items-center space-x-1 lg:hidden">
                     @auth
                         <a href="{{ route('wishlist.index') }}" class="relative text-gray-600 hover:text-pink-600 p-2 rounded-full hover:bg-pink-50 transition" title="Wishlist">
@@ -364,6 +371,15 @@
                                 </span>
                             @endif
                         </a>
+
+                        {{-- Mobile Notification Bell --}}
+                        <div class="relative">
+                            <button id="mobileNotifBellBtn" type="button" class="relative text-gray-600 hover:text-primary-jlm p-2 rounded-full hover:bg-blue-50 transition" title="Notifications">
+                                <i class="fas fa-bell text-lg text-primary-jlm"></i>
+                                <span id="mobileNotifBadge" class="absolute -top-0.5 -right-0.5 bg-secondary-jlm text-white text-[10px] font-black w-4 h-4 rounded-full items-center justify-center border-2 border-white hidden z-10">0</span>
+                                <span id="mobileNotifPing" class="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-secondary-jlm animate-ping opacity-75 hidden pointer-events-none"></span>
+                            </button>
+                        </div>
                     @else
                         <a href="{{ route('cart.index') }}" class="relative text-gray-600 hover:text-primary-jlm p-2 rounded-full hover:bg-blue-50 transition" title="Shopping Cart">
                             <i class="fas fa-shopping-cart text-lg text-primary-jlm"></i>
@@ -376,23 +392,23 @@
                         </a>
                     @endauth
 
-                    <button id="mobileMenuBtn" class="text-primary-jlm focus:outline-none p-2 rounded-lg hover:bg-gray-100 transition ml-1">
-                        <i class="fas fa-bars text-2xl"></i>
+                    <button id="mobileMenuBtn" type="button" aria-label="Toggle Navigation Menu" class="text-primary-jlm focus:outline-none p-2 rounded-lg hover:bg-gray-100 transition ml-1">
+                        <i id="mobileMenuIcon" class="fas fa-bars text-2xl"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- Mobile Nav Links -->
-            <div id="mobileMenu" class="hidden lg:hidden mt-4 bg-gray-50 rounded-2xl p-4 border border-gray-200 space-y-3 shadow-lg">
+            <!-- Mobile Nav Links Drawer -->
+            <div id="mobileMenu" class="hidden lg:hidden max-h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain bg-white/95 backdrop-blur-xl rounded-2xl p-4 border border-gray-200/80 space-y-3 shadow-2xl mx-4 mb-4 mt-2">
                 <!-- Navigation Links -->
                 <div class="space-y-1">
-                    <a href="{{ url('/') }}" class="block px-3.5 py-2 text-primary-jlm hover:text-secondary-jlm hover:bg-white rounded-xl transition font-medium text-sm">
+                    <a href="{{ url('/') }}" class="block px-3.5 py-2 text-primary-jlm hover:text-secondary-jlm hover:bg-gray-50 rounded-xl transition font-medium text-sm">
                         <i class="fas fa-home mr-2 text-primary-jlm"></i>Home
                     </a>
-                    <a href="{{ route('courses') }}" class="block px-3.5 py-2 text-primary-jlm hover:text-secondary-jlm hover:bg-white rounded-xl transition font-medium text-sm">
+                    <a href="{{ route('courses') }}" class="block px-3.5 py-2 text-primary-jlm hover:text-secondary-jlm hover:bg-gray-50 rounded-xl transition font-medium text-sm">
                         <i class="fas fa-book mr-2 text-primary-jlm"></i>Courses
                     </a>
-                    <a href="{{ route('cart.index') }}" class="block px-3.5 py-2 text-primary-jlm hover:text-secondary-jlm hover:bg-white rounded-xl transition font-medium text-sm">
+                    <a href="{{ route('cart.index') }}" class="block px-3.5 py-2 text-primary-jlm hover:text-secondary-jlm hover:bg-gray-50 rounded-xl transition font-medium text-sm">
                         <i class="fas fa-shopping-cart mr-2 text-primary-jlm"></i>Cart
                         @auth
                             @if(Auth::user()->cart()->count() > 0)
@@ -400,7 +416,7 @@
                             @endif
                         @endauth
                     </a>
-                    <a href="{{ route('wishlist.index') }}" class="block px-3.5 py-2 text-primary-jlm hover:text-secondary-jlm hover:bg-white rounded-xl transition font-medium text-sm">
+                    <a href="{{ route('wishlist.index') }}" class="block px-3.5 py-2 text-primary-jlm hover:text-secondary-jlm hover:bg-gray-50 rounded-xl transition font-medium text-sm">
                         <i class="fas fa-heart mr-2 text-pink-500"></i>Wishlist
                         @auth
                             @if(Auth::user()->wishlist()->count() > 0)
@@ -408,28 +424,28 @@
                             @endif
                         @endauth
                     </a>
-                    <a href="{{ route('instructors') }}" class="block px-3.5 py-2 text-primary-jlm hover:text-secondary-jlm hover:bg-white rounded-xl transition font-medium text-sm">
+                    <a href="{{ route('instructors') }}" class="block px-3.5 py-2 text-primary-jlm hover:text-secondary-jlm hover:bg-gray-50 rounded-xl transition font-medium text-sm">
                         <i class="fas fa-user-tie mr-2 text-primary-jlm"></i>Instructors
                     </a>
                     @auth
                         @if(Auth::user()->isInstructor())
-                            <a href="{{ route('instructor.dashboard') }}" class="block px-3.5 py-2 text-secondary-jlm font-bold hover:bg-white rounded-xl transition text-sm">
+                            <a href="{{ route('instructor.dashboard') }}" class="block px-3.5 py-2 text-secondary-jlm font-bold hover:bg-gray-50 rounded-xl transition text-sm">
                                 <i class="fas fa-chalkboard-teacher mr-2"></i>Instructor Dashboard
                             </a>
                         @else
-                            <a href="{{ route('instructor.apply') }}" class="block px-3.5 py-2 text-secondary-jlm font-bold hover:bg-white rounded-xl transition text-sm">
+                            <a href="{{ route('instructor.apply') }}" class="block px-3.5 py-2 text-secondary-jlm font-bold hover:bg-gray-50 rounded-xl transition text-sm">
                                 <i class="fas fa-hand-holding-heart mr-2"></i>Teach on Learnerium
                             </a>
                         @endif
                     @else
-                        <a href="{{ route('instructor.apply') }}" class="block px-3.5 py-2 text-secondary-jlm font-bold hover:bg-white rounded-xl transition text-sm">
+                        <a href="{{ route('instructor.apply') }}" class="block px-3.5 py-2 text-secondary-jlm font-bold hover:bg-gray-50 rounded-xl transition text-sm">
                             <i class="fas fa-hand-holding-heart mr-2"></i>Teach on Learnerium
                         </a>
                     @endauth
-                    <a href="{{ route('about') }}" class="block px-3.5 py-2 text-primary-jlm hover:text-secondary-jlm hover:bg-white rounded-xl transition font-medium text-sm">
+                    <a href="{{ route('about') }}" class="block px-3.5 py-2 text-primary-jlm hover:text-secondary-jlm hover:bg-gray-50 rounded-xl transition font-medium text-sm">
                         <i class="fas fa-info-circle mr-2 text-primary-jlm"></i>About Us
                     </a>
-                    <a href="{{ route('contact') }}" class="block px-3.5 py-2 text-primary-jlm hover:text-secondary-jlm hover:bg-white rounded-xl transition font-medium text-sm">
+                    <a href="{{ route('contact') }}" class="block px-3.5 py-2 text-primary-jlm hover:text-secondary-jlm hover:bg-gray-50 rounded-xl transition font-medium text-sm">
                         <i class="fas fa-envelope mr-2 text-primary-jlm"></i>Contact
                     </a>
                 </div>
@@ -449,9 +465,9 @@
                 @else
                     <div class="space-y-2 pt-1">
                         <!-- User Card Header -->
-                        <div class="flex items-center gap-3 bg-white p-3 rounded-xl border border-gray-200">
+                        <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-200">
                             <img src="{{ Auth::user()->avatarUrl() }}" alt="{{ Auth::user()->name }}" class="w-10 h-10 rounded-full border-2 border-primary-jlm object-cover">
-                            <div class="min-w-0">
+                            <div class="min-w-0 flex-1">
                                 <p class="text-xs font-bold text-gray-900 truncate">{{ Auth::user()->name }}</p>
                                 <p class="text-[11px] text-gray-400 truncate">{{ Auth::user()->email }}</p>
                             </div>
@@ -478,19 +494,23 @@
                         @endif
 
                         <div class="space-y-1 pt-1">
-                            <a href="{{ route('dashboard') }}" class="block px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-white rounded-xl transition"><i class="fas fa-th-large mr-2.5 text-gray-400"></i>Dashboard</a>
+                            <a href="{{ route('dashboard') }}" class="block px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl transition"><i class="fas fa-th-large mr-2.5 text-gray-400"></i>Dashboard</a>
 
                             @if(Auth::user()->isInstructor())
-                                <a href="{{ route('instructor.manage.courses') }}" class="block px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-white rounded-xl transition"><i class="fas fa-tasks mr-2.5 text-gray-400"></i>Manage Courses</a>
-                                <a href="{{ route('admin.instructor.applications') }}" class="block px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-white rounded-xl transition"><i class="fas fa-user-check mr-2.5 text-gray-400"></i>Review Instructor Apps</a>
+                                <a href="{{ route('instructor.manage.courses') }}" class="block px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl transition"><i class="fas fa-tasks mr-2.5 text-gray-400"></i>Manage Courses</a>
+                                <a href="{{ route('admin.instructor.applications') }}" class="block px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl transition"><i class="fas fa-user-check mr-2.5 text-gray-400"></i>Review Instructor Apps</a>
                             @else
-                                <a href="{{ route('student.courses') }}" class="block px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-white rounded-xl transition"><i class="fas fa-graduation-cap mr-2.5 text-gray-400"></i>My Courses</a>
-                                <a href="{{ route('student.progress') }}" class="block px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-white rounded-xl transition"><i class="fas fa-chart-pie mr-2.5 text-gray-400"></i>My Progress</a>
+                                <a href="{{ route('student.courses') }}" class="block px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl transition"><i class="fas fa-graduation-cap mr-2.5 text-gray-400"></i>My Courses</a>
+                                <a href="{{ route('student.progress') }}" class="block px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl transition"><i class="fas fa-chart-pie mr-2.5 text-gray-400"></i>My Progress</a>
                             @endif
 
-                            <a href="{{ route('user.inbox') }}" class="block px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-white rounded-xl transition"><i class="fas fa-inbox mr-2.5 text-purple-400"></i>My Messages</a>
-                            <a href="{{ url('/profile') }}" class="block px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-white rounded-xl transition"><i class="fas fa-user-circle mr-2.5 text-gray-400"></i>Profile</a>
-                            <a href="{{ url('/settings') }}" class="block px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-white rounded-xl transition"><i class="fas fa-cog mr-2.5 text-gray-400"></i>Settings</a>
+                            <a href="{{ route('user.inbox') }}" class="block px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl transition"><i class="fas fa-inbox mr-2.5 text-purple-400"></i>My Messages</a>
+                            <a href="{{ route('notifications.preferences') }}" class="block px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl transition flex items-center justify-between">
+                                <span class="flex items-center"><i class="fas fa-bell mr-2.5 text-primary-jlm"></i>Notification Settings</span>
+                                <span id="menuNotifBadge" class="bg-secondary-jlm text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
+                            </a>
+                            <a href="{{ url('/profile') }}" class="block px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl transition"><i class="fas fa-user-circle mr-2.5 text-gray-400"></i>Profile</a>
+                            <a href="{{ url('/settings') }}" class="block px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl transition"><i class="fas fa-cog mr-2.5 text-gray-400"></i>Settings</a>
                         </div>
 
                         <form method="POST" action="{{ route('logout') }}" class="block pt-2">
@@ -620,11 +640,47 @@
 
     <!-- Mobile menu toggle + Dropdown hover scripts -->
     <script>
-        // Mobile menu
-        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-        const mobileMenu = document.getElementById('mobileMenu');
+        // ================= MOBILE HAMBURGER MENU =================
+        const mobileMenuBtn  = document.getElementById('mobileMenuBtn');
+        const mobileMenuIcon = document.getElementById('mobileMenuIcon');
+        const mobileMenu     = document.getElementById('mobileMenu');
+
         if (mobileMenuBtn && mobileMenu) {
-            mobileMenuBtn.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+            mobileMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isHidden = mobileMenu.classList.toggle('hidden');
+                if (mobileMenuIcon) {
+                    if (isHidden) {
+                        mobileMenuIcon.classList.remove('fa-xmark');
+                        mobileMenuIcon.classList.add('fa-bars');
+                    } else {
+                        mobileMenuIcon.classList.remove('fa-bars');
+                        mobileMenuIcon.classList.add('fa-xmark');
+                    }
+                }
+            });
+
+            // Close on click outside
+            document.addEventListener('click', (e) => {
+                if (!mobileMenu.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+                    mobileMenu.classList.add('hidden');
+                    if (mobileMenuIcon) {
+                        mobileMenuIcon.classList.remove('fa-xmark');
+                        mobileMenuIcon.classList.add('fa-bars');
+                    }
+                }
+            });
+
+            // Close on Escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && !mobileMenu.classList.contains('hidden')) {
+                    mobileMenu.classList.add('hidden');
+                    if (mobileMenuIcon) {
+                        mobileMenuIcon.classList.remove('fa-xmark');
+                        mobileMenuIcon.classList.add('fa-bars');
+                    }
+                }
+            });
         }
 
         // Generic sticky-hover + click dropdown: keeps menu open when moving from trigger to menu
@@ -665,68 +721,99 @@
         stickyDropdown('loginDropdownWrap', 'loginDropdownBtn', 'loginDropdownMenu');
         stickyDropdown('userDropdownWrap',  'userDropdownBtn',  'userDropdownMenu');
 
-        // ─── Notification Bell ───────────────────────────────────────────────
+        // ─── Notification Bell (Desktop & Mobile Synchronized) ───────────────
         @auth
-        const notifBtn   = document.getElementById('notifBellBtn');
-        const notifPanel = document.getElementById('notifPanel');
-        const notifBadge = document.getElementById('notifBadge');
-        const notifList  = document.getElementById('notifList');
-        const notifEmpty = document.getElementById('notifEmpty');
+        const notifBtn          = document.getElementById('notifBellBtn');
+        const mobileNotifBtn    = document.getElementById('mobileNotifBellBtn');
+        const notifPanel        = document.getElementById('notifPanel');
+        const notifBadge        = document.getElementById('notifBadge');
+        const mobileNotifBadge  = document.getElementById('mobileNotifBadge');
+        const menuNotifBadge    = document.getElementById('menuNotifBadge');
+        const notifPing         = document.getElementById('notifPing');
+        const mobileNotifPing   = document.getElementById('mobileNotifPing');
+        const notifHeaderCount  = document.getElementById('notifHeaderCount');
+        const notifList         = document.getElementById('notifList');
+        const notifEmpty        = document.getElementById('notifEmpty');
 
         const colorMap = {
             green: 'text-emerald-500', blue: 'text-blue-500',
             red: 'text-red-500', amber: 'text-amber-500', purple: 'text-purple-500'
         };
 
+        function updateBadgeCount(unread) {
+            const display = unread > 9 ? '9+' : unread;
+            [notifBadge, mobileNotifBadge, menuNotifBadge].forEach(b => {
+                if (!b) return;
+                if (unread > 0) {
+                    b.textContent = display;
+                    b.classList.remove('hidden');
+                    b.classList.add('flex');
+                } else {
+                    b.classList.add('hidden');
+                    b.classList.remove('flex');
+                }
+            });
+
+            [notifPing, mobileNotifPing].forEach(p => {
+                if (!p) return;
+                if (unread > 0) p.classList.remove('hidden');
+                else p.classList.add('hidden');
+            });
+
+            if (notifHeaderCount) {
+                if (unread > 0) {
+                    notifHeaderCount.textContent = unread + ' unread';
+                    notifHeaderCount.classList.remove('hidden');
+                } else {
+                    notifHeaderCount.classList.add('hidden');
+                }
+            }
+        }
+
         function loadNotifications() {
             fetch('{{ route("notifications.index") }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
                 .then(r => r.json())
                 .then(notifications => {
                     const unread = notifications.filter(n => !n.is_read).length;
-                    if (unread > 0) {
-                        notifBadge.textContent = unread > 9 ? '9+' : unread;
-                        notifBadge.classList.remove('hidden');
-                        notifBadge.classList.add('flex');
-                    } else {
-                        notifBadge.classList.add('hidden');
-                        notifBadge.classList.remove('flex');
-                    }
+                    updateBadgeCount(unread);
 
                     if (notifications.length === 0) {
-                        notifEmpty.classList.remove('hidden');
+                        if (notifEmpty) notifEmpty.classList.remove('hidden');
                         return;
                     }
-                    notifEmpty.classList.add('hidden');
+                    if (notifEmpty) notifEmpty.classList.add('hidden');
 
                     // Clear and rebuild list (keep notifEmpty node)
-                    [...notifList.children].forEach(c => { if (c.id !== 'notifEmpty') c.remove(); });
+                    if (notifList) {
+                        [...notifList.children].forEach(c => { if (c.id !== 'notifEmpty') c.remove(); });
 
-                    notifications.slice(0, 15).forEach(n => {
-                        const iconColor = colorMap[n.color] || 'text-blue-500';
-                        const readClass = n.is_read ? 'opacity-60' : 'bg-blue-50/40';
-                        const item = document.createElement('div');
-                        item.className = `px-4 py-3 hover:bg-gray-50 transition cursor-pointer ${readClass}`;
-                        item.innerHTML = `
-                            <div class="flex gap-3 items-start">
-                                <i class="fas ${n.icon} mt-0.5 flex-shrink-0 ${iconColor}"></i>
-                                <div class="min-w-0 flex-1">
-                                    <p class="text-xs font-bold text-gray-900 leading-tight">${n.title}</p>
-                                    <p class="text-xs text-gray-500 mt-0.5 leading-snug">${n.message}</p>
-                                    <p class="text-[10px] text-gray-300 mt-1">${new Date(n.created_at).toLocaleString()}</p>
-                                </div>
-                            </div>`;
-                        item.addEventListener('click', () => {
-                            fetch(`/notifications/${n.id}/read`, {
-                                method: 'POST',
-                                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'X-Requested-With': 'XMLHttpRequest' }
-                            }).then(() => {
-                                item.classList.remove('bg-blue-50/40');
-                                item.classList.add('opacity-60');
-                                if (n.action_url) window.location.href = n.action_url;
+                        notifications.slice(0, 15).forEach(n => {
+                            const iconColor = colorMap[n.color] || 'text-blue-500';
+                            const readClass = n.is_read ? 'opacity-60' : 'bg-blue-50/40';
+                            const item = document.createElement('div');
+                            item.className = `px-4 py-3 hover:bg-gray-50 transition cursor-pointer ${readClass}`;
+                            item.innerHTML = `
+                                <div class="flex gap-3 items-start">
+                                    <i class="fas ${n.icon} mt-0.5 flex-shrink-0 ${iconColor}"></i>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-xs font-bold text-gray-900 leading-tight">${n.title}</p>
+                                        <p class="text-xs text-gray-500 mt-0.5 leading-snug">${n.message}</p>
+                                        <p class="text-[10px] text-gray-300 mt-1">${new Date(n.created_at).toLocaleString()}</p>
+                                    </div>
+                                </div>`;
+                            item.addEventListener('click', () => {
+                                fetch(`/notifications/${n.id}/read`, {
+                                    method: 'POST',
+                                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'X-Requested-With': 'XMLHttpRequest' }
+                                }).then(() => {
+                                    item.classList.remove('bg-blue-50/40');
+                                    item.classList.add('opacity-60');
+                                    if (n.action_url) window.location.href = n.action_url;
+                                });
                             });
+                            notifList.appendChild(item);
                         });
-                        notifList.appendChild(item);
-                    });
+                    }
                 }).catch(() => {});
         }
 
@@ -737,27 +824,42 @@
             }).then(() => loadNotifications());
         }
 
-        if (notifBtn) {
-            notifBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                notifPanel.classList.toggle('hidden');
-                if (!notifPanel.classList.contains('hidden')) loadNotifications();
-            });
+        function toggleNotifPanel(e) {
+            if (e) e.stopPropagation();
+            if (!notifPanel) return;
+            const isHidden = notifPanel.classList.toggle('hidden');
+            if (!isHidden) loadNotifications();
+        }
+
+        if (notifBtn)       notifBtn.addEventListener('click', toggleNotifPanel);
+        if (mobileNotifBtn) mobileNotifBtn.addEventListener('click', toggleNotifPanel);
+
+        if (notifPanel) {
             document.addEventListener('click', (e) => {
-                if (!notifPanel.contains(e.target) && e.target !== notifBtn) notifPanel.classList.add('hidden');
+                if (!notifPanel.contains(e.target) && e.target !== notifBtn && (!mobileNotifBtn || !mobileNotifBtn.contains(e.target))) {
+                    notifPanel.classList.add('hidden');
+                }
             });
-            // Load count on page load
+
+            // Initial load of unread count on page load
             fetch('{{ route("notifications.count") }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
                 .then(r => r.json())
                 .then(data => {
-                    if (data.count > 0) {
-                        notifBadge.textContent = data.count > 9 ? '9+' : data.count;
-                        notifBadge.classList.remove('hidden');
-                        notifBadge.classList.add('flex');
+                    if (data && typeof data.count !== 'undefined') {
+                        updateBadgeCount(data.count);
+                        if (data.count > 0 && !sessionStorage.getItem('notif_toasted')) {
+                            sessionStorage.setItem('notif_toasted', '1');
+                            setTimeout(() => {
+                                if (window.showToast) {
+                                    window.showToast(`You have ${data.count} unread notification${data.count > 1 ? 's' : ''}. Tap the bell to view.`, 'info', 5000);
+                                }
+                            }, 1200);
+                        }
                     }
                 }).catch(() => {});
         }
         @endauth
+    </script>
 
     <!-- Global Responsive Universal Modal Dialog -->
     <div id="universalModal" class="fixed inset-0 z-[9999] hidden overflow-y-auto bg-slate-900/60 backdrop-blur-sm p-4 sm:p-6 flex items-center justify-center">
