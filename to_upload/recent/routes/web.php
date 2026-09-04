@@ -387,7 +387,7 @@ Route::any('/insert-module', function () {
 });
 
 
-// Media / Uploads file serving route (Guarantees online image delivery & video streaming on cPanel shared hosting)
+// Media / Uploads file serving route (Guarantees online image delivery & protected video streaming on cPanel shared hosting)
 Route::get('/uploads/{folder}/{filename}', function ($folder, $filename) {
     $path = public_path("uploads/{$folder}/{$filename}");
     if (!file_exists($path)) {
@@ -395,6 +395,23 @@ Route::get('/uploads/{folder}/{filename}', function ($folder, $filename) {
     }
     if (!file_exists($path)) {
         abort(404);
+    }
+
+    // Protect lesson videos: verify authentication & enrollment before streaming
+    if ($folder === 'videos') {
+        $user = Auth::user();
+        if (!$user) {
+            abort(403, 'Please sign in to access course videos.');
+        }
+        $lesson = \App\Models\Lesson::where('video_url', "uploads/videos/{$filename}")
+            ->orWhere('video_url', 'like', "%{$filename}")
+            ->first();
+        if ($lesson && $lesson->course) {
+            $course = $lesson->course;
+            if (!$user->isAdmin() && $user->id !== $course->instructor_id && !$user->enrolledIn($course->id)) {
+                abort(403, 'You must be enrolled in this course to watch this video.');
+            }
+        }
     }
 
     $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
@@ -411,10 +428,12 @@ Route::get('/uploads/{folder}/{filename}', function ($folder, $filename) {
         default => mime_content_type($path) ?: 'application/octet-stream',
     };
 
+    $cacheControl = $folder === 'videos' ? 'private, no-transform' : 'public, max-age=604800';
+
     return response()->file($path, [
         'Content-Type' => $mime,
         'Accept-Ranges' => 'bytes',
-        'Cache-Control' => 'public, max-age=604800',
+        'Cache-Control' => $cacheControl,
     ]);
 })->where('folder', 'thumbnails|avatars|materials|videos|receipts|submissions|tasks');
 
@@ -630,7 +649,9 @@ Route::middleware(['auth', 'instructor'])->group(function () {
     Route::delete('/instructor/courses/{course}/modules/{module}/materials/{material}', [ModuleController::class, 'deleteMaterial'])->name('instructor.modules.materials.destroy');
 
     // Lesson Routes (instructor only)
-    Route::post('/instructor/lessons/import-gdrive', [LessonController::class, 'ajaxImportGoogleDrive'])->name('instructor.lessons.import-gdrive');
+    Route::post('/instructor/lessons/import-gdrive', [LessonController::class, 'ajaxImportGoogleDrive'])
+        ->middleware('throttle:10,1')
+        ->name('instructor.lessons.import-gdrive');
     Route::post('/instructor/courses/{course}/lessons', [LessonController::class, 'store'])->name('instructor.lessons.store');
     Route::put('/instructor/courses/{course}/lessons/{lesson}', [LessonController::class, 'update'])->name('instructor.lessons.update');
     Route::delete('/instructor/courses/{course}/lessons/{lesson}', [LessonController::class, 'destroy'])->name('instructor.lessons.destroy');
