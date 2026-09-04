@@ -36,7 +36,8 @@ class LessonDiscussionController extends Controller
 
         // Send notifications
         try {
-            $lessonUrl = route('courses.lessons.show', [$course->slug, $lesson->id]);
+            $lessonUrl = route('lesson.show', [$course->slug, $lesson->id]);
+            $cleanComment = strip_tags($request->comment);
 
             // 1. If student posted, notify the course instructor
             if ($course->instructor_id && $course->instructor_id !== $user->id) {
@@ -44,7 +45,7 @@ class LessonDiscussionController extends Controller
                     $course->instructor_id,
                     'submission',
                     "New Discussion Question 💬",
-                    "{$user->name} posted in \"{$lesson->title}\": \"" . \Illuminate\Support\Str::limit($request->comment, 80) . "\"",
+                    "{$user->name} posted in \"{$lesson->title}\": \"" . \Illuminate\Support\Str::limit($cleanComment, 80) . "\"",
                     $lessonUrl,
                     'fa-comments',
                     'blue'

@@ -792,15 +792,34 @@
                             const readClass = n.is_read ? 'opacity-60' : 'bg-blue-50/40';
                             const item = document.createElement('div');
                             item.className = `px-4 py-3 hover:bg-gray-50 transition cursor-pointer ${readClass}`;
-                            item.innerHTML = `
-                                <div class="flex gap-3 items-start">
-                                    <i class="fas ${n.icon} mt-0.5 flex-shrink-0 ${iconColor}"></i>
-                                    <div class="min-w-0 flex-1">
-                                        <p class="text-xs font-bold text-gray-900 leading-tight">${n.title}</p>
-                                        <p class="text-xs text-gray-500 mt-0.5 leading-snug">${n.message}</p>
-                                        <p class="text-[10px] text-gray-300 mt-1">${new Date(n.created_at).toLocaleString()}</p>
-                                    </div>
-                                </div>`;
+
+                            const row = document.createElement('div');
+                            row.className = 'flex gap-3 items-start';
+
+                            const icon = document.createElement('i');
+                            icon.className = `fas ${n.icon || 'fa-bell'} mt-0.5 flex-shrink-0 ${iconColor}`;
+
+                            const textWrap = document.createElement('div');
+                            textWrap.className = 'min-w-0 flex-1';
+
+                            const title = document.createElement('p');
+                            title.className = 'text-xs font-bold text-gray-900 leading-tight';
+                            title.textContent = n.title;
+
+                            const msg = document.createElement('p');
+                            msg.className = 'text-xs text-gray-500 mt-0.5 leading-snug';
+                            msg.textContent = n.message;
+
+                            const time = document.createElement('p');
+                            time.className = 'text-[10px] text-gray-300 mt-1';
+                            time.textContent = new Date(n.created_at).toLocaleString();
+
+                            textWrap.appendChild(title);
+                            textWrap.appendChild(msg);
+                            textWrap.appendChild(time);
+                            row.appendChild(icon);
+                            row.appendChild(textWrap);
+                            item.appendChild(row);
                             item.addEventListener('click', () => {
                                 fetch(`/notifications/${n.id}/read`, {
                                     method: 'POST',

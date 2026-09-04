@@ -127,6 +127,23 @@ class LessonController extends Controller
             abort(403, 'You are not enrolled in this course.');
         }
 
+        // Verify module unlock and drip status
+        if (!$lesson->isUnlockedFor($user)) {
+            return redirect()->back()->with('error', 'This lesson is currently locked.');
+        }
+
+        // Verify all required tasks are submitted and approved
+        $requiredTaskIds = $lesson->tasks()->where('is_required', true)->pluck('id');
+        if ($requiredTaskIds->isNotEmpty()) {
+            $approvedCount = Submission::whereIn('task_id', $requiredTaskIds)
+                ->where('user_id', $user->id)
+                ->where('status', 'approved')
+                ->count();
+            if ($approvedCount < $requiredTaskIds->count()) {
+                return redirect()->back()->with('error', 'You must complete and have all required tasks approved before marking this lesson complete.');
+            }
+        }
+
         $progress = LessonProgress::where('user_id', $user->id)
             ->where('lesson_id', $lesson->id)
             ->firstOrCreate(
@@ -214,15 +231,22 @@ class LessonController extends Controller
             'drip_days'           => 'nullable|integer|min:0',
         ]);
 
-        // Priority 1: Handle pre-imported Google Drive video path
+        // Priority 1: Handle pre-imported Google Drive video path with strict traversal validation
         if ($request->filled('imported_video_path')) {
-            $validated['video_url'] = $request->input('imported_video_path');
+            $importedPath = $request->input('imported_video_path');
+            if (preg_match('/^uploads\/videos\/[a-zA-Z0-9_\.-]+$/', $importedPath)) {
+                $validated['video_url'] = $importedPath;
+            }
         }
         // Priority 2: Handle direct device file upload
         elseif ($request->hasFile('video_file') && $request->file('video_file')->isValid()) {
+            $videosDir = public_path('uploads/videos');
+            if (!is_dir($videosDir)) {
+                @mkdir($videosDir, 0775, true);
+            }
             $file = $request->file('video_file');
             $filename = time() . '_' . preg_replace('/[^a-z0-9._-]/i', '_', $file->getClientOriginalName());
-            $file->move(public_path('uploads/videos'), $filename);
+            $file->move($videosDir, $filename);
             $validated['video_url'] = 'uploads/videos/' . $filename;
         }
         // Priority 3: Handle Google Drive Direct Import to Server fallback
@@ -290,39 +314,33 @@ class LessonController extends Controller
             'drip_days'           => 'nullable|integer|min:0',
         ]);
 
-        // Priority 1: Handle pre-imported Google Drive video path
+        // Priority 1: Handle pre-imported Google Drive video path with strict traversal validation
         if ($request->filled('imported_video_path')) {
-            if ($lesson->video_url && !str_starts_with($lesson->video_url, 'http') && $lesson->video_url !== $request->input('imported_video_path')) {
-                $oldPath = public_path($lesson->video_url);
-                if (file_exists($oldPath)) {
-                    @unlink($oldPath);
+            $importedPath = $request->input('imported_video_path');
+            if (preg_match('/^uploads\/videos\/[a-zA-Z0-9_\.-]+$/', $importedPath)) {
+                if ($lesson->video_url && $lesson->video_url !== $importedPath) {
+                    $this->safeDeleteLocalVideo($lesson->video_url);
                 }
+                $validated['video_url'] = $importedPath;
             }
-            $validated['video_url'] = $request->input('imported_video_path');
         }
         // Priority 2: Handle direct device file upload
         elseif ($request->hasFile('video_file') && $request->file('video_file')->isValid()) {
-            if ($lesson->video_url && !str_starts_with($lesson->video_url, 'http')) {
-                $oldPath = public_path($lesson->video_url);
-                if (file_exists($oldPath)) {
-                    @unlink($oldPath);
-                }
+            $this->safeDeleteLocalVideo($lesson->video_url);
+            $videosDir = public_path('uploads/videos');
+            if (!is_dir($videosDir)) {
+                @mkdir($videosDir, 0775, true);
             }
             $file = $request->file('video_file');
             $filename = time() . '_' . preg_replace('/[^a-z0-9._-]/i', '_', $file->getClientOriginalName());
-            $file->move(public_path('uploads/videos'), $filename);
+            $file->move($videosDir, $filename);
             $validated['video_url'] = 'uploads/videos/' . $filename;
         }
         // Priority 3: Handle Google Drive Direct Import fallback
         elseif ($request->filled('gdrive_import_url')) {
             $importedPath = $this->importVideoFromGoogleDrive($request->input('gdrive_import_url'));
             if ($importedPath) {
-                if ($lesson->video_url && !str_starts_with($lesson->video_url, 'http')) {
-                    $oldPath = public_path($lesson->video_url);
-                    if (file_exists($oldPath)) {
-                        @unlink($oldPath);
-                    }
-                }
+                $this->safeDeleteLocalVideo($lesson->video_url);
                 $validated['video_url'] = $importedPath;
             } else {
                 $validated['video_url'] = $request->input('gdrive_import_url');
@@ -341,7 +359,7 @@ class LessonController extends Controller
             $validated['content'] = $this->sanitizeLessonContent($validated['content']);
         }
 
-        unset($validated['gdrive_import_url']);
+        unset($validated['gdrive_import_url'], $validated['imported_video_path']);
         $lesson->update($validated);
 
         // Auto-recalculate course duration
@@ -373,6 +391,9 @@ class LessonController extends Controller
             abort(403, 'You are not the instructor of this course.');
         }
 
+        // Clean up associated local video file
+        $this->safeDeleteLocalVideo($lesson->video_url);
+
         $lesson->delete();
 
         // Auto-recalculate course duration
@@ -385,13 +406,37 @@ class LessonController extends Controller
     }
 
     /**
-     * Sanitize rich-text HTML content using a strict tag allowlist.
-     * Strips <script>, <iframe>, event handler attributes, and javascript: URIs
-     * while preserving all safe formatting tags from WYSIWYG editors.
+     * Safely delete a local uploaded video file, preventing path traversal and orphaned video leaks.
+     */
+    private function safeDeleteLocalVideo(?string $path): void
+    {
+        if (!$path || str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return;
+        }
+
+        // Only allow paths matching uploads/videos/<safe-filename>
+        if (!preg_match('/^uploads\/videos\/[a-zA-Z0-9_\.-]+$/', $path)) {
+            return;
+        }
+
+        $fullPath = public_path($path);
+        $videosDir = realpath(public_path('uploads/videos'));
+
+        if ($videosDir && file_exists($fullPath)) {
+            $realFile = realpath($fullPath);
+            if ($realFile && str_starts_with($realFile, $videosDir . DIRECTORY_SEPARATOR)) {
+                @unlink($realFile);
+            }
+        }
+    }
+
+    /**
+     * Sanitize rich-text HTML content using strict tag and attribute allowlists.
+     * Prevents XSS, entity obfuscation, event handlers, and malicious URIs.
      */
     private function sanitizeLessonContent(string $html): string
     {
-        // Safe tags produced by WYSIWYG editors (TipTap, Quill, etc.)
+        // Safe tags produced by WYSIWYG editors
         $allowedTags = '<p><br><strong><b><em><i><u><s><del><ins><mark><small><sup><sub>'.
                        '<h1><h2><h3><h4><h5><h6>'.
                        '<ul><ol><li><dl><dt><dd>'.
@@ -402,19 +447,31 @@ class LessonController extends Controller
 
         $clean = strip_tags($html, $allowedTags);
 
-        // Remove event handler attributes (onclick, onload, onerror, oninput, etc.)
-        $clean = preg_replace('/\s+on\w+\s*=\s*(["\']).*?\1/is', '', $clean);
-        $clean = preg_replace('/\s+on\w+\s*=\s*[^\s>]+/i', '', $clean);
+        // Remove dangerous tags and wrappers that strip_tags may leave behind
+        $clean = preg_replace('/<\/?(script|iframe|object|embed|style|link|meta|base|form|input|button|svg|math)[^>]*>/i', '', $clean);
 
-        // Strip javascript:, vbscript:, and data: in href/src attributes
-        $clean = preg_replace('/(href|src|action)\s*=\s*(["\'])\s*(?:javascript|vbscript|data):/i', '$1=$2#', $clean);
+        // Remove all inline event handlers (onclick, onerror, onload, onmouseover, etc.)
+        $clean = preg_replace('/\s+on[a-zA-Z]+\s*=\s*(["\']).*?\1/is', '', $clean);
+        $clean = preg_replace('/\s+on[a-zA-Z]+\s*=\s*[^\s>]+/i', '', $clean);
+
+        // Disallow dangerous URI schemes (javascript:, data:, vbscript:) including entity encoded variants
+        $clean = preg_replace_callback('/(href|src|action)\s*=\s*(["\'])(.*?)\2/is', function($match) {
+            $attr = $match[1];
+            $url = trim(html_entity_decode($match[3], ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+            
+            // Allow safe protocols or relative paths
+            if (preg_match('/^(https?:\/\/|mailto:|\/|#)/i', $url) && !preg_match('/^(javascript|vbscript|data):/i', $url)) {
+                return $attr . '="' . htmlspecialchars($url, ENT_QUOTES, 'UTF-8') . '"';
+            }
+            return $attr . '="#"';
+        }, $clean);
 
         return $clean;
     }
 
     /**
      * Download and save a public Google Drive video directly to server storage.
-     * Handles Google Drive confirm tokens, uuid parameters, and large file virus scan bypass.
+     * Handles Google Drive confirm tokens, uuid parameters, and caps download size at 500 MB.
      *
      * @param string $driveUrl
      * @return string|null Relative video path (e.g. 'uploads/videos/gdrive_123.mp4') or null on failure
@@ -438,8 +495,8 @@ class LessonController extends Controller
         }
 
         $videosDir = public_path('uploads/videos');
-        if (!file_exists($videosDir)) {
-            @mkdir($videosDir, 0755, true);
+        if (!is_dir($videosDir)) {
+            @mkdir($videosDir, 0775, true);
         }
 
         $cookieFile = tempnam(sys_get_temp_dir(), 'gdrive_cookie_');
@@ -490,7 +547,8 @@ class LessonController extends Controller
             }
         }
 
-        // Step 2: Stream download directly to file
+        // Step 2: Stream download directly to file with max 500MB size limit
+        $maxBytes = 500 * 1024 * 1024; // 500 MB
         $fp = fopen($tempTarget, 'w+');
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $downloadUrl);
@@ -501,6 +559,14 @@ class LessonController extends Controller
         curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
         curl_setopt($ch, CURLOPT_TIMEOUT, 600); // 10 minutes max
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_NOPROGRESS, false);
+        curl_setopt($ch, CURLOPT_PROGRESSFUNCTION, function($resource, $downloadSize, $downloaded) use ($maxBytes) {
+            if ($downloaded > $maxBytes) {
+                return 1; // Abort transfer if exceeding 500 MB
+            }
+            return 0;
+        });
+
         curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $downloadedSize = curl_getinfo($ch, CURLINFO_SIZE_DOWNLOAD);
@@ -510,7 +576,7 @@ class LessonController extends Controller
         @unlink($cookieFile);
 
         // Verification: ensure file was downloaded and is not an HTML error
-        if ($httpCode >= 200 && $httpCode < 400 && $downloadedSize > 10240 && !str_contains($finalContentType ?: '', 'text/html')) {
+        if ($httpCode >= 200 && $httpCode < 400 && $downloadedSize > 10240 && $downloadedSize <= $maxBytes && !str_contains($finalContentType ?: '', 'text/html')) {
             $filename = 'gdrive_' . time() . '_' . substr($fileId, 0, 10) . '.mp4';
             $finalPath = $videosDir . '/' . $filename;
             if (rename($tempTarget, $finalPath)) {
