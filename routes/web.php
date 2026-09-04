@@ -55,6 +55,11 @@ Route::get('/terms-of-service', function () { return view('eua'); })->name('eua'
 // SEO: Dynamic XML Sitemap
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 
+// Session Keep-Alive & Fresh CSRF Token Endpoint (Prevents 419 Page Expired errors)
+Route::get('/csrf-token', function () {
+    return response()->json(['token' => csrf_token()]);
+})->name('csrf.token');
+
 // Shopping Cart Routes (Publicly accessible; persists across sessions and logouts)
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::post('/cart/{course}', [CartController::class, 'store'])->name('cart.store');
@@ -382,18 +387,56 @@ Route::any('/insert-module', function () {
 });
 
 
-// Media / Uploads file serving route (Guarantees online image delivery on cPanel shared hosting)
+// Media / Uploads file serving route (Guarantees online image delivery & video streaming on cPanel shared hosting)
 Route::get('/uploads/{folder}/{filename}', function ($folder, $filename) {
     $path = public_path("uploads/{$folder}/{$filename}");
-    if (file_exists($path)) {
-        return response()->file($path);
+    if (!file_exists($path)) {
+        $path = base_path("public/uploads/{$folder}/{$filename}");
     }
-    $rootPath = base_path("public/uploads/{$folder}/{$filename}");
-    if (file_exists($rootPath)) {
-        return response()->file($rootPath);
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+    $mime = match($ext) {
+        'mp4' => 'video/mp4',
+        'webm' => 'video/webm',
+        'mov', 'quicktime' => 'video/quicktime',
+        'avi' => 'video/x-msvideo',
+        'png' => 'image/png',
+        'jpg', 'jpeg' => 'image/jpeg',
+        'svg' => 'image/svg+xml',
+        'webp' => 'image/webp',
+        'pdf' => 'application/pdf',
+        default => mime_content_type($path) ?: 'application/octet-stream',
+    };
+
+    return response()->file($path, [
+        'Content-Type' => $mime,
+        'Accept-Ranges' => 'bytes',
+        'Cache-Control' => 'public, max-age=604800',
+    ]);
+})->where('folder', 'thumbnails|avatars|materials|videos|receipts|submissions|tasks');
+
+// Explicit Favicon Delivery Routes (Prevents 404s and browser icon misses on all sub-routes)
+Route::get('/favicon.ico', function () {
+    $path = public_path('favicon.ico');
+    if (file_exists($path)) {
+        return response()->file($path, ['Content-Type' => 'image/x-icon', 'Cache-Control' => 'public, max-age=604800']);
+    }
+    $pngPath = public_path('favicon.png');
+    if (file_exists($pngPath)) {
+        return response()->file($pngPath, ['Content-Type' => 'image/png', 'Cache-Control' => 'public, max-age=604800']);
     }
     abort(404);
-})->where('folder', 'thumbnails|avatars|materials');
+});
+Route::get('/favicon.png', function () {
+    $path = public_path('favicon.png');
+    if (file_exists($path)) {
+        return response()->file($path, ['Content-Type' => 'image/png', 'Cache-Control' => 'public, max-age=604800']);
+    }
+    abort(404);
+});
 
 // Authentication Routes (Email Verification Enabled)
 Auth::routes(['verify' => true]);
@@ -432,7 +475,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/payments', [AdminDashboardController::class, 'payments'])->name('payments');
     Route::get('/instructor-applications', [InstructorApplicationController::class, 'index'])->name('instructor.applications');
     Route::post('/instructor-applications/{application}/approve', [InstructorApplicationController::class, 'approve'])->name('instructor.applications.approve');
+    Route::get('/instructor-applications/{application}/approve', fn() => redirect()->route('admin.instructor.applications'));
     Route::post('/instructor-applications/{application}/reject', [InstructorApplicationController::class, 'reject'])->name('instructor.applications.reject');
+    Route::get('/instructor-applications/{application}/reject', fn() => redirect()->route('admin.instructor.applications'));
     Route::post('/payouts/{instructor}/mark-paid', [AdminDashboardController::class, 'markInstructorPaid'])->name('payouts.mark-paid');
     Route::post('/settings', [AdminDashboardController::class, 'updateSettings'])->name('settings.update');
 });
@@ -441,14 +486,16 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin/instructor-applications', [InstructorApplicationController::class, 'index'])->name('admin.instructor.applications');
     Route::post('/admin/instructor-applications/{application}/approve', [InstructorApplicationController::class, 'approve'])->name('admin.instructor.applications.approve');
+    Route::get('/admin/instructor-applications/{application}/approve', fn() => redirect()->route('admin.instructor.applications'));
     Route::post('/admin/instructor-applications/{application}/reject', [InstructorApplicationController::class, 'reject'])->name('admin.instructor.applications.reject');
+    Route::get('/admin/instructor-applications/{application}/reject', fn() => redirect()->route('admin.instructor.applications'));
 });
 
 // Dashboard Routes (Protected & Email Verified)
 Route::middleware(['auth', 'verified'])->group(function () {
     // Student Quiz Routes
     Route::get('/courses/{course}/lessons/{lesson}/quizzes/{quiz}', [StudentQuizController::class, 'show'])->name('student.quiz.show');
-    Route::post('/courses/{course}/lessons/{lesson}/quizzes/{quiz}/submit', [StudentQuizController::class, 'submit'])->name('student.quiz.submit');
+    Route::post('/courses/{course}/lessons/{lesson}/quizzes/{quiz}/submit', [StudentQuizController::class, 'submit'])->middleware('throttle:20,1')->name('student.quiz.submit');
     Route::get('/courses/{course}/lessons/{lesson}/quizzes/{quiz}/result', [StudentQuizController::class, 'result'])->name('student.quiz.result');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -458,9 +505,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('profile');
     Route::post('/profile/avatar', [DashboardController::class, 'updateAvatar'])->name('profile.avatar');
     Route::get('/settings', [DashboardController::class, 'settings'])->name('settings');
-    Route::post('/settings/profile', [DashboardController::class, 'updateProfile'])->name('settings.profile');
-    Route::post('/settings/password', [DashboardController::class, 'updatePassword'])->name('settings.password');
-    Route::post('/settings/request-deletion', [DashboardController::class, 'requestAccountDeletion'])->name('settings.account.request-deletion');
+    Route::post('/settings/profile', [DashboardController::class, 'updateProfile'])->middleware('throttle:10,1')->name('settings.profile');
+    Route::post('/settings/password', [DashboardController::class, 'updatePassword'])->middleware('throttle:5,1')->name('settings.password');
+    Route::post('/settings/request-deletion', [DashboardController::class, 'requestAccountDeletion'])->middleware('throttle:3,1')->name('settings.account.request-deletion');
 
     Route::get('/student/dashboard', [DashboardController::class, 'studentDashboard'])
          ->name('student.dashboard');
@@ -520,7 +567,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
          ->middleware(IsInstructor::class)
          ->name('instructor.bank-details.update');
     Route::post('/instructor/payout/request', [DashboardController::class, 'requestPayout'])
-         ->middleware(IsInstructor::class)
+         ->middleware([IsInstructor::class, 'throttle:2,1'])
          ->name('instructor.payout.request');
     Route::get('/instructor/submissions', [DashboardController::class, 'instructorSubmissions'])
          ->middleware(IsInstructor::class)
@@ -536,13 +583,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
          ->name('instructor.coupons.destroy');
 
 
-    // Checkout & Payment Routes
+    // Checkout & Payment Routes — rate-limited to prevent duplicate charges
     Route::get('/courses/{course}/checkout', [PaymentController::class, 'checkout'])->name('courses.checkout');
-    Route::post('/courses/{course}/checkout/initialize', [PaymentController::class, 'initialize'])->name('courses.checkout.initialize');
-    Route::post('/courses/{course}/checkout/coupon', [PaymentController::class, 'applyCoupon'])->name('courses.checkout.coupon');
+    Route::post('/courses/{course}/checkout/initialize', [PaymentController::class, 'initialize'])->middleware('throttle:3,1')->name('courses.checkout.initialize');
+    Route::post('/courses/{course}/checkout/coupon', [PaymentController::class, 'applyCoupon'])->middleware('throttle:10,1')->name('courses.checkout.coupon');
 
-    // Lesson Discussion Routes
-    Route::post('/courses/{course}/lessons/{lesson}/discussions', [LessonDiscussionController::class, 'store'])->name('lesson.discussion.store');
+    // Lesson Discussion Routes — rate-limited to prevent comment spam
+    Route::post('/courses/{course}/lessons/{lesson}/discussions', [LessonDiscussionController::class, 'store'])->middleware('throttle:10,1')->name('lesson.discussion.store');
     Route::delete('/discussions/{discussion}', [LessonDiscussionController::class, 'destroy'])->name('lesson.discussion.destroy');
 
     // Wishlist Routes
@@ -559,9 +606,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/settings/notifications', [NotificationController::class, 'preferences'])->name('notifications.preferences');
     Route::post('/settings/notifications', [NotificationController::class, 'savePreferences'])->name('notifications.save');
 
-    // Bank Verification & Account Resolution APIs
+    // Bank Verification & Account Resolution APIs — rate-limited to prevent enumeration attacks
     Route::get('/api/banks', [BankVerificationController::class, 'getBanks'])->name('api.banks');
-    Route::post('/api/banks/resolve', [BankVerificationController::class, 'resolveAccount'])->name('api.banks.resolve');
+    Route::post('/api/banks/resolve', [BankVerificationController::class, 'resolveAccount'])->middleware('throttle:10,1')->name('api.banks.resolve');
 });
 
 
@@ -583,6 +630,7 @@ Route::middleware(['auth', 'instructor'])->group(function () {
     Route::delete('/instructor/courses/{course}/modules/{module}/materials/{material}', [ModuleController::class, 'deleteMaterial'])->name('instructor.modules.materials.destroy');
 
     // Lesson Routes (instructor only)
+    Route::post('/instructor/lessons/import-gdrive', [LessonController::class, 'ajaxImportGoogleDrive'])->name('instructor.lessons.import-gdrive');
     Route::post('/instructor/courses/{course}/lessons', [LessonController::class, 'store'])->name('instructor.lessons.store');
     Route::put('/instructor/courses/{course}/lessons/{lesson}', [LessonController::class, 'update'])->name('instructor.lessons.update');
     Route::delete('/instructor/courses/{course}/lessons/{lesson}', [LessonController::class, 'destroy'])->name('instructor.lessons.destroy');

@@ -122,19 +122,26 @@ class DashboardController extends Controller
         $user->update(['payout_requested_at' => now()->toDateTimeString()]);
 
 
-        // Notify admins
-        $admins = User::where('role', 'admin')->get();
-        foreach ($admins as $admin) {
-            \App\Models\AppNotification::notify(
-                $admin->id,
-                'payout',
-                'Payout Requested 💳',
-                "Instructor {$user->name} has requested a payout to {$user->bank_name} ({$user->account_number}).",
-                route('admin.dashboard'),
-                'fa-wallet',
-                'green'
-            );
-        }
+        // 1. Notify all registered Admins (both in-app and email)
+        \App\Models\AppNotification::notifyAdmins(
+            'payout',
+            '💳 Payout Requested',
+            "Instructor {$user->name} has requested a payout to {$user->bank_name} ({$user->account_number}).",
+            route('admin.dashboard'),
+            'fa-wallet',
+            'green'
+        );
+
+        // 2. Send confirmation to Instructor
+        \App\Models\AppNotification::notify(
+            $user->id,
+            'payout',
+            'Payout Request Received 💳',
+            "Your payout request to {$user->bank_name} ({$user->account_number}) has been received and is being processed by administration.",
+            route('instructor.dashboard'),
+            'fa-money-bill-wave',
+            'green'
+        );
 
         return back()->with('status', 'Payout request submitted to platform administration!');
     }
@@ -261,19 +268,15 @@ class DashboardController extends Controller
             'status'  => 'unread',
         ]);
 
-        // 2. In-App Notification to all Admins
-        $admins = \App\Models\User::where('role', 'admin')->get();
-        foreach ($admins as $admin) {
-            \App\Models\AppNotification::notify(
-                $admin->id,
-                'support',
-                "⚠️ Account Deletion Request from {$user->name}",
-                "User {$user->email} has requested account deletion. Review in Mailer & Inbox.",
-                route('admin.dashboard'),
-                'fa-user-slash',
-                'red'
-            );
-        }
+        // 2. In-App and Email Notification to all registered Admins
+        \App\Models\AppNotification::notifyAdmins(
+            'support',
+            "⚠️ Account Deletion Request: {$user->name}",
+            "User {$user->email} has requested permanent account deletion. Reason: " . ($reason ?: 'None provided'),
+            route('admin.dashboard'),
+            'fa-user-slash',
+            'red'
+        );
 
         // 3. In-App Notification to the requesting User
         \App\Models\AppNotification::notify(

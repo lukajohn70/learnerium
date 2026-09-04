@@ -50,7 +50,7 @@ class InstructorApplicationController extends Controller
             'sample_video_url' => 'nullable|url|max:255',
         ]);
 
-        InstructorApplication::updateOrCreate(
+        $app = InstructorApplication::updateOrCreate(
             ['user_id' => $user->id],
             [
                 'headline' => $request->headline,
@@ -62,6 +62,29 @@ class InstructorApplicationController extends Controller
                 'rejection_reason' => null,
             ]
         );
+
+        // 1. Notify all registered Admins (both in-app and email)
+        try {
+            \App\Models\AppNotification::notifyAdmins(
+                'support',
+                "👨‍🏫 New Instructor Application: {$user->name}",
+                "Applicant {$user->name} ({$user->email}) submitted an application.\nHeadline: {$request->headline} • Expertise: {$request->expertise_area}",
+                route('admin.instructor-applications'),
+                'fa-chalkboard-teacher',
+                'purple'
+            );
+
+            // 2. Send confirmation to prospective tutor
+            \App\Models\AppNotification::notify(
+                $user->id,
+                'support',
+                'Instructor Application Received! 📋',
+                "Thank you for applying to teach on Learnerium, {$user->name}! We have received your application for \"{$request->expertise_area}\". Our academic review team will evaluate your profile and get back to you shortly.",
+                route('instructor.apply'),
+                'fa-file-signature',
+                'blue'
+            );
+        } catch (\Throwable $e) {}
 
         return redirect()->route('instructor.apply')
             ->with('status', 'Your instructor application has been submitted successfully! Our team will review your profile.');
@@ -89,6 +112,17 @@ class InstructorApplicationController extends Controller
         $user = $application->user;
         if ($user) {
             $user->update(['role' => 'instructor']);
+            try {
+                \App\Models\AppNotification::notify(
+                    $user->id,
+                    'announcement',
+                    "🎉 Congratulations! You are now an Instructor",
+                    "Your instructor application has been approved. You can now create and manage courses!",
+                    route('instructor.dashboard'),
+                    'fa-chalkboard-teacher',
+                    'green'
+                );
+            } catch (\Throwable $e) {}
         }
 
         return back()->with('status', "Application for {$user->name} has been APPROVED! They are now an Instructor.");
@@ -103,10 +137,27 @@ class InstructorApplicationController extends Controller
             'rejection_reason' => 'nullable|string|max:500',
         ]);
 
+        $reason = $request->rejection_reason ?: 'Application does not meet current criteria.';
+
         $application->update([
             'status' => 'rejected',
-            'rejection_reason' => $request->rejection_reason ?: 'Application does not meet current criteria.',
+            'rejection_reason' => $reason,
         ]);
+
+        $user = $application->user;
+        if ($user) {
+            try {
+                \App\Models\AppNotification::notify(
+                    $user->id,
+                    'system',
+                    "Instructor Application Status Update",
+                    "Status: " . $reason,
+                    route('instructor.apply'),
+                    'fa-info-circle',
+                    'amber'
+                );
+            } catch (\Throwable $e) {}
+        }
 
         return back()->with('status', "Application for {$application->user->name} has been REJECTED.");
     }

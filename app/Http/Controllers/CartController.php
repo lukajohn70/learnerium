@@ -10,31 +10,34 @@ class CartController extends Controller
 {
     /**
      * Get all cart course IDs for current user/guest and keep DB & Session in sync.
+     * Database is the strict single source of truth when authenticated.
      */
     public static function getCartCourseIds(): array
     {
-        $sessionIds = session('cart_course_ids', []);
-        if (!is_array($sessionIds)) {
-            $sessionIds = [];
-        }
-
         if (Auth::check()) {
             $user = Auth::user();
             $dbIds = $user->cart()->pluck('courses.id')->toArray();
             
-            // Merge session cart into DB cart
-            $newIds = array_diff($sessionIds, $dbIds);
-            if (!empty($newIds)) {
-                $user->cart()->syncWithoutDetaching($newIds);
-                $dbIds = array_unique(array_merge($dbIds, $newIds));
+            // If user transitioned from guest with a guest_cart_to_merge flag, merge once
+            if (session()->has('guest_cart_to_merge')) {
+                $sessionIds = session('cart_course_ids', []);
+                if (is_array($sessionIds) && !empty($sessionIds)) {
+                    $newIds = array_diff($sessionIds, $dbIds);
+                    if (!empty($newIds)) {
+                        $user->cart()->syncWithoutDetaching($newIds);
+                        $dbIds = array_unique(array_merge($dbIds, $newIds));
+                    }
+                }
+                session()->forget('guest_cart_to_merge');
             }
             
-            // Keep session synced with DB cart
+            // Keep local session strictly synced to database state
             session(['cart_course_ids' => $dbIds]);
             return $dbIds;
         }
 
-        return $sessionIds;
+        $sessionIds = session('cart_course_ids', []);
+        return is_array($sessionIds) ? $sessionIds : [];
     }
 
     /**

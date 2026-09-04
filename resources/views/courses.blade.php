@@ -151,7 +151,7 @@
                                     {{ \Illuminate\Support\Str::limit($course->description, 110) }}
                                 </p>
                                 <div class="flex items-center gap-2.5 text-xs font-semibold text-gray-600 mb-4">
-                                    <img src="{{ $course->instructor ? $course->instructor->avatarUrl() : 'https://ui-avatars.com/api/?name=Instructor' }}" class="w-6 h-6 rounded-full object-cover" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Instructor';">
+                                    <img src="{{ $course->instructor ? $course->instructor->avatarUrl() : 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgMTI4IDEyOCI+PHJlY3Qgd2lkdGg9IjEyOCIgaGVpZ2h0PSIxMjgiIHJ4PSI2NCIgZmlsbD0iIzFiMjI5OSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTQlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjZjdkZTdhIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSI0NiIgZm9udC13ZWlnaHQ9ImJvbGQiPklSPC90ZXh0Pjwvc3ZnPg==' }}" class="w-6 h-6 rounded-full object-cover" width="24" height="24" loading="lazy">
                                     <span>{{ $course->instructor?->name ?? 'Instructor' }}</span>
                                 </div>
                             </div>

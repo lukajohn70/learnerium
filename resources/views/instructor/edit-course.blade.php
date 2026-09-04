@@ -405,7 +405,7 @@
                                                     <i class="fas fa-times text-lg"></i>
                                                 </button>
                                             </div>
-                                            <form action="{{ route('instructor.lessons.update', [$course, $lesson]) }}" method="POST" class="space-y-4">
+                                            <form action="{{ route('instructor.lessons.update', [$course, $lesson]) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                                                 @csrf
                                                 @method('PUT')
 
@@ -415,8 +415,64 @@
                                                 </div>
 
                                                 <div>
-                                                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">Video / Media URL (YouTube, Vimeo, MP4, Google Drive)</label>
-                                                    <input type="url" name="video_url" value="{{ old('video_url', $lesson->video_url) }}" placeholder="https://youtube.com/watch?v=..." class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-600">
+                                                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">Video Source</label>
+                                                    {{-- Source Tab Toggle: 3 Options --}}
+                                                    <div class="grid grid-cols-3 rounded-xl border border-gray-200 overflow-hidden mb-3 text-xs font-bold" id="vsToggle-{{ $lesson->id }}">
+                                                        <button type="button" onclick="switchVideoSource('{{ $lesson->id }}', 'url')"
+                                                            class="vs-tab-url-{{ $lesson->id }} px-2 py-2.5 bg-blue-600 text-white transition-colors text-center truncate"
+                                                            id="vsTabUrl-{{ $lesson->id }}">
+                                                            🔗 Web Link
+                                                        </button>
+                                                        <button type="button" onclick="switchVideoSource('{{ $lesson->id }}', 'gdrive')"
+                                                            class="vs-tab-gdrive-{{ $lesson->id }} px-2 py-2.5 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors text-center truncate"
+                                                            id="vsTabGdrive-{{ $lesson->id }}">
+                                                            ☁️ Drive to Server
+                                                        </button>
+                                                        <button type="button" onclick="switchVideoSource('{{ $lesson->id }}', 'upload')"
+                                                            class="vs-tab-up-{{ $lesson->id }} px-2 py-2.5 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors text-center truncate"
+                                                            id="vsTabUp-{{ $lesson->id }}">
+                                                            📁 Upload File
+                                                        </button>
+                                                    </div>
+                                                    {{-- Option 1: Standard URL (YouTube/Vimeo/Embed) --}}
+                                                    <div id="vsUrlWrap-{{ $lesson->id }}">
+                                                        <input type="url" name="video_url"
+                                                            value="{{ old('video_url', (!$lesson->video_url || str_starts_with($lesson->video_url, 'http')) ? $lesson->video_url : '') }}"
+                                                            placeholder="https://youtube.com/watch?v=... or Vimeo link"
+                                                            class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-600">
+                                                        <p class="text-[11px] text-gray-400 mt-1">Streams directly from YouTube, Vimeo, or external media server.</p>
+                                                    </div>
+                                                    {{-- Option 2: Google Drive Direct Import to Server --}}
+                                                    <div id="vsGdriveWrap-{{ $lesson->id }}" class="hidden space-y-2.5">
+                                                        <input type="hidden" name="imported_video_path" id="gdriveImportedPath-{{ $lesson->id }}" value="">
+                                                        <div>
+                                                            <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">Google Drive Share Link</label>
+                                                            <input type="url" id="gdriveInput-{{ $lesson->id }}" name="gdrive_import_url"
+                                                                placeholder="https://drive.google.com/file/d/.../view?usp=sharing"
+                                                                class="w-full px-4 py-3 border border-indigo-200 bg-indigo-50/30 rounded-xl text-sm focus:outline-none focus:border-indigo-600">
+                                                        </div>
+                                                        <div class="flex flex-wrap items-center gap-2 pt-0.5">
+                                                            <button type="button" onclick="fetchGDriveVideo('{{ $lesson->id }}')" id="gdriveFetchBtn-{{ $lesson->id }}"
+                                                                class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-sm">
+                                                                <i class="fas fa-cloud-arrow-down"></i> <span>Download & Save to Server</span>
+                                                            </button>
+                                                            <span class="text-[11px] text-gray-400">Click to fetch the video into server storage first.</span>
+                                                        </div>
+                                                        <div id="gdriveStatus-{{ $lesson->id }}" class="hidden text-xs rounded-xl p-3 border"></div>
+                                                    </div>
+                                                    {{-- Option 3: File Upload Input --}}
+                                                    <div id="vsUploadWrap-{{ $lesson->id }}" class="hidden">
+                                                        @if($lesson->video_url && !str_starts_with($lesson->video_url, 'http'))
+                                                            <p class="text-[11px] text-green-700 bg-green-50 border border-green-200 rounded-xl px-3 py-2 mb-2 font-semibold">
+                                                                ✅ Server File: <span class="font-mono">{{ basename($lesson->video_url) }}</span>
+                                                            </p>
+                                                        @endif
+                                                        <input type="file" name="video_file"
+                                                            accept="video/mp4,video/webm,video/mov,video/quicktime,video/x-msvideo,.mp4,.webm,.mov,.avi"
+                                                            class="w-full px-4 py-2.5 border border-dashed border-blue-300 bg-blue-50/50 rounded-xl text-sm focus:outline-none focus:border-blue-600
+                                                                   file:mr-3 file:py-1.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700">
+                                                        <p class="text-[11px] text-gray-400 mt-1.5">Accepted: MP4, WebM, MOV, AVI &mdash; max 500 MB. Stored securely on the server.</p>
+                                                    </div>
                                                 </div>
 
                                                 <div>
@@ -498,7 +554,7 @@
                                         <i class="fas fa-times text-lg"></i>
                                     </button>
                                 </div>
-                                <form action="{{ route('instructor.lessons.store', $course) }}" method="POST" class="space-y-4">
+                                <form action="{{ route('instructor.lessons.store', $course) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                                     @csrf
                                     <input type="hidden" name="module_id" value="{{ $mod->id }}">
                                     <input type="hidden" name="order" value="{{ $mod->lessons->count() + 1 }}">
@@ -514,8 +570,54 @@
                                     </div>
 
                                     <div>
-                                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">Video / Media URL (Optional)</label>
-                                        <input type="url" name="video_url" placeholder="https://youtube.com/watch?v=..." class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary-jlm">
+                                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">Video Source</label>
+                                        {{-- Source Tab Toggle: 3 Options --}}
+                                        <div class="grid grid-cols-3 rounded-xl border border-gray-200 overflow-hidden mb-3 text-xs font-bold">
+                                            <button type="button" onclick="switchVideoSource('new-{{ $mod->id }}', 'url')"
+                                                class="vs-tab-url-new-{{ $mod->id }} px-2 py-2.5 bg-blue-600 text-white transition-colors text-center truncate">
+                                                🔗 Web Link
+                                            </button>
+                                            <button type="button" onclick="switchVideoSource('new-{{ $mod->id }}', 'gdrive')"
+                                                class="vs-tab-gdrive-new-{{ $mod->id }} px-2 py-2.5 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors text-center truncate">
+                                                ☁️ Drive to Server
+                                            </button>
+                                            <button type="button" onclick="switchVideoSource('new-{{ $mod->id }}', 'upload')"
+                                                class="vs-tab-up-new-{{ $mod->id }} px-2 py-2.5 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors text-center truncate">
+                                                📁 Upload File
+                                            </button>
+                                        </div>
+                                        {{-- Option 1: Standard URL --}}
+                                        <div id="vsUrlWrap-new-{{ $mod->id }}">
+                                            <input type="url" name="video_url" placeholder="https://youtube.com/watch?v=... or Vimeo link"
+                                                class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary-jlm">
+                                            <p class="text-[11px] text-gray-400 mt-1">Streams directly from YouTube, Vimeo, or external media server.</p>
+                                        </div>
+                                        {{-- Option 2: Google Drive Direct Import to Server --}}
+                                        <div id="vsGdriveWrap-new-{{ $mod->id }}" class="hidden space-y-2.5">
+                                            <input type="hidden" name="imported_video_path" id="gdriveImportedPath-new-{{ $mod->id }}" value="">
+                                            <div>
+                                                <label class="block text-[11px] font-bold uppercase tracking-wider text-gray-700 mb-1">Google Drive Share Link</label>
+                                                <input type="url" id="gdriveInput-new-{{ $mod->id }}" name="gdrive_import_url"
+                                                    placeholder="https://drive.google.com/file/d/.../view?usp=sharing"
+                                                    class="w-full px-4 py-3 border border-indigo-200 bg-indigo-50/30 rounded-xl text-sm focus:outline-none focus:border-indigo-600">
+                                            </div>
+                                            <div class="flex flex-wrap items-center gap-2 pt-0.5">
+                                                <button type="button" onclick="fetchGDriveVideo('new-{{ $mod->id }}')" id="gdriveFetchBtn-new-{{ $mod->id }}"
+                                                    class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-sm">
+                                                    <i class="fas fa-cloud-arrow-down"></i> <span>Download & Save to Server</span>
+                                                </button>
+                                                <span class="text-[11px] text-gray-400">Click to fetch the video into server storage first.</span>
+                                            </div>
+                                            <div id="gdriveStatus-new-{{ $mod->id }}" class="hidden text-xs rounded-xl p-3 border"></div>
+                                        </div>
+                                        {{-- Option 3: File Upload Input --}}
+                                        <div id="vsUploadWrap-new-{{ $mod->id }}" class="hidden">
+                                            <input type="file" name="video_file"
+                                                accept="video/mp4,video/webm,video/mov,video/quicktime,video/x-msvideo,.mp4,.webm,.mov,.avi"
+                                                class="w-full px-4 py-2.5 border border-dashed border-blue-300 bg-blue-50/50 rounded-xl text-sm focus:outline-none focus:border-blue-600
+                                                       file:mr-3 file:py-1.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700">
+                                            <p class="text-[11px] text-gray-400 mt-1.5">MP4, WebM, MOV, AVI &mdash; max 500 MB.</p>
+                                        </div>
                                     </div>
 
                                     <!-- Drip Schedule Options -->
@@ -900,6 +1002,286 @@ async function showOutlineModal() {
             title: 'Generation Failed',
             message: 'Failed to generate course outline: ' + err.message
         });
+    }
+}
+
+// ── Video Source Switcher (URL tab vs GDrive tab vs Upload tab) ─────────────
+function switchVideoSource(id, mode) {
+    const urlWrap    = document.getElementById('vsUrlWrap-' + id);
+    const gdriveWrap = document.getElementById('vsGdriveWrap-' + id);
+    const uploadWrap = document.getElementById('vsUploadWrap-' + id);
+
+    const urlBtns    = document.querySelectorAll('.vs-tab-url-' + id);
+    const gdriveBtns = document.querySelectorAll('.vs-tab-gdrive-' + id);
+    const upBtns     = document.querySelectorAll('.vs-tab-up-' + id);
+
+    const form = (urlWrap || uploadWrap || gdriveWrap)?.closest('form');
+
+    const urlInput    = urlWrap?.querySelector('input[name="video_url"]');
+    const gdriveInput = gdriveWrap?.querySelector('input[name="gdrive_import_url"]');
+    const fileInput   = uploadWrap?.querySelector('input[type="file"]');
+
+    // Reset all tabs to inactive style
+    const setInactive = (btns) => btns.forEach(b => {
+        b.classList.remove('bg-blue-600', 'text-white');
+        b.classList.add('bg-gray-50', 'text-gray-600');
+    });
+    const setActive = (btns) => btns.forEach(b => {
+        b.classList.remove('bg-gray-50', 'text-gray-600');
+        b.classList.add('bg-blue-600', 'text-white');
+    });
+
+    // Hide all input wrappers
+    if (urlWrap)    urlWrap.classList.add('hidden');
+    if (gdriveWrap) gdriveWrap.classList.add('hidden');
+    if (uploadWrap) uploadWrap.classList.add('hidden');
+
+    setInactive(urlBtns);
+    setInactive(gdriveBtns);
+    setInactive(upBtns);
+
+    if (mode === 'upload') {
+        if (uploadWrap) uploadWrap.classList.remove('hidden');
+        setActive(upBtns);
+        if (fileInput)   fileInput.disabled = false;
+        if (urlInput)    urlInput.disabled = true;
+        if (gdriveInput) gdriveInput.disabled = true;
+        if (form) form.setAttribute('enctype', 'multipart/form-data');
+    } else if (mode === 'gdrive') {
+        if (gdriveWrap) gdriveWrap.classList.remove('hidden');
+        setActive(gdriveBtns);
+        if (gdriveInput) gdriveInput.disabled = false;
+        if (urlInput)    urlInput.disabled = true;
+        if (fileInput)   fileInput.disabled = true;
+    } else {
+        if (urlWrap) urlWrap.classList.remove('hidden');
+        setActive(urlBtns);
+        if (urlInput)    urlInput.disabled = false;
+        if (gdriveInput) gdriveInput.disabled = true;
+        if (fileInput)   fileInput.disabled = true;
+    }
+}
+
+// Auto-detect upload tab for lessons that already have a server-side video path
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[id^="vsUploadWrap-"]').forEach(wrap => {
+        const currentBadge = wrap.querySelector('p');
+        if (currentBadge && currentBadge.textContent.includes('Server File:')) {
+            const id = wrap.id.replace('vsUploadWrap-', '');
+            switchVideoSource(id, 'upload');
+        }
+    });
+
+    // Add submit progress indicator for lesson forms
+    document.querySelectorAll('form[action*="/instructor/lessons"]').forEach(form => {
+        form.addEventListener('submit', function (e) {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const gdriveInput = form.querySelector('input[name="gdrive_import_url"]');
+            const fileInput = form.querySelector('input[type="file"][name="video_file"]');
+
+            if (submitBtn) {
+                if (gdriveInput && !gdriveInput.disabled && gdriveInput.value.trim()) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1.5"></i> Downloading from Drive to Server...';
+                    submitBtn.classList.add('opacity-75', 'cursor-wait');
+                } else if (fileInput && !fileInput.disabled && fileInput.files && fileInput.files.length > 0) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1.5"></i> Uploading Video File...';
+                    submitBtn.classList.add('opacity-75', 'cursor-wait');
+                }
+            }
+        });
+    });
+});
+
+// ── Google Drive Standalone Video Fetcher with Live Progress Bar ─────────────
+async function fetchGDriveVideo(id) {
+    const input      = document.getElementById('gdriveInput-' + id);
+    const btn        = document.getElementById('gdriveFetchBtn-' + id);
+    const statusBox  = document.getElementById('gdriveStatus-' + id);
+    const hiddenPath = document.getElementById('gdriveImportedPath-' + id);
+
+    if (!input || !input.value.trim()) {
+        if (statusBox) {
+            statusBox.className = 'text-xs rounded-2xl p-3.5 border bg-amber-50 border-amber-200 text-amber-900 flex items-center gap-2';
+            statusBox.innerHTML = '<i class="fas fa-exclamation-triangle text-amber-600 text-sm"></i> <span>Please paste a valid Google Drive link first.</span>';
+            statusBox.classList.remove('hidden');
+        }
+        return;
+    }
+
+    const driveUrl = input.value.trim();
+    const originalBtnContent = btn ? btn.innerHTML : '';
+
+    if (btn) {
+        btn.disabled = true;
+        btn.classList.add('opacity-75', 'cursor-wait');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1.5"></i> Downloading to Server...';
+    }
+
+    // Render Rich Animated Progress Bar
+    if (statusBox) {
+        statusBox.className = 'text-xs rounded-2xl p-4 border bg-indigo-50/70 border-indigo-200/90 shadow-sm space-y-3';
+        statusBox.innerHTML = `
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs flex-shrink-0">
+                        <i class="fas fa-cloud-arrow-down fa-spin text-sm" style="animation-duration: 2.5s;"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-indigo-950" id="gdriveProgressTitle-${id}">Streaming Video to Server...</h4>
+                        <p class="text-[10px] text-indigo-600 font-medium" id="gdriveProgressSubtitle-${id}">Connecting to Google Drive</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <span class="text-xs font-extrabold text-indigo-700" id="gdriveProgressPct-${id}">5%</span>
+                    <span class="block text-[10px] text-gray-400 font-mono" id="gdriveProgressTimer-${id}">00:00</span>
+                </div>
+            </div>
+
+            <!-- Progress Bar Track -->
+            <div class="w-full bg-indigo-100 rounded-full h-2.5 overflow-hidden p-0.5 shadow-inner">
+                <div class="bg-gradient-to-r from-indigo-600 via-primary-jlm to-secondary-jlm h-full rounded-full transition-all duration-300 relative overflow-hidden" 
+                     id="gdriveProgressBar-${id}" style="width: 5%;">
+                    <div class="absolute inset-0 bg-white/25 animate-pulse"></div>
+                </div>
+            </div>
+
+            <!-- Live Steps -->
+            <div class="flex items-center justify-between text-[10px] font-semibold pt-0.5">
+                <span id="gdriveStep1-${id}" class="text-indigo-900 font-bold"><i class="fas fa-circle-notch fa-spin text-indigo-600 mr-1"></i> Handshake</span>
+                <span id="gdriveStep2-${id}" class="text-gray-400"><i class="far fa-circle mr-1"></i> Stream Chunks</span>
+                <span id="gdriveStep3-${id}" class="text-gray-400"><i class="far fa-circle mr-1"></i> Save to Storage</span>
+            </div>
+        `;
+        statusBox.classList.remove('hidden');
+    }
+
+    // Dynamic Progress Simulator & Elapsed Timer
+    let progress = 5;
+    let secondsElapsed = 0;
+    const barElem      = document.getElementById('gdriveProgressBar-' + id);
+    const pctElem      = document.getElementById('gdriveProgressPct-' + id);
+    const timerElem    = document.getElementById('gdriveProgressTimer-' + id);
+    const subElem      = document.getElementById('gdriveProgressSubtitle-' + id);
+    const step1Elem    = document.getElementById('gdriveStep1-' + id);
+    const step2Elem    = document.getElementById('gdriveStep2-' + id);
+    const step3Elem    = document.getElementById('gdriveStep3-' + id);
+
+    const timerInterval = setInterval(() => {
+        secondsElapsed++;
+        const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+        const secs = String(secondsElapsed % 60).padStart(2, '0');
+        if (timerElem) timerElem.textContent = `${mins}:${secs}`;
+    }, 1000);
+
+    const progressInterval = setInterval(() => {
+        if (progress < 25) {
+            progress += 3;
+            if (subElem) subElem.textContent = 'Bypassing virus scan check...';
+        } else if (progress < 65) {
+            progress += 1.8;
+            if (subElem) subElem.textContent = 'Downloading video stream from Google servers...';
+            if (step1Elem) step1Elem.innerHTML = '<i class="fas fa-check-circle text-emerald-500 mr-1"></i> Connected';
+            if (step2Elem) {
+                step2Elem.className = 'text-indigo-900 font-bold';
+                step2Elem.innerHTML = '<i class="fas fa-circle-notch fa-spin text-indigo-600 mr-1"></i> Streaming File';
+            }
+        } else if (progress < 92) {
+            progress += 0.6;
+            if (subElem) subElem.textContent = 'Writing and verifying MP4 binary on disk...';
+            if (step2Elem) step2Elem.innerHTML = '<i class="fas fa-check-circle text-emerald-500 mr-1"></i> Streamed';
+            if (step3Elem) {
+                step3Elem.className = 'text-indigo-900 font-bold';
+                step3Elem.innerHTML = '<i class="fas fa-circle-notch fa-spin text-indigo-600 mr-1"></i> Writing Disk';
+            }
+        }
+
+        const currentPct = Math.min(94, Math.round(progress));
+        if (barElem) barElem.style.width = currentPct + '%';
+        if (pctElem) pctElem.textContent = currentPct + '%';
+    }, 400);
+
+    try {
+        const response = await fetch('{{ route("instructor.lessons.import-gdrive") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ gdrive_url: driveUrl })
+        });
+
+        clearInterval(progressInterval);
+        clearInterval(timerInterval);
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            if (barElem) {
+                barElem.style.width = '100%';
+                barElem.className = 'bg-emerald-500 h-full rounded-full transition-all duration-300';
+            }
+            if (pctElem) pctElem.textContent = '100%';
+
+            if (hiddenPath) hiddenPath.value = data.path;
+
+            setTimeout(() => {
+                if (statusBox) {
+                    statusBox.className = 'text-xs rounded-2xl p-4 border bg-emerald-50 border-emerald-200 text-emerald-900 space-y-2';
+                    statusBox.innerHTML = `
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs flex-shrink-0">
+                                <i class="fas fa-check text-sm"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-emerald-950">Video Successfully Saved on Server!</h4>
+                                <p class="text-[11px] text-emerald-700">File: <span class="font-mono font-semibold">${data.filename}</span> (${data.size})</p>
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-emerald-700/90 pl-10">
+                            ⚡ The video is stored in server storage and will play smoothly in your custom Plyr player. Click <strong>Update / Save Lesson</strong> below to complete.
+                        </p>
+                    `;
+                    statusBox.classList.remove('hidden');
+                }
+            }, 300);
+
+            if (btn) {
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'cursor-wait', 'bg-indigo-600', 'hover:bg-indigo-700');
+                btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+                btn.innerHTML = '<i class="fas fa-check mr-1.5"></i> Video Saved on Server (Click to re-download)';
+            }
+        } else {
+            throw new Error(data.message || 'Download failed.');
+        }
+    } catch (err) {
+        clearInterval(progressInterval);
+        clearInterval(timerInterval);
+
+        if (statusBox) {
+            statusBox.className = 'text-xs rounded-2xl p-4 border bg-red-50 border-red-200 text-red-900 space-y-2';
+            statusBox.innerHTML = `
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-red-600 text-white flex items-center justify-center shadow-xs flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle text-sm"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-red-950">Could Not Download from Google Drive</h4>
+                        <p class="text-[11px] text-red-700">${err.message || 'Please check that the file is shared with "Anyone with the link can view".'}</p>
+                    </div>
+                </div>
+            `;
+            statusBox.classList.remove('hidden');
+        }
+
+        if (btn) {
+            btn.disabled = false;
+            btn.classList.remove('opacity-75', 'cursor-wait');
+            btn.innerHTML = originalBtnContent || '<i class="fas fa-cloud-arrow-down mr-1.5"></i> Download & Save to Server';
+        }
     }
 }
 

@@ -30,28 +30,136 @@
 <style>
     :root {
         --plyr-color-main: #1b2299;
-        --plyr-video-control-color: #ffffff;
+        --plyr-video-control-color: #f8fafc;
         --plyr-video-control-color-hover: #f7de7a;
+        --plyr-video-control-background-hover: rgba(228, 48, 109, 0.25);
         --plyr-control-icon-size: 16px;
         --plyr-control-spacing: 10px;
-        --plyr-badge-text-color: #1b2299;
+        --plyr-control-radius: 10px;
+        --plyr-range-track-height: 5px;
+        --plyr-range-thumb-height: 14px;
+        --plyr-range-thumb-background: #f7de7a;
+        --plyr-range-thumb-shadow: 0 0 12px rgba(247, 222, 122, 0.85);
+        --plyr-tooltip-background: rgba(15, 23, 42, 0.95);
+        --plyr-tooltip-color: #ffffff;
+        --plyr-tooltip-radius: 8px;
     }
+
+    /* Outer video wrapper */
     .plyr--video {
-        border-radius: 1rem;
+        border-radius: 1.25rem;
         overflow: hidden;
         background: #000;
+        width: 100%;
+        height: 100%;
+        box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6);
+        font-family: 'Inter', system-ui, sans-serif;
     }
+
+    /* Floating Glassmorphic Control Bar */
+    .plyr--video .plyr__controls {
+        background: linear-gradient(180deg, transparent 0%, rgba(10, 14, 39, 0.85) 30%, rgba(10, 14, 39, 0.98) 100%) !important;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        padding: 14px 18px 12px !important;
+        border-bottom-left-radius: 1.25rem;
+        border-bottom-right-radius: 1.25rem;
+        transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    /* Glowing Seeker with Gradient Accent */
+    .plyr--video .plyr__progress__buffer {
+        background: rgba(255, 255, 255, 0.22) !important;
+        border-radius: 9999px !important;
+    }
+    .plyr--video .plyr__progress--played,
+    .plyr--video .plyr__progress input[type=range] {
+        color: #e4306d !important;
+    }
+    .plyr--video .plyr__progress input[type=range]::-webkit-slider-thumb {
+        background: #f7de7a !important;
+        box-shadow: 0 0 12px rgba(247, 222, 122, 0.9) !important;
+        border: 2px solid #ffffff !important;
+        transform: scale(1.1);
+        transition: transform 0.15s ease;
+    }
+    .plyr--video .plyr__progress input[type=range]:active::-webkit-slider-thumb {
+        transform: scale(1.35);
+    }
+
+    /* Center Glowing Play Button with Breathing Ring */
     .plyr--video .plyr__control--overlaid {
-        background: rgba(27, 34, 153, 0.9);
-        border: 2px solid rgba(247, 222, 122, 0.5);
+        background: linear-gradient(135deg, #1b2299 0%, #e4306d 100%) !important;
+        border: 2.5px solid rgba(247, 222, 122, 0.7) !important;
+        box-shadow: 0 10px 30px -5px rgba(228, 48, 109, 0.6), 0 0 20px rgba(27, 34, 153, 0.4) !important;
+        width: 72px !important;
+        height: 72px !important;
+        border-radius: 50% !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
     .plyr--video .plyr__control--overlaid:hover {
-        background: #e4306d;
+        transform: translate(-50%, -50%) scale(1.1) !important;
+        box-shadow: 0 15px 40px -5px rgba(228, 48, 109, 0.8), 0 0 30px rgba(247, 222, 122, 0.7) !important;
+        border-color: #f7de7a !important;
     }
-    /* Hide all YouTube chrome & title hover tooltips */
-    .plyr__video-embed iframe {
-        top: -50% !important;
-        height: 200% !important;
+    .plyr--video .plyr__control--overlaid svg {
+        width: 26px !important;
+        height: 26px !important;
+        fill: #ffffff !important;
+        margin-left: 3px;
+    }
+
+    /* Control Buttons Micro-Interactions */
+    .plyr--video .plyr__controls .plyr__control {
+        border-radius: 8px !important;
+        transition: all 0.2s ease !important;
+    }
+    .plyr--video .plyr__controls .plyr__control:hover {
+        background: rgba(255, 255, 255, 0.15) !important;
+        color: #f7de7a !important;
+        transform: translateY(-1.5px);
+    }
+    .plyr--video .plyr__time {
+        font-family: 'JetBrains Mono', monospace, ui-monospace, sans-serif;
+        font-size: 11px !important;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        color: #cbd5e1 !important;
+    }
+
+    /* Top HUD Overlay (Lesson info & Quick Actions) */
+    .player-top-hud {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 14px 18px 28px;
+        background: linear-gradient(180deg, rgba(10, 14, 39, 0.88) 0%, rgba(10, 14, 39, 0.35) 60%, transparent 100%);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        z-index: 15;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+    #videoContainer:hover .player-top-hud {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    /* Theater / Focus Mode */
+    .theater-mode-active {
+        position: fixed !important;
+        inset: 0 !important;
+        z-index: 99999 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background: #000 !important;
+        border-radius: 0 !important;
+    }
+    .theater-mode-active .plyr--video {
+        border-radius: 0 !important;
     }
 </style>
 @endpush
@@ -74,17 +182,65 @@
                             $embedId  = 'https://drive.google.com/file/d/' . $matches[1] . '/preview';
                         } else {
                             $provider = 'html5';
-                            $embedId  = $rawUrl;
+                            $embedId  = (str_starts_with($rawUrl, 'http://') || str_starts_with($rawUrl, 'https://') || str_starts_with($rawUrl, '//'))
+                                ? $rawUrl
+                                : asset($rawUrl);
                         }
                     @endphp
 
-                    <div class="bg-black relative select-none rounded-2xl overflow-hidden shadow-2xl" id="videoContainer" oncontextmenu="return false;">
+                    <div class="aspect-video w-full rounded-2xl overflow-hidden shadow-2xl bg-black relative select-none group" id="videoContainer" oncontextmenu="return false;">
+                        
+                        <!-- Top HUD Overlay (Lesson Header & Controls) -->
+                        <div class="player-top-hud">
+                            <div class="flex items-center gap-2.5 truncate">
+                                <span class="px-2 py-0.5 rounded-md bg-white/10 backdrop-blur-md border border-white/15 text-[10px] font-extrabold uppercase tracking-wider text-accent-jlm">Lesson</span>
+                                <h3 class="text-xs sm:text-sm font-bold text-white truncate drop-shadow-md">{{ $lesson->title }}</h3>
+                            </div>
+                            <div class="flex items-center gap-2 flex-shrink-0">
+                                <button type="button" onclick="toggleTheaterMode()" title="Toggle Theater Mode (T)" class="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/15 text-[11px] font-bold text-white transition flex items-center gap-1.5 shadow-sm">
+                                    <i class="fas fa-expand text-xs"></i> <span class="hidden sm:inline">Theater</span>
+                                </button>
+                            </div>
+                        </div>
+
                         @if($provider === 'youtube')
-                            <div class="js-player" data-plyr-provider="youtube" data-plyr-embed-id="{{ $embedId }}"></div>
+                            {{--
+                                YouTube branding suppression — surgical pixel masks only.
+                                We only cover the YouTube title bar (top) and logo watermark (bottom-right).
+                                The rest of the video is fully visible at all times (paused or playing)
+                                so students never miss learning content.
+                            --}}
+                            <div class="plyr__video-embed js-player w-full h-full" id="ytPlayerWrapper">
+                                <iframe
+                                    src="https://www.youtube.com/embed/{{ $embedId }}?controls=0&amp;rel=0&amp;modestbranding=1&amp;playsinline=1&amp;enablejsapi=1&amp;disablekb=1&amp;fs=0&amp;iv_load_policy=3&amp;showinfo=0&amp;color=white&amp;hl=en"
+                                    allowfullscreen
+                                    allowtransparency
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                                    class="w-full h-full border-0"
+                                    id="ytIframe">
+                                </iframe>
+                            </div>
+                            {{-- Top mask: covers the YouTube title bar & channel name (top ~56px) --}}
+                            <div aria-hidden="true"
+                                 style="pointer-events:none; position:absolute; top:0; left:0; right:0; height:56px;
+                                        background:linear-gradient(to bottom, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.6) 70%, transparent 100%);
+                                        z-index:10;"></div>
+                            {{-- Bottom-right mask: covers the YouTube logo watermark only (~100x28px) --}}
+                            <div aria-hidden="true"
+                                 style="pointer-events:none; position:absolute; bottom:52px; right:0; width:100px; height:28px;
+                                        background:#000; z-index:10; border-radius:3px 0 0 3px;"></div>
                         @elseif($provider === 'vimeo')
-                            <div class="js-player" data-plyr-provider="vimeo" data-plyr-embed-id="{{ $embedId }}"></div>
+                            <div class="plyr__video-embed js-player w-full h-full">
+                                <iframe
+                                    src="https://player.vimeo.com/video/{{ $embedId }}?loop=false&amp;byline=false&amp;portrait=false&amp;title=false&amp;speed=true&amp;transparent=0&amp;gesture=media"
+                                    allowfullscreen
+                                    allowtransparency
+                                    allow="autoplay; fullscreen; picture-in-picture"
+                                    class="w-full h-full border-0">
+                                </iframe>
+                            </div>
                         @elseif($provider === 'drive')
-                            <div class="aspect-video w-full relative overflow-hidden">
+                            <div class="w-full h-full relative overflow-hidden">
                                 <iframe id="lessonVideoIframe" class="w-full h-full border-0"
                                     src="{{ $embedId }}"
                                     sandbox="allow-scripts allow-same-origin allow-presentation allow-fullscreen"
@@ -96,11 +252,34 @@
                                      ontouchstart="event.stopPropagation(); event.preventDefault(); return false;"></div>
                             </div>
                         @else
-                            <video class="js-player w-full h-full" playsinline controls controlsList="nodownload nofullscreen noremoteplayback" disablePictureInPicture>
+                            <video class="js-player w-full h-full" playsinline controls preload="metadata" src="{{ $embedId }}" oncontextmenu="return false;">
                                 <source src="{{ $embedId }}" type="video/mp4">
                                 Your browser does not support the video tag.
                             </video>
                         @endif
+                    </div>
+
+                    <!-- Modern Interactive Player Utilities Bar -->
+                    <div class="mt-2 px-1 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500">
+                        <div class="flex items-center gap-3">
+                            <span class="inline-flex items-center gap-1.5 font-semibold text-gray-700">
+                                <i class="fas fa-play-circle text-primary-jlm"></i>
+                                @if($provider === 'html5') High-Def Server Video
+                                @elseif($provider === 'youtube') YouTube Stream
+                                @elseif($provider === 'vimeo') Vimeo Stream
+                                @else Cloud Stream
+                                @endif
+                            </span>
+                            <span class="text-gray-300">&bull;</span>
+                            <span class="text-[11px] text-gray-400">Double-click player for Fullscreen</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-[11px]">
+                            <span class="font-medium text-gray-400">Shortcuts:</span>
+                            <span class="px-1.5 py-0.5 rounded bg-gray-100 border text-gray-600 font-mono font-bold">Space</span>
+                            <span class="px-1.5 py-0.5 rounded bg-gray-100 border text-gray-600 font-mono font-bold">← / → 10s</span>
+                            <span class="px-1.5 py-0.5 rounded bg-gray-100 border text-gray-600 font-mono font-bold">F Full</span>
+                            <span class="px-1.5 py-0.5 rounded bg-gray-100 border text-gray-600 font-mono font-bold">T Theater</span>
+                        </div>
                     </div>
                 @endif
 
@@ -579,13 +758,29 @@ document.addEventListener('DOMContentLoaded', function () {
 
         completeBtn.disabled = true;
 
+        // LocalStorage progress key for persistence
+        const progressStorageKey = 'learnerium_watch_progress_{{ $lesson->id }}_{{ auth()->id() }}';
+        let savedProgress = parseInt(localStorage.getItem(progressStorageKey) || '0', 10);
+        if (savedProgress >= requiredPercent) {
+            maxPercentWatched = savedProgress;
+            if (watchPercentTxt) watchPercentTxt.textContent = maxPercentWatched + '%';
+            unlockCompletion();
+        }
+
+        // Set to track unique seconds watched (anti-cheat: prevents fast-forwarding to cheat the 80% rule)
+        const watchedSecondsSet = new Set();
+
         // 1. Initialize Plyr Player (HTML5 / YouTube / Vimeo)
         const playerEl = document.querySelector('.js-player');
         if (playerEl && typeof Plyr !== 'undefined') {
             const player = new Plyr(playerEl, {
+                seekTime: 10,
                 controls: [
                     'play-large',
+                    'restart',
+                    'rewind',
                     'play',
+                    'fast-forward',
                     'progress',
                     'current-time',
                     'duration',
@@ -598,43 +793,89 @@ document.addEventListener('DOMContentLoaded', function () {
                 settings: ['speed'],
                 speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
                 youtube: {
-                    noCookie: true,
+                    noCookie: false,
                     rel: 0,
                     showinfo: 0,
                     iv_load_policy: 3,
                     modestbranding: 1,
-                    customControls: true
+                    playsinline: 1,
+                    controls: 0
                 },
                 vimeo: {
                     byline: false,
                     portrait: false,
                     title: false,
-                    dnt: true
+                    dnt: true,
+                    playsinline: true
                 },
                 tooltips: { controls: true, seek: true },
                 keyboard: { focused: true, global: false },
                 fullscreen: { enabled: true, fallback: true, iosNative: true }
             });
 
+            // ── YouTube brand masks are CSS-only (permanent, no JS needed) ────
+
             player.on('timeupdate', function () {
-                if (player.duration > 0) {
-                    const currentPercent = Math.min(100, Math.round((player.currentTime / player.duration) * 100));
-                    if (currentPercent > maxPercentWatched) {
-                        maxPercentWatched = currentPercent;
+                if (player.duration > 0 && player.playing) {
+                    const currentSec = Math.floor(player.currentTime);
+                    watchedSecondsSet.add(currentSec);
+
+                    // Calculate real progress based on unique seconds watched AND timestamp position
+                    const uniqueWatchedPercent = Math.round((watchedSecondsSet.size / player.duration) * 100);
+                    const positionPercent = Math.round((player.currentTime / player.duration) * 100);
+                    const effectivePercent = Math.min(100, Math.max(uniqueWatchedPercent, Math.min(positionPercent, maxPercentWatched + 1)));
+
+                    if (effectivePercent > maxPercentWatched) {
+                        maxPercentWatched = effectivePercent;
+                        localStorage.setItem(progressStorageKey, maxPercentWatched.toString());
                         if (watchPercentTxt) watchPercentTxt.textContent = maxPercentWatched + '%';
                     }
-                    if (maxPercentWatched >= requiredPercent) unlockCompletion();
+
+                    if (maxPercentWatched >= requiredPercent) {
+                        unlockCompletion();
+                    }
                 }
             });
 
             player.on('ended', function () {
                 maxPercentWatched = 100;
+                localStorage.setItem(progressStorageKey, '100');
                 if (watchPercentTxt) watchPercentTxt.textContent = '100%';
                 unlockCompletion();
             });
+
+            // Double-click to toggle fullscreen
+            if (videoContainer) {
+                videoContainer.addEventListener('dblclick', function(e) {
+                    if (e.target.closest('.plyr__controls') || e.target.closest('.player-top-hud')) return;
+                    player.fullscreen.toggle();
+                });
+            }
+
+            // Global Keyboard Shortcuts (when not typing in comments or inputs)
+            document.addEventListener('keydown', function(e) {
+                if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+                
+                if (e.key === 't' || e.key === 'T') {
+                    e.preventDefault();
+                    toggleTheaterMode();
+                } else if (e.key === 'f' || e.key === 'F') {
+                    e.preventDefault();
+                    player.fullscreen.toggle();
+                } else if (e.key === ' ') {
+                    e.preventDefault();
+                    player.togglePlay();
+                } else if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    player.forward(10);
+                } else if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    player.rewind(10);
+                }
+            });
         }
 
-        // 2. Timer fallback for Google Drive iframes
+        // 2. Fallback for Google Drive iframes
         const driveIframe = document.getElementById('lessonVideoIframe');
         if (driveIframe) {
             const targetWatchSeconds = Math.min(120, Math.max(30, {{ (int)($lesson->duration_minutes ? $lesson->duration_minutes * 60 * 0.8 : 60) }}));
@@ -645,6 +886,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const estPercent = Math.min(100, Math.round((activeWatchSeconds / targetWatchSeconds) * 100));
                 if (estPercent > maxPercentWatched) {
                     maxPercentWatched = estPercent;
+                    localStorage.setItem(progressStorageKey, maxPercentWatched.toString());
                     if (watchPercentTxt) watchPercentTxt.textContent = maxPercentWatched + '%';
                 }
                 if (maxPercentWatched >= requiredPercent) {
@@ -655,6 +897,19 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 });
+
+function toggleTheaterMode() {
+    const videoContainer = document.getElementById('videoContainer');
+    if (!videoContainer) return;
+    videoContainer.classList.toggle('theater-mode-active');
+    
+    // Auto-scroll to video if theater mode enabled
+    if (videoContainer.classList.contains('theater-mode-active')) {
+        document.body.style.overflow = 'hidden';
+    } else {
+        document.body.style.overflow = '';
+    }
+}
 </script>
 @endsection
 
