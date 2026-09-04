@@ -475,7 +475,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/payments', [AdminDashboardController::class, 'payments'])->name('payments');
     Route::get('/instructor-applications', [InstructorApplicationController::class, 'index'])->name('instructor.applications');
     Route::post('/instructor-applications/{application}/approve', [InstructorApplicationController::class, 'approve'])->name('instructor.applications.approve');
+    Route::get('/instructor-applications/{application}/approve', fn() => redirect()->route('admin.instructor.applications'));
     Route::post('/instructor-applications/{application}/reject', [InstructorApplicationController::class, 'reject'])->name('instructor.applications.reject');
+    Route::get('/instructor-applications/{application}/reject', fn() => redirect()->route('admin.instructor.applications'));
     Route::post('/payouts/{instructor}/mark-paid', [AdminDashboardController::class, 'markInstructorPaid'])->name('payouts.mark-paid');
     Route::post('/settings', [AdminDashboardController::class, 'updateSettings'])->name('settings.update');
 });
@@ -484,7 +486,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin/instructor-applications', [InstructorApplicationController::class, 'index'])->name('admin.instructor.applications');
     Route::post('/admin/instructor-applications/{application}/approve', [InstructorApplicationController::class, 'approve'])->name('admin.instructor.applications.approve');
+    Route::get('/admin/instructor-applications/{application}/approve', fn() => redirect()->route('admin.instructor.applications'));
     Route::post('/admin/instructor-applications/{application}/reject', [InstructorApplicationController::class, 'reject'])->name('admin.instructor.applications.reject');
+    Route::get('/admin/instructor-applications/{application}/reject', fn() => redirect()->route('admin.instructor.applications'));
 });
 
 // Dashboard Routes (Protected & Email Verified)

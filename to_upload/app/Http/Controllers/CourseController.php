@@ -66,21 +66,32 @@ class CourseController extends Controller
         $this->authorizeInstructor($course);
 
         $data = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['required', 'string'],
-            'category' => ['required', 'string', 'max:100'],
-            'thumbnail' => ['nullable', 'url'],
-            'thumbnail_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
-            'price' => ['nullable', 'numeric', 'min:0'],
-            'level' => ['required', 'in:Beginner,Intermediate,Advanced,All Levels'],
-            'duration_minutes' => ['required', 'integer', 'min:1'],
+            'title'              => ['required', 'string', 'max:255'],
+            'description'        => ['required', 'string'],
+            'category'           => ['required', 'string', 'max:100'],
+            'thumbnail'          => ['nullable', 'string'],
+            'thumbnail_file'     => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
+            'price'              => ['nullable', 'numeric', 'min:0'],
+            'level'              => ['required', 'in:Beginner,Intermediate,Advanced,All Levels'],
+            'duration_minutes'   => ['required', 'integer', 'min:1'],
+            'requirements'       => ['nullable', 'array'],
+            'requirements.*'     => ['nullable', 'string', 'max:300'],
+            'what_you_will_learn'   => ['nullable', 'array'],
+            'what_you_will_learn.*' => ['nullable', 'string', 'max:300'],
         ]);
+
+        // Filter out blank items
+        $data['requirements']       = array_values(array_filter($request->input('requirements', []), fn($v) => !empty(trim($v))));
+        $data['what_you_will_learn'] = array_values(array_filter($request->input('what_you_will_learn', []), fn($v) => !empty(trim($v))));
 
         if ($request->hasFile('thumbnail_file')) {
             $file = $request->file('thumbnail_file');
             $filename = time() . '_' . preg_replace('/[^A-Za-z0-9\._-]/', '_', $file->getClientOriginalName());
+            if (!is_dir(public_path('uploads/thumbnails'))) {
+                mkdir(public_path('uploads/thumbnails'), 0775, true);
+            }
             $file->move(public_path('uploads/thumbnails'), $filename);
-            $data['thumbnail'] = asset('uploads/thumbnails/' . $filename);
+            $data['thumbnail'] = 'uploads/thumbnails/' . $filename;
         }
         unset($data['thumbnail_file']);
 
@@ -98,8 +109,36 @@ class CourseController extends Controller
     {
         $this->authorizeInstructor($course);
 
+        $wasPublished = (bool) $course->published_at;
+
         if (!$course->published_at) {
             $course->update(['published_at' => now()]);
+        }
+
+        if (!$wasPublished) {
+            $user = Auth::user();
+            try {
+                // 1. Notify Instructor
+                \App\Models\AppNotification::notify(
+                    $user->id,
+                    'course',
+                    'Course Published Live! 🚀',
+                    "Your course \"{$course->title}\" is now live and available to students across the world.",
+                    route('course.detail', $course->slug),
+                    'fa-rocket',
+                    'green'
+                );
+
+                // 2. Notify all registered Admins
+                \App\Models\AppNotification::notifyAdmins(
+                    'course',
+                    "🚀 Course Published: {$course->title}",
+                    "Instructor {$user->name} published a new course in category: {$course->category}.",
+                    route('course.detail', $course->slug),
+                    'fa-book-open',
+                    'purple'
+                );
+            } catch (\Throwable $e) {}
         }
 
         return redirect()
@@ -110,21 +149,32 @@ class CourseController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['required', 'string'],
-            'category' => ['required', 'string', 'max:100'],
-            'thumbnail' => ['nullable', 'url'],
-            'thumbnail_file' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
-            'price' => ['nullable', 'numeric', 'min:0'],
-            'level' => ['required', 'in:Beginner,Intermediate,Advanced,All Levels'],
-            'duration_minutes' => ['required', 'integer', 'min:1'],
+            'title'              => ['required', 'string', 'max:255'],
+            'description'        => ['required', 'string'],
+            'category'           => ['required', 'string', 'max:100'],
+            'thumbnail'          => ['nullable', 'string'],
+            'thumbnail_file'     => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
+            'price'              => ['nullable', 'numeric', 'min:0'],
+            'level'              => ['required', 'in:Beginner,Intermediate,Advanced,All Levels'],
+            'duration_minutes'   => ['required', 'integer', 'min:1'],
+            'requirements'       => ['nullable', 'array'],
+            'requirements.*'     => ['nullable', 'string', 'max:300'],
+            'what_you_will_learn'   => ['nullable', 'array'],
+            'what_you_will_learn.*' => ['nullable', 'string', 'max:300'],
         ]);
+
+        // Filter out blank items
+        $data['requirements']        = array_values(array_filter($request->input('requirements', []), fn($v) => !empty(trim($v))));
+        $data['what_you_will_learn'] = array_values(array_filter($request->input('what_you_will_learn', []), fn($v) => !empty(trim($v))));
 
         if ($request->hasFile('thumbnail_file')) {
             $file = $request->file('thumbnail_file');
             $filename = time() . '_' . preg_replace('/[^A-Za-z0-9\._-]/', '_', $file->getClientOriginalName());
+            if (!is_dir(public_path('uploads/thumbnails'))) {
+                mkdir(public_path('uploads/thumbnails'), 0775, true);
+            }
             $file->move(public_path('uploads/thumbnails'), $filename);
-            $data['thumbnail'] = asset('uploads/thumbnails/' . $filename);
+            $data['thumbnail'] = 'uploads/thumbnails/' . $filename;
         }
         unset($data['thumbnail_file']);
 
@@ -135,8 +185,36 @@ class CourseController extends Controller
 
         $course = Course::create($data);
 
+        // Notify instructor and all registered admins
+        $user = Auth::user();
+        try {
+            // 1. Notify Instructor
+            \App\Models\AppNotification::notify(
+                $user->id,
+                'course',
+                'Course Created Successfully! 📚',
+                "Your course \"{$course->title}\" has been created. You can now add modules and lessons.",
+                route('instructor.courses.edit', $course),
+                'fa-book-open',
+                'green'
+            );
+
+            // 2. Notify all registered Admins
+            \App\Models\AppNotification::notifyAdmins(
+                'course',
+                "📚 New Course Created: {$course->title}",
+                "Instructor {$user->name} created a new course in {$course->category}.",
+                route('course.detail', $course->slug),
+                'fa-book',
+                'purple'
+            );
+        } catch (\Throwable $e) {}
+
         return redirect()
             ->route('instructor.courses.edit', $course)
+            ->with('status', 'Course created successfully! Now add your modules and lessons.');
+    }
+
     public function destroy(Course $course)
     {
         $this->authorizeInstructor($course);
