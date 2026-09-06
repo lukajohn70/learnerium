@@ -10,15 +10,15 @@
 
         {{-- JLM GRADIENT HEADER WITH LOGO --}}
         <div style="background:linear-gradient(135deg,#1b2299 0%,#7b1fa2 50%,#e4306d 100%);padding:36px 24px 32px;text-align:center;color:#ffffff;">
-            {{-- App Logo — inlined as Base64 so it loads instantly with no HTTP request --}}
+            {{-- App Logo — hosted HTTPS image to prevent SpamAssassin/Exim base64 rejection --}}
             @php
-                $logoPath = public_path('logo-only-email.png');
-                $logoSrc  = file_exists($logoPath)
-                    ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath))
-                    : config('app.url') . '/logo-only.png';
+                $logoUrl = 'https://learnerium.jlm.com.ng/logo-only-email.png';
+                if (!app()->environment('production') && file_exists(public_path('logo-only-email.png'))) {
+                    $logoUrl = asset('logo-only-email.png');
+                }
             @endphp
             <div style="margin-bottom:16px;">
-                <img src="{{ $logoSrc }}"
+                <img src="{{ $logoUrl }}"
                      alt="Learnerium"
                      width="72" height="72"
                      style="display:inline-block;width:72px;height:72px;object-fit:contain;background:rgba(255,255,255,0.15);border-radius:50%;padding:10px;border:2px solid rgba(255,255,255,0.35);"
