@@ -67,7 +67,7 @@ class InstructorApplicationController extends Controller
         try {
             \App\Models\AppNotification::notifyAdmins(
                 'support',
-                "👨‍🏫 New Instructor Application: {$user->name}",
+                "New Instructor Application: {$user->name}",
                 "Applicant {$user->name} ({$user->email}) submitted an application.\nHeadline: {$request->headline} • Expertise: {$request->expertise_area}",
                 route('admin.instructor-applications'),
                 'fa-chalkboard-teacher',
@@ -78,7 +78,7 @@ class InstructorApplicationController extends Controller
             \App\Models\AppNotification::notify(
                 $user->id,
                 'support',
-                'Instructor Application Received! 📋',
+                'Instructor Application Received',
                 "Thank you for applying to teach on Learnerium, {$user->name}! We have received your application for \"{$request->expertise_area}\". Our academic review team will evaluate your profile and get back to you shortly.",
                 route('instructor.apply'),
                 'fa-file-signature',

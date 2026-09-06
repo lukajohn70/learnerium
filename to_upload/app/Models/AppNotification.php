@@ -70,6 +70,9 @@ class AppNotification extends Model
                 }
 
                 if ($shouldSendEmail) {
+                    $cleanTitle = preg_replace('/[\x{10000}-\x{10FFFF}]/u', '', $title); // Strip 4-byte emojis from subject for strict mail filters
+                    $cleanTitle = trim($cleanTitle) ?: 'Notification';
+
                     \Illuminate\Support\Facades\Mail::send(
                         'emails.notification',
                         [
@@ -77,9 +80,14 @@ class AppNotification extends Model
                             'bodyMessage' => $message,
                             'actionUrl'   => $actionUrl,
                         ],
-                        function ($mail) use ($user, $title) {
-                            $mail->to($user->email, $user->name)
-                                 ->subject("Learnerium: {$title}");
+                        function ($mail) use ($user, $cleanTitle) {
+                            $fromAddress = config('mail.from.address') ?: 'learnerium@jlm.com.ng';
+                            $fromName    = config('mail.from.name') ?: 'Learnerium';
+
+                            $mail->from($fromAddress, $fromName)
+                                 ->replyTo($fromAddress, 'Learnerium Support')
+                                 ->to($user->email, $user->name)
+                                 ->subject("Learnerium: {$cleanTitle}");
                         }
                     );
                 }

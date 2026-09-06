@@ -66,11 +66,20 @@ class RegisterController extends Controller
             \App\Models\AppNotification::notify(
                 $user->id,
                 'welcome',
-                'Welcome to Learnerium! 🚀',
+                'Welcome to Learnerium!',
                 "We're thrilled to have you here! Explore top-rated courses or start building your learning path today.",
                 route('courses'),
                 'fa-rocket',
                 'purple'
+            );
+
+            \App\Models\AppNotification::notifyAdmins(
+                'support',
+                "New {$user->role} Registered: {$user->name}",
+                "{$user->name} ({$user->email}) just registered on Learnerium as a {$user->role}.",
+                route('admin.users'),
+                'fa-user-plus',
+                'blue'
             );
         } catch (\Throwable $e) {}
 
