@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 660" width="100%" height="100%" preserveAspectRatio="none">
+  <defs>
+    <!-- Brand Gradients -->
+    <linearGradient id="jlmBlueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1b2299"/>
+      <stop offset="100%" stop-color="#10155b"/>
+    </linearGradient>
+    <linearGradient id="jlmMagentaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f43f7a"/>
+      <stop offset="50%" stop-color="#e4306d"/>
+      <stop offset="100%" stop-color="#be1250"/>
+    </linearGradient>
+    <linearGradient id="jlmGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="50%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <filter id="frameShadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#0b132b" flood-opacity="0.10"/>
+    </filter>
+  </defs>
+
+  <!-- Base White Card Canvas -->
+  <rect width="1024" height="660" fill="#ffffff"/>
+
+  <!-- OUTER GEOMETRIC CORNER ACCENTS (Pure mathematical vectors - ZERO raster halos) -->
+
+  <!-- Top-Right Ribbon System -->
+  <!-- Navy/Blue Base Block -->
+  <polygon points="760,0 1024,0 1024,250 990,250 990,32 760,32" fill="url(#jlmBlueGrad)"/>
+  <!-- Magenta Diagonal Ribbon -->
+  <polygon points="790,0 840,0 1024,170 1024,220" fill="url(#jlmMagentaGrad)"/>
+  <!-- Gold Diagonal Ribbon -->
+  <polygon points="845,0 885,0 1024,125 1024,165" fill="url(#jlmGoldGrad)"/>
+
+  <!-- Left Border & Bottom-Left Dynamic Ribbon System -->
+  <!-- Left Royal Blue Outer Bar -->
+  <polygon points="0,0 32,0 32,660 0,660" fill="url(#jlmBlueGrad)"/>
+  <!-- Bottom Royal Blue Outer Bar -->
+  <polygon points="0,628 1024,628 1024,660 0,660" fill="url(#jlmBlueGrad)"/>
+
+  <!-- Bottom-Left Dynamic Diagonal Ribbons -->
+  <!-- Magenta Ribbon -->
+  <polygon points="0,360 0,420 280,660 220,660" fill="url(#jlmMagentaGrad)"/>
+  <!-- Gold Ribbon -->
+  <polygon points="0,425 0,475 340,660 290,660" fill="url(#jlmGoldGrad)"/>
+  <!-- Blue Supporting Ribbon -->
+  <polygon points="0,480 0,530 400,660 350,660" fill="url(#jlmBlueGrad)"/>
+
+  <!-- Bottom-Right Dynamic Ribbons -->
+  <polygon points="990,500 1024,465 1024,530 910,628 840,628 990,500" fill="url(#jlmMagentaGrad)"/>
+  <polygon points="990,550 1024,515 1024,570 950,628 890,628 990,550" fill="url(#jlmGoldGrad)"/>
+
+  <!-- Top-Left Clean Angled Notch -->
+  <polygon points="0,0 120,0 32,75 32,32 0,32" fill="url(#jlmBlueGrad)"/>
+  <polygon points="125,0 155,0 32,108 32,80" fill="url(#jlmMagentaGrad)"/>
+
+  <!-- INNER 3D LAYERED RECTANGLE FRAME -->
+  <!-- Outer Silver/Gray Border -->
+  <rect x="32" y="32" width="960" height="596" fill="none" stroke="#cbd5e1" stroke-width="12" filter="url(#frameShadow)"/>
+  <!-- Inner Highlight Bevel Line -->
+  <rect x="38" y="38" width="948" height="584" fill="none" stroke="#f8fafc" stroke-width="1.5"/>
+  <!-- Thin Inner Accent Line -->
+  <rect x="44" y="44" width="936" height="572" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+
+  <!-- Subtle Architectural Facet in Lower-Left Quadrant -->
+  <polygon points="45,260 150,330 150,540 45,470" fill="#f8fafc" opacity="0.6"/>
+</svg>

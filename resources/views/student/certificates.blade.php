@@ -58,11 +58,8 @@
 
                     {{-- Certificate Thumbnail Preview (Authentic 100% Visual Match) --}}
                     <div class="relative h-44 overflow-hidden border-b border-gray-100 bg-white">
-                        <picture>
-                            <source srcset="{{ asset('images/certificate-frame.webp') }}" type="image/webp">
-                            <img src="{{ asset('images/certificate-frame.png') }}" alt="Certificate" 
-                                 class="absolute inset-0 w-full h-full object-cover">
-                        </picture>
+                        <img src="{{ asset('images/certificate-frame.svg') }}" alt="Certificate" 
+                             class="absolute inset-0 w-full h-full object-cover">
 
                         {{-- Preview Text Overlay --}}
                         <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
