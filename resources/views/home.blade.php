@@ -93,13 +93,25 @@
                             <span class="absolute top-3 left-3 bg-white/90 backdrop-blur text-gray-800 font-bold text-xs px-3 py-1 rounded-full shadow-sm capitalize">
                                 {{ $course->level ?? 'Beginner' }}
                             </span>
-                        </div>
-                        <div class="p-6">
-                            @if($course->category)
-                                <span class="inline-block bg-[#1b2299]/10 text-[#1b2299] font-extrabold text-[11px] uppercase tracking-wider px-2.5 py-0.5 rounded-full mb-2">
-                                    {{ $course->category }}
+                            @if($course->isPreorder())
+                                <span class="absolute top-3 right-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-extrabold text-[11px] px-3 py-1 rounded-full shadow-md tracking-wider uppercase flex items-center gap-1.5">
+                                    <i class="fas fa-bookmark text-[9px]"></i> Pre-Order
                                 </span>
                             @endif
+                        </div>
+                        <div class="p-6">
+                            <div class="flex flex-wrap items-center gap-1.5 mb-2">
+                                @if($course->category)
+                                    <span class="inline-block bg-[#1b2299]/10 text-[#1b2299] font-extrabold text-[11px] uppercase tracking-wider px-2.5 py-0.5 rounded-full">
+                                        {{ $course->category }}
+                                    </span>
+                                @endif
+                                @if($course->isPreorder())
+                                    <span class="inline-block bg-purple-100 text-purple-700 font-extrabold text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full">
+                                        Launches Soon
+                                    </span>
+                                @endif
+                            </div>
                             <h3 class="font-extrabold text-xl text-gray-900 mb-2 leading-snug hover:text-primary-jlm transition">
                                 <a href="{{ route('course.detail', $course->slug) }}">{{ $course->title }}</a>
                             </h3>
@@ -110,12 +122,27 @@
                     </div>
 
                     <div class="px-6 pb-6 pt-0 flex justify-between items-center border-t border-gray-50 pt-4">
-                        <span class="text-2xl font-black bg-gradient-to-r from-[#1b2299] to-[#e4306d] bg-clip-text text-transparent">
-                            {{ $course->price > 0 ? '₦' . number_format($course->price, 0) : 'Free' }}
-                        </span>
+                        <div>
+                            <span class="text-2xl font-black bg-gradient-to-r from-[#1b2299] to-[#e4306d] bg-clip-text text-transparent">
+                                @if($course->isPreorder())
+                                    {{ (float) $course->preorder_price > 0 ? '₦' . number_format($course->preorder_price, 0) : 'Free Pre-order' }}
+                                @else
+                                    {{ (float) $course->price > 0 ? '₦' . number_format($course->price, 0) : 'Free' }}
+                                @endif
+                            </span>
+                            @if($course->isPreorder() && (float) $course->price > (float) $course->preorder_price)
+                                <div class="text-xs text-gray-400 line-through">
+                                    ₦{{ number_format($course->price, 0) }}
+                                </div>
+                            @endif
+                        </div>
                         <a href="{{ route('course.detail', $course->slug) }}" 
-                           class="bg-gradient-to-r from-[#1b2299] to-[#e4306d] text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md hover:scale-105 transition">
-                            Details
+                           class="bg-gradient-to-r from-[#1b2299] to-[#e4306d] text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md hover:scale-105 transition flex items-center gap-1.5">
+                            @if($course->isPreorder())
+                                <i class="fas fa-bolt text-xs"></i> Pre-order
+                            @else
+                                Details
+                            @endif
                         </a>
                     </div>
                 </div>
