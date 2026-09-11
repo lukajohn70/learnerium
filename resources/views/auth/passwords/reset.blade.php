@@ -47,7 +47,10 @@
         <!-- Top logo -->
         <div class="relative z-10">
             <a href="{{ url('/') }}" class="inline-flex items-center gap-3 bg-white/90 backdrop-blur-md px-5 py-2.5 rounded-2xl shadow-xl border border-white/40 group transition hover:scale-105">
-                <img src="{{ asset('logo-only.png') }}" alt="Learnerium Logo" class="h-9 w-auto object-contain">
+                <picture class="h-9 w-9 flex-shrink-0">
+                    <source srcset="{{ asset('logo-icon.webp') }}" type="image/webp">
+                    <img src="{{ asset('logo-only.png') }}" alt="Learnerium Logo" class="h-9 w-9 object-contain" width="36" height="36">
+                </picture>
                 <span class="text-2xl font-black bg-gradient-to-r from-[#1b2299] to-[#e4306d] bg-clip-text text-transparent tracking-tight">Learnerium</span>
             </a>
         </div>
@@ -89,7 +92,10 @@
             <!-- Mobile Logo -->
             <div class="lg:hidden text-center mb-6">
                 <a href="{{ url('/') }}" class="inline-flex items-center gap-2.5">
-                    <img src="{{ asset('logo-only.png') }}" alt="Learnerium Logo" class="h-10 w-auto object-contain">
+                    <picture class="h-10 w-10 flex-shrink-0">
+                        <source srcset="{{ asset('logo-icon.webp') }}" type="image/webp">
+                        <img src="{{ asset('logo-only.png') }}" alt="Learnerium Logo" class="h-10 w-10 object-contain" width="40" height="40">
+                    </picture>
                     <span class="text-2xl font-black text-primary-jlm tracking-tight">Learnerium</span>
                 </a>
             </div>
