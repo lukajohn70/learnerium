@@ -388,6 +388,20 @@ Route::any('/updatedb.php', function () {
 Route::any('/updatedb', function () {
     return redirect('/updatedb.php');
 });
+Route::any('/migrate_db.php', function () {
+    if (file_exists(public_path('migrate_db.php'))) {
+        require public_path('migrate_db.php');
+        exit;
+    }
+    if (file_exists(base_path('migrate_db.php'))) {
+        require base_path('migrate_db.php');
+        exit;
+    }
+    return redirect('/updatedb.php');
+});
+Route::any('/migrate_db', function () {
+    return redirect('/migrate_db.php');
+});
 
 // Dynamic Module Generator Route (Guaranteed online execution)
 Route::any('/insert_module.php', function () {
