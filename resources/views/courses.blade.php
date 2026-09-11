@@ -137,13 +137,19 @@
                                     </form>
                                 @endauth
                             </div>
-
                             <div class="p-6">
+                                <div class="flex flex-wrap items-center gap-1.5 mb-2">
                                 @if($course->category)
-                                    <span class="inline-block bg-primary-jlm/10 text-primary-jlm font-extrabold text-[11px] uppercase tracking-wider px-2.5 py-0.5 rounded-full mb-2">
+                                    <span class="inline-block bg-primary-jlm/10 text-primary-jlm font-extrabold text-[11px] uppercase tracking-wider px-2.5 py-0.5 rounded-full">
                                         {{ $course->category }}
                                     </span>
                                 @endif
+                                @if($course->isPreorder())
+                                    <span class="inline-flex items-center gap-1 bg-purple-600 text-white font-extrabold text-[11px] uppercase tracking-wider px-2.5 py-0.5 rounded-full">
+                                        <i class="fas fa-bookmark text-[9px]"></i> Pre-Order
+                                    </span>
+                                @endif
+                                </div>
                                 <h3 class="font-extrabold text-xl text-gray-900 mb-2 leading-snug hover:text-primary-jlm transition">
                                     <a href="{{ route('course.detail', $course->slug) }}">{{ $course->title }}</a>
                                 </h3>
@@ -158,8 +164,15 @@
                         </div>
 
                         <div class="px-6 pb-6 pt-0 flex justify-between items-center border-t border-gray-50 pt-4">
-                            <span class="text-2xl font-extrabold text-primary-jlm">
-                                {{ $course->price > 0 ? '₦' . number_format($course->price, 0) : 'Free' }}
+                            <span class="text-2xl font-extrabold {{ $course->isPreorder() ? 'text-purple-700' : 'text-primary-jlm' }}">
+                                @if($course->isPreorder())
+                                    ₦{{ number_format($course->preorder_price ?? 0, 0) }}
+                                    @if($course->price > 0)
+                                        <span class="text-sm text-gray-400 line-through font-normal ml-1">₦{{ number_format($course->price, 0) }}</span>
+                                    @endif
+                                @else
+                                    {{ $course->price > 0 ? '₦' . number_format($course->price, 0) : 'Free' }}
+                                @endif
                             </span>
                             <div class="flex items-center gap-2">
                                 @auth

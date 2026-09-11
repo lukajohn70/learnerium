@@ -56,7 +56,7 @@ class CartController extends Controller
             ? collect()
             : Course::whereIn('id', $courseIds)->with('instructor')->get();
 
-        $totalPrice = $cartCourses->sum(fn($course) => (float) $course->price);
+        $totalPrice = $cartCourses->sum(fn($course) => $course->effectivePrice());
 
         return view('student.cart', compact('cartCourses', 'totalPrice'));
     }
@@ -66,8 +66,13 @@ class CartController extends Controller
      */
     public function store(Request $request, Course $course)
     {
-        if (Auth::check() && Auth::user()->enrolledIn($course->id)) {
-            return back()->with('info', 'You are already enrolled in this course.');
+        if (Auth::check()) {
+            if (Auth::user()->enrolledIn($course->id)) {
+                return back()->with('info', 'You are already enrolled in this course.');
+            }
+            if (Auth::user()->hasPreordered($course->id)) {
+                return back()->with('info', 'You have already pre-ordered this course.');
+            }
         }
 
         $sessionIds = session('cart_course_ids', []);

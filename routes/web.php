@@ -176,8 +176,21 @@ Route::any('/updatedb.php', function () {
                     $table->string('category')->nullable()->after('description');
                     logRouteMsg($log, "Added column 'category' to courses table.", 'success');
                 }
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('courses', 'is_preorder')) {
+                    $table->boolean('is_preorder')->default(false)->after('published_at');
+                    logRouteMsg($log, "Added column 'is_preorder' to courses table.", 'success');
+                }
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('courses', 'preorder_price')) {
+                    $table->decimal('preorder_price', 8, 2)->nullable()->after('is_preorder');
+                    logRouteMsg($log, "Added column 'preorder_price' to courses table.", 'success');
+                }
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('courses', 'preorder_ends_at')) {
+                    $table->timestamp('preorder_ends_at')->nullable()->after('preorder_price');
+                    logRouteMsg($log, "Added column 'preorder_ends_at' to courses table.", 'success');
+                }
             });
             $recordMigration('2026_08_20_182351_add_category_to_courses_table');
+            $recordMigration('2026_09_11_000000_add_preorder_to_courses');
         }
 
         if (\Illuminate\Support\Facades\Schema::hasTable('enrollments')) {
@@ -532,7 +545,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
          ->name('student.dashboard');
     Route::get('/dashboard/courses', function() {
         $courses = auth()->user()->coursesEnrolled()->with('instructor')->get();
-        return view('student.courses', compact('courses'));
+        $preorderedCourses = auth()->user()->coursesPreordered()->with('instructor')->get();
+        return view('student.courses', compact('courses', 'preorderedCourses'));
     })->name('student.courses');
     Route::get('/dashboard/progress', function() {
         $courses = auth()->user()->coursesEnrolled()->withPivot('progress_percentage')->with('instructor')->get();

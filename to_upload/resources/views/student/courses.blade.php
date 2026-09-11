@@ -12,7 +12,55 @@
         </a>
     </div>
 
-    @if($courses->isEmpty())
+    @if(!empty($preorderedCourses) && $preorderedCourses->isNotEmpty())
+        <div class="mb-10">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="w-2.5 h-2.5 rounded-full bg-purple-500 animate-pulse"></span>
+                <h2 class="text-xl font-bold text-gray-800">Pre-Ordered Courses</h2>
+                <span class="text-xs bg-purple-100 text-purple-700 font-bold px-2 py-0.5 rounded-full">{{ $preorderedCourses->count() }}</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                @foreach ($preorderedCourses as $course)
+                    <div class="bg-white rounded-2xl shadow-md overflow-hidden flex flex-col border border-purple-100 hover:shadow-lg transition">
+                        <div class="relative h-44 overflow-hidden">
+                            <img src="{{ $course->thumbnail ?? 'https://placehold.co/400x250/1b2299/f7de7a?text='.urlencode($course->title) }}" 
+                                 alt="{{ $course->title }}" 
+                                 class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                            <div class="absolute top-3 right-3">
+                                <span class="bg-purple-600 text-white text-[11px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
+                                    <i class="fas fa-clock mr-1"></i>Pre-Order
+                                </span>
+                            </div>
+                            <div class="absolute bottom-3 left-3">
+                                <span class="bg-white/90 text-primary-jlm text-xs font-bold px-2.5 py-1 rounded-full">{{ $course->level }}</span>
+                            </div>
+                        </div>
+                        <div class="p-5 flex-grow flex flex-col justify-between">
+                            <div>
+                                <h2 class="text-lg font-bold text-gray-900 mb-1 line-clamp-2">{{ $course->title }}</h2>
+                                <p class="text-sm text-gray-500 mb-3">by {{ $course->instructor?->name ?? 'Instructor' }}</p>
+                                <div class="bg-purple-50 border border-purple-100 rounded-xl p-3 text-xs text-purple-700 mb-4">
+                                    <i class="fas fa-rocket mr-1 text-purple-500"></i>
+                                    You have secured pre-order access. Full content unlocks automatically upon official launch!
+                                </div>
+                            </div>
+                            <a href="{{ route('course.detail', $course->slug) }}" 
+                               class="w-full text-center bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-xl font-semibold transition text-sm">
+                                <i class="fas fa-eye mr-2"></i>View Course Page
+                            </a>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
+    <div class="mb-4">
+        <h2 class="text-xl font-bold text-gray-800">Enrolled Courses</h2>
+    </div>
+
+    @if($courses->isEmpty() && (empty($preorderedCourses) || $preorderedCourses->isEmpty()))
         <div class="bg-white rounded-2xl shadow-md p-16 text-center">
             <div class="text-6xl text-gray-200 mb-4"><i class="fas fa-book-open"></i></div>
             <h2 class="text-xl font-bold text-gray-700 mb-2">You're not enrolled in any courses yet.</h2>
@@ -20,6 +68,10 @@
             <a href="{{ route('courses') }}" class="bg-secondary-jlm text-white px-8 py-3 rounded-xl font-semibold hover:bg-secondary-jlm/90 transition shadow-md">
                 Browse Courses
             </a>
+        </div>
+    @elseif($courses->isEmpty())
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center text-gray-500">
+            <p>No active enrolled courses yet. Once your pre-ordered courses launch, they will appear here!</p>
         </div>
     @else
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">

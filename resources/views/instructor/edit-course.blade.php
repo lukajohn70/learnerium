@@ -118,9 +118,61 @@
                                placeholder="e.g. uploads/thumbnails/... or https://...">
                     </div>
                     <div>
-                        <label for="price" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Course Price (₦ Naira)</label>
+                        <label for="price" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Course Price (₦ Naira) <span class="text-gray-400 text-[10px] font-normal">(Launch / Live Price)</span></label>
                         <input id="price" name="price" type="number" step="0.01" min="0" value="{{ old('price', $course->price) }}"
                                class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-primary-jlm text-sm font-bold">
+                    </div>
+                </div>
+
+                {{-- ⏳ Preorder Settings Card --}}
+                @php $preorderEnabled = old('is_preorder', $course->is_preorder ?? false); @endphp
+                <div class="bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50 border border-purple-200 rounded-2xl p-5 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center text-white text-sm shadow">
+                                <i class="fas fa-bookmark"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-extrabold text-purple-900">Preorder Settings</h3>
+                                <p class="text-xs text-purple-500">Sell at a lower price before the course launches</p>
+                            </div>
+                        </div>
+                        {{-- Toggle --}}
+                        <label class="relative inline-flex items-center cursor-pointer gap-2" for="is_preorder_toggle">
+                            <input type="hidden" name="is_preorder" value="0">
+                            <input type="checkbox" id="is_preorder_toggle" name="is_preorder" value="1"
+                                   class="sr-only peer" {{ $preorderEnabled ? 'checked' : '' }}
+                                   onchange="togglePreorderFields(this.checked)">
+                            <div class="w-10 h-5 bg-gray-300 peer-checked:bg-purple-600 rounded-full transition relative after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition peer-checked:after:translate-x-5"></div>
+                            <span class="text-xs font-bold text-purple-800" id="preorder_toggle_label">{{ $preorderEnabled ? 'Enabled' : 'Disabled' }}</span>
+                        </label>
+                    </div>
+
+                    <div id="preorder_fields" class="{{ $preorderEnabled ? '' : 'hidden' }} space-y-4 border-t border-purple-100 pt-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="preorder_price" class="block text-xs font-bold uppercase tracking-wider text-purple-700 mb-2">
+                                    Preorder Price (₦) <span class="text-purple-400 text-[10px] font-normal">— lower than launch price</span>
+                                </label>
+                                <input id="preorder_price" name="preorder_price" type="number" step="0.01" min="0"
+                                       value="{{ old('preorder_price', $course->preorder_price) }}"
+                                       placeholder="e.g. 4999 (enter 0 for free preorder)"
+                                       class="w-full px-4 py-3 border border-purple-200 bg-white rounded-xl focus:outline-none focus:border-purple-500 text-sm font-bold">
+                            </div>
+                            <div>
+                                <label for="preorder_ends_at" class="block text-xs font-bold uppercase tracking-wider text-purple-700 mb-2">
+                                    Preorder Ends (Optional) <span class="text-purple-400 text-[10px] font-normal">— countdown on course page</span>
+                                </label>
+                                <input id="preorder_ends_at" name="preorder_ends_at" type="datetime-local"
+                                       value="{{ old('preorder_ends_at', $course->preorder_ends_at ? $course->preorder_ends_at->format('Y-m-d\TH:i') : '') }}"
+                                       class="w-full px-4 py-3 border border-purple-200 bg-white rounded-xl focus:outline-none focus:border-purple-500 text-sm">
+                            </div>
+                        </div>
+                        <p class="text-xs text-purple-600 bg-purple-100 rounded-xl px-4 py-3 leading-relaxed">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            While preorder is active, the <strong>Preorder Price</strong> is charged at checkout instead of the launch price.
+                            The course will remain hidden from the main catalogue until you click <strong>Publish</strong>, which also promotes all preorder students to full access automatically.
+                        </p>
                     </div>
                 </div>
 
@@ -1283,6 +1335,14 @@ async function fetchGDriveVideo(id) {
             btn.innerHTML = originalBtnContent || '<i class="fas fa-cloud-arrow-down mr-1.5"></i> Download & Save to Server';
         }
     }
+}
+
+// --- Preorder Toggle ---
+function togglePreorderFields(enabled) {
+    const fields = document.getElementById('preorder_fields');
+    const label  = document.getElementById('preorder_toggle_label');
+    if (fields) fields.classList.toggle('hidden', !enabled);
+    if (label)  label.textContent = enabled ? 'Enabled' : 'Disabled';
 }
 
 </script>

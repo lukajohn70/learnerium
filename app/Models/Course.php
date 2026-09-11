@@ -30,6 +30,9 @@ class Course extends Model
         'published_at',
         'requirements',
         'what_you_will_learn',
+        'is_preorder',
+        'preorder_price',
+        'preorder_ends_at',
     ];
 
     /**
@@ -38,10 +41,36 @@ class Course extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'published_at'        => 'datetime',
+        'published_at'     => 'datetime',
+        'preorder_ends_at' => 'datetime',
+        'is_preorder'      => 'boolean',
         'requirements'        => 'array',
         'what_you_will_learn' => 'array',
     ];
+
+    // --- Preorder Helpers ---
+
+    /**
+     * True when the course is in preorder mode (is_preorder = true and not yet published/live).
+     * Once a course is published, preorder mode ends and normal pricing applies.
+     */
+    public function isPreorder(): bool
+    {
+        return (bool) $this->is_preorder;
+    }
+
+    /**
+     * Returns the price a student should pay right now.
+     * During preorder, returns preorder_price (defaulting to 0 if null).
+     * Once live / not in preorder mode, returns the regular price.
+     */
+    public function effectivePrice(): float
+    {
+        if ($this->isPreorder()) {
+            return (float) ($this->preorder_price ?? 0);
+        }
+        return (float) $this->price;
+    }
 
     // --- Define Relationships Below ---
 

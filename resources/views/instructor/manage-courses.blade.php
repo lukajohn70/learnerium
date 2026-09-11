@@ -40,6 +40,8 @@
                                 <span class="text-xs font-semibold bg-purple-100 text-purple-700 px-2.5 py-1 rounded-full"><i class="fas fa-list-ul mr-1"></i>{{ $course->lessons->count() }} Lessons</span>
                                 @if($course->published_at)
                                     <span class="text-xs font-semibold bg-green-100 text-green-700 px-2.5 py-1 rounded-full"><i class="fas fa-check mr-1"></i>Published</span>
+                                @elseif($course->isPreorder())
+                                    <span class="text-xs font-semibold bg-purple-100 text-purple-700 px-2.5 py-1 rounded-full"><i class="fas fa-bookmark mr-1"></i>Pre-order (₦{{ number_format($course->preorder_price, 2) }})</span>
                                 @else
                                     <span class="text-xs font-semibold bg-yellow-100 text-yellow-700 px-2.5 py-1 rounded-full"><i class="fas fa-clock mr-1"></i>Draft</span>
                                 @endif
@@ -77,7 +79,7 @@
                             <form action="{{ route('instructor.courses.publish', $course->id) }}" method="POST">
                                 @csrf
                                 <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-xl font-semibold text-xs hover:bg-green-600 transition">
-                                    <i class="fas fa-rocket mr-1"></i>Publish
+                                    <i class="fas fa-rocket mr-1"></i>{{ $course->isPreorder() ? 'Launch / End Preorder' : 'Publish' }}
                                 </button>
                             </form>
                         @else

@@ -69,6 +69,13 @@
                     </span>
                 @endif
 
+                {{-- Pre-Order Badge in Hero --}}
+                @if($course->isPreorder())
+                    <span class="inline-flex items-center gap-1.5 bg-purple-600 text-white font-black text-xs uppercase tracking-widest px-3.5 py-1 rounded-full shadow animate-pulse">
+                        <i class="fas fa-bookmark"></i> Pre-Order
+                    </span>
+                @endif
+
                 {{-- Currency converter dropdown in Hero --}}
                 @if($course->price > 0)
                     <div class="relative inline-block text-left" id="currencyDropdownWrap">
@@ -349,9 +356,49 @@
         <aside class="lg:w-1/3 w-full">
             <div class="bg-white rounded-2xl shadow-xl sticky top-24 border border-gray-100 overflow-hidden">
 
-                {{-- Sidebar price --}}
-                <div class="border-b border-gray-100 px-6 py-6 text-center bg-gray-50/50">
-                    @if($course->price > 0)
+            <div class="border-b border-gray-100 px-6 py-6 text-center bg-gray-50/50">
+                    @if($course->isPreorder())
+                        {{-- Preorder price display --}}
+                        <div class="mb-1">
+                            <p id="sidebarPrice" class="text-4xl font-extrabold text-purple-700">
+                                ₦{{ number_format($course->preorder_price ?? 0, 2) }}
+                            </p>
+                            @if($course->price > 0)
+                                <p class="text-sm text-gray-400 line-through">₦{{ number_format($course->price, 2) }} at launch</p>
+                            @endif
+                            <p id="sidebarCurrencyLabel" class="text-xs text-purple-500 font-medium mt-1">Pre-Order Price (Nigerian Naira)</p>
+                        </div>
+                        <span class="inline-block bg-purple-100 text-purple-800 text-[11px] font-bold px-3 py-1 rounded-full">
+                            <i class="fas fa-bookmark mr-1"></i>Pre-Order Available
+                        </span>
+
+                        {{-- Countdown Timer --}}
+                        @if($course->preorder_ends_at)
+                        <div class="mt-3" id="preorder-countdown-wrap">
+                            <p class="text-xs text-gray-500 mb-1">Preorder ends in:</p>
+                            <div id="preorder-countdown" class="font-mono text-base font-extrabold text-purple-700 tracking-widest"></div>
+                        </div>
+                        <script>
+                        (function() {
+                            const end = new Date('{{ $course->preorder_ends_at->toISOString() }}');
+                            const el  = document.getElementById('preorder-countdown');
+                            const wrap = document.getElementById('preorder-countdown-wrap');
+                            function tick() {
+                                const diff = end - new Date();
+                                if (!el) return;
+                                if (diff <= 0) { el.textContent = 'Offer ended'; return; }
+                                const d = Math.floor(diff / 86400000);
+                                const h = Math.floor((diff % 86400000) / 3600000);
+                                const m = Math.floor((diff % 3600000) / 60000);
+                                const s = Math.floor((diff % 60000) / 1000);
+                                el.textContent = (d > 0 ? d + 'd ' : '') + String(h).padStart(2,'0') + 'h ' + String(m).padStart(2,'0') + 'm ' + String(s).padStart(2,'0') + 's';
+                            }
+                            tick(); setInterval(tick, 1000);
+                        })();
+                        </script>
+                        @endif
+
+                    @elseif($course->price > 0)
                         <p id="sidebarPrice" class="text-4xl font-extrabold text-primary-jlm mb-1">₦{{ number_format($course->price, 2) }}</p>
                         <p id="sidebarCurrencyLabel" class="text-xs text-gray-500 font-medium">Displayed in Nigerian Naira (NGN)</p>
                     @else
@@ -363,10 +410,12 @@
                     {{-- CTA --}}
                     @auth
                         @php
-                            $isEnrolled = auth()->user()->enrolledIn($course->id);
-                            $isPaid     = (float) $course->price > 0;
+                            $isEnrolled   = auth()->user()->enrolledIn($course->id);
+                            $enrollment   = auth()->user()->enrollments()->where('course_id', $course->id)->first();
+                            $isPreordered = $enrollment && $enrollment->payment_status === 'preorder';
+                            $isPaid       = (float) $course->effectivePrice() > 0;
                         @endphp
-                        @if($isEnrolled)
+                        @if($isEnrolled && !$isPreordered)
                             @if($course->lessons->count() > 0)
                                 <a href="{{ route('lesson.show', [$course, $course->lessons->first()]) }}"
                                    class="block w-full text-center bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-4 rounded-xl font-bold transition shadow-md">
@@ -377,6 +426,24 @@
                                     <i class="fas fa-check-circle mr-2"></i>You're Enrolled
                                 </div>
                             @endif
+                        @elseif($isPreordered)
+                            {{-- Already pre-ordered --}}
+                            <div class="block w-full text-center bg-purple-600 text-white px-6 py-4 rounded-xl font-extrabold text-base">
+                                <i class="fas fa-bookmark mr-2"></i>Pre-Ordered!
+                            </div>
+                            <p class="text-center text-xs text-purple-600 mt-2 font-medium">
+                                <i class="fas fa-clock mr-1"></i>You'll get full access when this course launches.
+                            </p>
+                        @elseif($course->isPreorder())
+                            {{-- Preorder CTA --}}
+                            <a href="{{ route('courses.checkout', $course) }}"
+                               class="block w-full text-center bg-purple-600 hover:bg-purple-700 text-white px-6 py-4 rounded-xl font-extrabold transition shadow-md text-base tracking-wide">
+                                <i class="fas fa-bookmark mr-2"></i>Pre-Order Now &mdash;
+                                <span class="buy-btn-price">₦{{ number_format($course->preorder_price ?? 0, 2) }}</span>
+                            </a>
+                            <p class="text-center text-xs text-gray-500 mt-2">
+                                <i class="fas fa-shield-alt mr-1 text-emerald-500"></i>Secure payment &middot; Full access at launch
+                            </p>
                         @elseif($isPaid)
                             <a href="{{ route('courses.checkout', $course) }}"
                                class="block w-full text-center bg-secondary-jlm hover:bg-secondary-jlm/90 text-white px-6 py-4 rounded-xl font-extrabold transition shadow-md text-base tracking-wide">

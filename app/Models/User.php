@@ -112,6 +112,16 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Courses the user has pre-ordered (payment_status = 'preorder').
+     */
+    public function coursesPreordered(): BelongsToMany
+    {
+        return $this->belongsToMany(Course::class, 'enrollments', 'user_id', 'course_id')
+                    ->wherePivot('payment_status', 'preorder')
+                    ->withPivot('created_at', 'updated_at');
+    }
+
+    /**
      * Enrollments for courses this user teaches (as instructor).
      * Used for earnings/payout calculations.
      */
@@ -180,6 +190,18 @@ class User extends Authenticatable implements MustVerifyEmail
 
         // For any enrollment, check if paid (or 'paid' status means free or paid)
         return $enrollment->payment_status === 'paid';
+    }
+
+    /**
+     * Check if user has preordered a specific course.
+     */
+    public function hasPreordered($courseId): bool
+    {
+        $enrollment = $this->enrollments()
+            ->where('course_id', $courseId)
+            ->first();
+
+        return $enrollment && $enrollment->payment_status === 'preorder';
     }
 
     public function submissions()

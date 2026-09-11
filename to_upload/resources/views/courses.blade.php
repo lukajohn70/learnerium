@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
 @section('title', 'Explore Courses — Learnerium')
+@section('meta_description', 'Browse all available courses on Learnerium. Find expert-led courses in web development, design, business, and more — with verified certificates upon completion.')
+@section('og_title', 'Explore Courses — Learnerium')
+@section('og_description', 'Discover and enrol in top-quality online courses across technology, business, and creative skills. Earn verified certificates on Learnerium.')
 
 @section('content')
 
@@ -121,24 +124,32 @@
                     <div class="bg-white rounded-3xl shadow-sm hover:shadow-xl border border-gray-100 overflow-hidden transition-all duration-300 transform hover:-translate-y-1 flex flex-col justify-between">
                         <div>
                             <div class="relative">
-                                @if($course->thumbnail)
-                                    <img src="{{ asset('storage/' . $course->thumbnail) }}" alt="{{ $course->title }}" class="w-full h-48 object-cover">
-                                @else
-                                    <div class="w-full h-48 bg-gradient-to-br from-primary-jlm to-indigo-900 flex items-center justify-center text-white/40">
-                                        <i class="fas fa-graduation-cap text-5xl text-accent-jlm/40"></i>
-                                    </div>
-                                @endif
-                                <span class="absolute top-3 right-3 bg-white/90 backdrop-blur text-gray-800 font-bold text-xs px-3 py-1 rounded-full shadow-sm capitalize">
+                                <img src="{{ $course->thumbnailUrl() }}" alt="{{ $course->title }}" class="w-full h-48 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/600x400/1b2299/f7de7a?text={{ urlencode($course->title) }}';">
+                                <span class="absolute top-3 left-3 bg-white/90 backdrop-blur text-gray-800 font-bold text-xs px-3 py-1 rounded-full shadow-sm capitalize">
                                     {{ $course->level ?? 'Beginner' }}
                                 </span>
+                                @auth
+                                    <form action="{{ route('wishlist.toggle', $course) }}" method="POST" class="absolute top-3 right-3">
+                                        @csrf
+                                        <button type="submit" class="w-9 h-9 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow-md transition hover:scale-110 {{ Auth::user()->inWishlist($course->id) ? 'text-pink-600' : 'text-gray-400 hover:text-pink-600' }}" title="Wishlist">
+                                            <i class="fas fa-heart text-sm"></i>
+                                        </button>
+                                    </form>
+                                @endauth
                             </div>
-
                             <div class="p-6">
+                                <div class="flex flex-wrap items-center gap-1.5 mb-2">
                                 @if($course->category)
-                                    <span class="inline-block bg-primary-jlm/10 text-primary-jlm font-extrabold text-[11px] uppercase tracking-wider px-2.5 py-0.5 rounded-full mb-2">
+                                    <span class="inline-block bg-primary-jlm/10 text-primary-jlm font-extrabold text-[11px] uppercase tracking-wider px-2.5 py-0.5 rounded-full">
                                         {{ $course->category }}
                                     </span>
                                 @endif
+                                @if($course->isPreorder())
+                                    <span class="inline-flex items-center gap-1 bg-purple-600 text-white font-extrabold text-[11px] uppercase tracking-wider px-2.5 py-0.5 rounded-full">
+                                        <i class="fas fa-bookmark text-[9px]"></i> Pre-Order
+                                    </span>
+                                @endif
+                                </div>
                                 <h3 class="font-extrabold text-xl text-gray-900 mb-2 leading-snug hover:text-primary-jlm transition">
                                     <a href="{{ route('course.detail', $course->slug) }}">{{ $course->title }}</a>
                                 </h3>
@@ -146,20 +157,39 @@
                                     {{ \Illuminate\Support\Str::limit($course->description, 110) }}
                                 </p>
                                 <div class="flex items-center gap-2.5 text-xs font-semibold text-gray-600 mb-4">
-                                    <img src="https://placehold.co/24x24/1b2299/f7de7a?text={{ urlencode(substr($course->instructor?->name ?? 'IN', 0, 2)) }}" class="w-6 h-6 rounded-full">
+                                    <img src="{{ $course->instructor ? $course->instructor->avatarUrl() : 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgMTI4IDEyOCI+PHJlY3Qgd2lkdGg9IjEyOCIgaGVpZ2h0PSIxMjgiIHJ4PSI2NCIgZmlsbD0iIzFiMjI5OSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTQlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjZjdkZTdhIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSI0NiIgZm9udC13ZWlnaHQ9ImJvbGQiPklSPC90ZXh0Pjwvc3ZnPg==' }}" class="w-6 h-6 rounded-full object-cover" width="24" height="24" loading="lazy">
                                     <span>{{ $course->instructor?->name ?? 'Instructor' }}</span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="px-6 pb-6 pt-0 flex justify-between items-center border-t border-gray-50 pt-4">
-                            <span class="text-2xl font-extrabold text-primary-jlm">
-                                {{ $course->price > 0 ? '₦' . number_format($course->price, 0) : 'Free' }}
+                            <span class="text-2xl font-extrabold {{ $course->isPreorder() ? 'text-purple-700' : 'text-primary-jlm' }}">
+                                @if($course->isPreorder())
+                                    ₦{{ number_format($course->preorder_price ?? 0, 0) }}
+                                    @if($course->price > 0)
+                                        <span class="text-sm text-gray-400 line-through font-normal ml-1">₦{{ number_format($course->price, 0) }}</span>
+                                    @endif
+                                @else
+                                    {{ $course->price > 0 ? '₦' . number_format($course->price, 0) : 'Free' }}
+                                @endif
                             </span>
-                            <a href="{{ route('course.detail', $course->slug) }}" 
-                               class="bg-secondary-jlm hover:bg-secondary-jlm/90 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition shadow-md hover:shadow-secondary-jlm/30">
-                                View Course
-                            </a>
+                            <div class="flex items-center gap-2">
+                                @auth
+                                    @if($course->price > 0 && !Auth::user()->enrolledIn($course->id))
+                                        <form action="{{ route('cart.store', $course) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="p-2.5 bg-gray-100 hover:bg-primary-jlm hover:text-white text-gray-700 rounded-xl transition" title="Add to Cart">
+                                                <i class="fas fa-shopping-cart text-sm"></i>
+                                            </button>
+                                        </form>
+                                    @endif
+                                @endauth
+                                <a href="{{ route('course.detail', $course->slug) }}" 
+                                   class="bg-secondary-jlm hover:bg-secondary-jlm/90 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition shadow-md hover:shadow-secondary-jlm/30">
+                                    Details
+                                </a>
+                            </div>
                         </div>
                     </div>
                 @empty
