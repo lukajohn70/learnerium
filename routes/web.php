@@ -37,9 +37,12 @@ use App\Http\Middleware\IsInstructor;
 
 // Public Pages
 Route::get('/', function () {
-    $featuredCourses = \App\Models\Course::whereNotNull('published_at')
+    $featuredCourses = \App\Models\Course::where(function($query) {
+            $query->whereNotNull('published_at')
+                  ->orWhere('is_preorder', true);
+        })
         ->with('instructor')
-        ->latest('published_at')
+        ->latest()
         ->take(6)
         ->get();
     return view('home', compact('featuredCourses'));

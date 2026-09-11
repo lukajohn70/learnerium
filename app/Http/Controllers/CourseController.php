@@ -18,8 +18,11 @@ class CourseController extends Controller
 
     public function index(Request $request)
     {
-        $query = Course::whereNotNull('published_at')
-            ->latest('published_at')
+        $query = Course::where(function($q) {
+                $q->whereNotNull('published_at')
+                  ->orWhere('is_preorder', true);
+            })
+            ->latest()
             ->with('instructor');
 
         if ($request->filled('category')) {
@@ -27,7 +30,14 @@ class CourseController extends Controller
         }
 
         $courses = $query->get();
-        $categories = Course::whereNotNull('published_at')->whereNotNull('category')->distinct()->pluck('category')->values();
+        $categories = Course::where(function($q) {
+                $q->whereNotNull('published_at')
+                  ->orWhere('is_preorder', true);
+            })
+            ->whereNotNull('category')
+            ->distinct()
+            ->pluck('category')
+            ->values();
 
         return view('courses', compact('courses', 'categories'));
     }
