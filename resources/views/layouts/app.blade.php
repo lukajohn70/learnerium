@@ -45,7 +45,7 @@
     <link rel="icon" type="image/png" sizes="64x64" href="{{ asset('favicon.png') }}?v=4">
 
     <!-- Preload critical logo asset for instantaneous LCP rendering -->
-    <link rel="preload" as="image" href="{{ asset('logo-icon.webp') }}" type="image/webp" fetchpriority="high">
+    <link rel="preload" as="image" href="{{ asset('logo-only.png') }}?v=5" fetchpriority="high">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon.png') }}?v=4">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('favicon.png') }}?v=4">
 
@@ -165,10 +165,7 @@
         <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200/60 shadow-sm">
             <div class="container mx-auto px-4 lg:px-8 flex justify-between items-center h-16">
                 <a href="{{ url('/') }}" class="flex items-center gap-2.5 group">
-                    <picture class="h-10 w-10 flex-shrink-0">
-                        <source srcset="{{ asset('logo-icon.webp') }}" type="image/webp">
-                        <img src="{{ asset('logo-only.png') }}" alt="Learnerium Logo" class="h-10 w-10 object-contain transition group-hover:scale-105" width="40" height="40" fetchpriority="high" loading="eager">
-                    </picture>
+                    <img src="{{ asset('logo-only.png') }}?v=5" alt="Learnerium Logo" class="h-10 w-10 object-contain transition group-hover:scale-105" width="40" height="40" fetchpriority="high" loading="eager">
                     <span class="text-2xl font-black bg-gradient-to-r from-[#1b2299] to-[#e4306d] bg-clip-text text-transparent tracking-tight">Learnerium</span>
                 </a>
                 
@@ -567,10 +564,7 @@
                 {{-- Column 1: Brand & Bio (2 cols wide on LG) --}}
                 <div class="lg:col-span-2 space-y-4">
                     <a href="{{ url('/') }}" class="inline-flex items-center gap-3 group">
-                        <picture class="h-10 w-10 flex-shrink-0">
-                            <source srcset="{{ asset('logo-icon.webp') }}" type="image/webp">
-                            <img src="{{ asset('logo-only.png') }}" alt="Learnerium Logo" class="h-10 w-10 object-contain bg-white/10 p-1.5 rounded-xl shadow-inner group-hover:scale-105 transition" width="40" height="40" loading="lazy">
-                        </picture>
+                        <img src="{{ asset('logo-only.png') }}?v=5" alt="Learnerium Logo" class="h-10 w-10 object-contain bg-white/10 p-1.5 rounded-xl shadow-inner group-hover:scale-105 transition" width="40" height="40" loading="lazy">
                         <span class="text-2xl font-black tracking-tight text-white">Learnerium</span>
                     </a>
                     <p class="text-gray-400 text-sm leading-relaxed max-w-sm">
