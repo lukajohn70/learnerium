@@ -3,205 +3,578 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Certificate of Completion — {{ $user->name }} — {{ $course->title }}</title>
+    <title>Certificate of Achievement — {{ $user->name }} — {{ $course->title }}</title>
+    <meta name="description" content="Official certificate of achievement from Learnerium Academy awarded to {{ $user->name }} for completing {{ $course->title }}.">
     <link rel="icon" type="image/png" sizes="64x64" href="{{ asset('favicon.png') }}">
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
     <link rel="apple-touch-icon" href="{{ asset('favicon.png') }}">
-    <script src="https://cdn.tailwindcss.com"></script>
+
+    {{-- Fonts --}}
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Great+Vibes&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Great+Vibes&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-    
+
     <style>
-        .font-cinzel { font-family: 'Cinzel', Georgia, serif; }
-        .font-cormorant { font-family: 'Cormorant Garamond', Garamond, serif; }
-        .font-signature { font-family: 'Great Vibes', cursive; }
-        .font-mono-code { font-family: 'JetBrains Mono', monospace; }
-        
-        /* Ornamental guilloche background pattern */
-        .cert-bg-pattern {
-            background-color: #ffffff;
-            background-image: radial-gradient(#1b2299 0.45px, transparent 0.45px), radial-gradient(#e4306d 0.45px, #ffffff 0.45px);
-            background-size: 18px 18px;
-            background-position: 0 0, 9px 9px;
-            background-opacity: 0.03;
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --blue:    #1b2299;
+            --blue-dk: #141a73;
+            --pink:    #e4306d;
+            --gold:    #d97706;
+            --gold-lt: #f9e8a2;
+            --gold-dk: #92400e;
         }
 
-        /* Gold Foil Gradient */
-        .gold-foil {
-            background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .gold-foil-bg {
-            background: linear-gradient(135deg, #d4af37 0%, #f9e8a2 25%, #c59b27 50%, #fbf5b7 75%, #996515 100%);
-        }
-
-        .gold-border {
-            border-image: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c) 1;
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 32px 16px 48px;
+            -webkit-font-smoothing: antialiased;
         }
 
+        /* ── UI Buttons ─────────────────────────────── */
+        .action-bar {
+            width: 100%;
+            max-width: 980px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .btn-back {
+            display: inline-flex; align-items: center; gap: 8px;
+            font-size: 12px; font-weight: 700; color: #cbd5e1;
+            background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+            padding: 10px 18px; border-radius: 14px; text-decoration: none;
+            transition: all .2s;
+        }
+        .btn-back:hover { background: rgba(255,255,255,.12); color: #fff; }
+        .btn-print {
+            display: inline-flex; align-items: center; gap: 8px;
+            font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: .08em;
+            color: #1c1917; padding: 10px 22px; border-radius: 14px; border: none; cursor: pointer;
+            background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 40%, #d97706 100%);
+            box-shadow: 0 4px 20px rgba(245,158,11,.4);
+            transition: all .2s;
+        }
+        .btn-print:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(245,158,11,.5); }
+
+        .verify-link-bar {
+            width: 100%; max-width: 980px;
+            display: flex; align-items: center; justify-content: center;
+            gap: 8px; margin-top: 20px;
+            font-size: 11px; color: #475569; flex-wrap: wrap;
+        }
+        .verify-link-bar a { color: #94a3b8; text-decoration: none; font-weight: 600; }
+        .verify-link-bar a:hover { color: #f9e8a2; }
+
+        /* ── Certificate Outer Shell ─────────────────── */
+        .cert-shell {
+            width: 100%;
+            max-width: 980px;
+            aspect-ratio: 1.414 / 1;
+            position: relative;
+            background: #ffffff;
+            box-shadow: 0 32px 100px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.04);
+            overflow: hidden;
+        }
+
+        /* ── Geometric Corner Ribbons (CSS-only, no images) ─ */
+        /* Top-left: Blue */
+        .ribbon-tl {
+            position: absolute; top: 0; left: 0; width: 0; height: 0;
+            border-style: solid;
+            border-width: 140px 0 0 140px;
+            border-color: transparent transparent transparent var(--blue);
+            z-index: 5;
+        }
+        .ribbon-tl::after {
+            content: '';
+            position: absolute;
+            top: -110px; left: -140px;
+            border-style: solid;
+            border-width: 110px 0 0 110px;
+            border-color: transparent transparent transparent var(--pink);
+        }
+        .ribbon-tl::before {
+            content: '';
+            position: absolute;
+            top: -80px; left: -140px;
+            border-style: solid;
+            border-width: 80px 0 0 80px;
+            border-color: transparent transparent transparent var(--gold);
+        }
+
+        /* Top-right: Blue */
+        .ribbon-tr {
+            position: absolute; top: 0; right: 0; width: 0; height: 0;
+            border-style: solid;
+            border-width: 140px 140px 0 0;
+            border-color: transparent var(--blue) transparent transparent;
+            z-index: 5;
+        }
+        .ribbon-tr::after {
+            content: '';
+            position: absolute;
+            top: -140px; right: -110px;
+            border-style: solid;
+            border-width: 110px 110px 0 0;
+            border-color: transparent var(--pink) transparent transparent;
+        }
+        .ribbon-tr::before {
+            content: '';
+            position: absolute;
+            top: -140px; right: -80px;
+            border-style: solid;
+            border-width: 80px 80px 0 0;
+            border-color: transparent var(--gold) transparent transparent;
+        }
+
+        /* Bottom-left: Blue */
+        .ribbon-bl {
+            position: absolute; bottom: 0; left: 0; width: 0; height: 0;
+            border-style: solid;
+            border-width: 0 0 140px 140px;
+            border-color: transparent transparent var(--blue) transparent;
+            z-index: 5;
+        }
+        .ribbon-bl::after {
+            content: '';
+            position: absolute;
+            bottom: -140px; left: -110px;
+            border-style: solid;
+            border-width: 0 0 110px 110px;
+            border-color: transparent transparent var(--pink) transparent;
+        }
+        .ribbon-bl::before {
+            content: '';
+            position: absolute;
+            bottom: -140px; left: -80px;
+            border-style: solid;
+            border-width: 0 0 80px 80px;
+            border-color: transparent transparent var(--gold) transparent;
+        }
+
+        /* Bottom-right: Blue */
+        .ribbon-br {
+            position: absolute; bottom: 0; right: 0; width: 0; height: 0;
+            border-style: solid;
+            border-width: 0 140px 140px 0;
+            border-color: transparent transparent var(--blue) transparent;
+            z-index: 5;
+        }
+        .ribbon-br::after {
+            content: '';
+            position: absolute;
+            bottom: -140px; right: -110px;
+            border-style: solid;
+            border-width: 0 110px 110px 0;
+            border-color: transparent transparent var(--pink) transparent;
+        }
+        .ribbon-br::before {
+            content: '';
+            position: absolute;
+            bottom: -140px; right: -80px;
+            border-style: solid;
+            border-width: 0 80px 80px 0;
+            border-color: transparent transparent var(--gold) transparent;
+        }
+
+        /* ── Logo Watermark ─────────────────────────── */
+        .cert-watermark {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 44%;
+            opacity: 0.055;
+            pointer-events: none;
+            z-index: 1;
+            filter: grayscale(100%) contrast(200%);
+        }
+
+        /* ── Security Pattern ───────────────────────── */
+        .cert-security-pattern {
+            position: absolute; inset: 0; z-index: 2; pointer-events: none;
+            background-image: radial-gradient(circle, rgba(27,34,153,.07) 1px, transparent 1px);
+            background-size: 22px 22px;
+        }
+
+        /* ── Inner Gold Border ──────────────────────── */
+        .cert-inner-border {
+            position: absolute;
+            inset: 18px;
+            border: 1.5px solid rgba(217,119,6,.35);
+            z-index: 3;
+            pointer-events: none;
+        }
+        .cert-inner-border::after {
+            content: '';
+            position: absolute;
+            inset: 5px;
+            border: .5px solid rgba(217,119,6,.18);
+        }
+
+        /* ── Certificate Content ────────────────────── */
+        .cert-content {
+            position: relative; z-index: 10;
+            width: 100%; height: 100%;
+            padding: 44px 72px 36px;
+            display: flex; flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Header */
+        .cert-header { text-align: center; }
+        .cert-academy-label {
+            display: inline-flex; align-items: center; gap: 8px;
+            margin-bottom: 8px;
+        }
+        .cert-academy-label .line { flex: 1; height: 1px; width: 48px;
+            background: linear-gradient(to right, transparent, #e4306d); }
+        .cert-academy-label .line.r { background: linear-gradient(to left, transparent, #e4306d); }
+        .cert-academy-label span {
+            font-size: 10px; letter-spacing: .42em; font-weight: 800;
+            text-transform: uppercase; color: #e4306d;
+        }
+        .cert-title-main {
+            font-family: 'Cinzel', Georgia, serif;
+            font-size: clamp(24px, 4.2vw, 42px);
+            font-weight: 900; color: #1b2299;
+            letter-spacing: .14em; text-transform: uppercase;
+            line-height: 1.05;
+        }
+        .cert-diamond-row {
+            display: flex; align-items: center; justify-content: center; gap: 6px; margin: 4px 0;
+        }
+        .cert-diamond {
+            width: 8px; height: 8px; background: var(--gold);
+            transform: rotate(45deg); display: inline-block;
+        }
+        .cert-diamond.sm { width: 5px; height: 5px; background: var(--pink); }
+        .cert-presented-to {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(8px, 1vw, 11px);
+            letter-spacing: .26em; text-transform: uppercase;
+            color: #64748b; font-weight: 600;
+        }
+
+        /* Recipient Name */
+        .cert-recipient-wrap { text-align: center; }
+        .cert-recipient-name {
+            font-family: 'Great Vibes', cursive;
+            font-size: clamp(32px, 5.5vw, 58px);
+            color: #1e293b; line-height: 1.15;
+            display: inline-block;
+            border-bottom: 2px solid rgba(217,119,6,.6);
+            padding-bottom: 6px;
+        }
+        .cert-body-text {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: clamp(10px, 1.3vw, 14px);
+            color: #475569; text-align: center;
+            max-width: 580px; margin: 6px auto 0; line-height: 1.6;
+        }
+        .cert-course-title {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(12px, 1.8vw, 19px);
+            font-weight: 800; color: #1b2299;
+            text-align: center; margin-top: 6px;
+            letter-spacing: .05em; line-height: 1.3;
+        }
+
+        /* Footer */
+        .cert-footer {
+            border-top: 1px solid rgba(100,116,139,.2);
+            padding-top: 12px;
+        }
+        .cert-footer-grid {
+            display: grid; grid-template-columns: 1fr auto 1fr;
+            align-items: end; gap: 16px;
+        }
+
+        /* Signatures */
+        .cert-sig-block { text-align: center; }
+        .cert-sig-name {
+            font-family: 'Great Vibes', cursive;
+            font-size: clamp(16px, 2.2vw, 24px);
+            color: #1e293b; height: 36px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .cert-sig-line {
+            border-top: 1px solid rgba(100,116,139,.55);
+            padding-top: 6px; margin-top: 2px;
+        }
+        .cert-sig-label {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(7px, .85vw, 10px);
+            font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: #1e293b;
+        }
+        .cert-sig-role {
+            font-size: clamp(6px, .75vw, 9px);
+            letter-spacing: .12em; text-transform: uppercase; color: #94a3b8; margin-top: 1px;
+        }
+
+        /* Center Medallion */
+        .cert-medallion-wrap {
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+            padding-bottom: 4px;
+        }
+        .cert-medallion {
+            position: relative; width: clamp(72px, 9vw, 100px); height: clamp(72px, 9vw, 100px);
+        }
+        .cert-medal-ribbon-l {
+            position: absolute; bottom: -14px; left: 6px;
+            width: 14px; height: 22px;
+            background: var(--blue);
+            clip-path: polygon(0 0, 100% 0, 100% 80%, 50% 100%, 0 80%);
+        }
+        .cert-medal-ribbon-r {
+            position: absolute; bottom: -14px; right: 6px;
+            width: 14px; height: 22px;
+            background: var(--pink);
+            clip-path: polygon(0 0, 100% 0, 100% 80%, 50% 100%, 0 80%);
+        }
+        .cert-medal-body {
+            width: 100%; height: 100%; border-radius: 50%;
+            background: conic-gradient(#bf953f 0deg, #fcf6ba 60deg, #b38728 120deg, #fbf5b7 180deg, #aa771c 240deg, #fcf6ba 300deg, #bf953f 360deg);
+            border: 3px solid rgba(180,130,0,.6);
+            box-shadow: 0 4px 20px rgba(0,0,0,.25), inset 0 1px 4px rgba(255,255,255,.3);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .cert-medal-inner {
+            width: 82%; height: 82%; border-radius: 50%;
+            border: 1px dashed rgba(120,80,0,.4);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; gap: 1px; padding: 4px;
+        }
+        .cert-medal-icon { font-size: clamp(14px, 2vw, 22px); color: #78350f; }
+        .cert-medal-text-top {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(5px, .65vw, 8px);
+            font-weight: 900; text-transform: uppercase;
+            letter-spacing: .15em; color: #78350f; line-height: 1.1;
+        }
+        .cert-medal-text-bot {
+            font-size: clamp(4px, .55vw, 7px);
+            text-transform: uppercase; font-weight: 700;
+            letter-spacing: .1em; color: #92400e;
+        }
+
+        /* Right block: date + qr */
+        .cert-right-block { text-align: center; }
+        .cert-date-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: clamp(9px, 1.1vw, 13px); font-weight: 700; color: #1e293b;
+            height: 36px; display: flex; align-items: center; justify-content: center;
+        }
+
+        /* QR Code container */
+        .cert-qr-wrap {
+            width: clamp(48px, 6vw, 64px);
+            height: clamp(48px, 6vw, 64px);
+            margin: 0 auto 6px;
+            border: 1.5px solid rgba(27,34,153,.2);
+            border-radius: 6px; overflow: hidden;
+            background: #fff;
+        }
+        .cert-qr-wrap img { width: 100%; height: 100%; display: block; }
+
+        /* Serial */
+        .cert-serial {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: clamp(6px, .75vw, 9px);
+            font-weight: 700; color: #1b2299;
+            background: rgba(27,34,153,.06);
+            padding: 2px 6px; border-radius: 4px;
+            display: inline-block; margin-top: 4px; letter-spacing: .05em;
+        }
+
+        /* Verification micro strip */
+        .cert-verify-strip {
+            margin-top: 10px; padding-top: 8px;
+            border-top: 1px dashed rgba(100,116,139,.2);
+            display: flex; align-items: center; justify-content: space-between;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: clamp(5px, .65vw, 7.5px);
+            text-transform: uppercase; letter-spacing: .12em; color: #94a3b8;
+        }
+
+        /* ── Print Rules ────────────────────────────── */
         @media print {
-            @page {
-                size: A4 landscape;
-                margin: 0;
-            }
+            @page { size: A4 landscape; margin: 0; }
             body {
-                background: #ffffff !important;
-                margin: 0 !important;
-                padding: 0 !important;
+                background: #fff !important; margin: 0 !important; padding: 0 !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
+                display: block;
             }
-            .no-print {
-                display: none !important;
+            .no-print { display: none !important; }
+            .cert-shell {
+                box-shadow: none !important; max-width: 100vw !important;
+                width: 100vw !important; height: 100vh !important;
+                aspect-ratio: unset !important;
             }
-            .cert-wrapper {
-                box-shadow: none !important;
-                max-width: 100vw !important;
-                width: 100vw !important;
-                height: 100vh !important;
-                border-radius: 0 !important;
-                margin: 0 !important;
-                padding: 30px !important;
+            .cert-content { padding: 36px 64px 30px; }
+        }
+
+        /* ── Responsive Scale ───────────────────────── */
+        @media (max-width: 680px) {
+            .cert-content { padding: 22px 32px 18px; }
+            .ribbon-tl, .ribbon-tr, .ribbon-bl, .ribbon-br {
+                border-width: 90px 0 0 90px;
             }
+            .ribbon-tl::after { border-width: 70px 0 0 70px; }
+            .ribbon-tl::before { border-width: 50px 0 0 50px; }
+            .ribbon-tr { border-width: 90px 90px 0 0; }
+            .ribbon-tr::after { border-width: 70px 70px 0 0; }
+            .ribbon-tr::before { border-width: 50px 50px 0 0; }
+            .ribbon-bl { border-width: 0 0 90px 90px; }
+            .ribbon-bl::after { border-width: 0 0 70px 70px; }
+            .ribbon-bl::before { border-width: 0 0 50px 50px; }
+            .ribbon-br { border-width: 0 90px 90px 0; }
+            .ribbon-br::after { border-width: 0 70px 70px 0; }
+            .ribbon-br::before { border-width: 0 50px 50px 0; }
         }
     </style>
 </head>
-<body class="bg-slate-900 min-h-screen py-8 px-4 flex flex-col items-center justify-center font-sans antialiased selection:bg-amber-400 selection:text-slate-900">
+<body>
 
-    {{-- Top Action Bar --}}
-    <div class="no-print max-w-5xl w-full flex items-center justify-between mb-6 gap-4">
-        <a href="{{ route('student.certificates') }}" class="inline-flex items-center gap-2 text-xs font-bold text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-800 border border-slate-700 px-4 py-2.5 rounded-xl transition shadow">
-            <i class="fas fa-arrow-left text-amber-400"></i> Back to My Certificates
+    {{-- ── Action Bar ─────────────────────────────── --}}
+    <div class="action-bar no-print">
+        <a href="{{ route('student.certificates') }}" class="btn-back">
+            <i class="fas fa-arrow-left" style="color:#f59e0b"></i> Back to My Certificates
         </a>
-        <div class="flex items-center gap-3">
-            <button onclick="window.print()" class="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950 font-black py-2.5 px-6 rounded-xl shadow-lg transition transform hover:scale-105 text-xs uppercase tracking-wider">
-                <i class="fas fa-print text-sm"></i> Print / Download PDF
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            @php
+                $composite = $enrollment->id . $enrollment->course_id . $enrollment->user_id;
+                $verifyUrl = route('certificate.verify', ['code' => 'LNR-CERT-' . $composite]);
+            @endphp
+            <a href="{{ $verifyUrl }}" target="_blank" class="btn-back" style="font-size:11px">
+                <i class="fas fa-shield-halved" style="color:#10b981"></i> Verify Online
+            </a>
+            <button onclick="window.print()" class="btn-print">
+                <i class="fas fa-print"></i> Print / Download PDF
             </button>
         </div>
     </div>
 
-    {{-- Certificate Outer Frame (A4 Landscape Proportions) --}}
-    <div class="cert-wrapper relative w-full max-w-5xl aspect-[1.414/1] bg-white text-slate-900 shadow-2xl rounded-sm overflow-hidden p-6 sm:p-10 flex flex-col justify-between border-[14px] border-[#1b2299] box-border">
+    {{-- ── Certificate ─────────────────────────────── --}}
+    <div class="cert-shell">
 
-        {{-- Inner Gold Geometric Border --}}
-        <div class="relative w-full h-full border-2 border-amber-500/60 p-6 sm:p-8 flex flex-col justify-between cert-bg-pattern">
-            
-            {{-- Corner Ornaments (Classic Rosettes) --}}
-            <div class="absolute -top-3.5 -left-3.5 w-7 h-7 bg-white border-2 border-amber-600 rounded-full flex items-center justify-center text-amber-600 text-xs shadow-sm">
-                <i class="fas fa-certificate"></i>
-            </div>
-            <div class="absolute -top-3.5 -right-3.5 w-7 h-7 bg-white border-2 border-amber-600 rounded-full flex items-center justify-center text-amber-600 text-xs shadow-sm">
-                <i class="fas fa-certificate"></i>
-            </div>
-            <div class="absolute -bottom-3.5 -left-3.5 w-7 h-7 bg-white border-2 border-amber-600 rounded-full flex items-center justify-center text-amber-600 text-xs shadow-sm">
-                <i class="fas fa-certificate"></i>
-            </div>
-            <div class="absolute -bottom-3.5 -right-3.5 w-7 h-7 bg-white border-2 border-amber-600 rounded-full flex items-center justify-center text-amber-600 text-xs shadow-sm">
-                <i class="fas fa-certificate"></i>
-            </div>
+        {{-- Geometric Corner Ribbons --}}
+        <div class="ribbon-tl"></div>
+        <div class="ribbon-tr"></div>
+        <div class="ribbon-bl"></div>
+        <div class="ribbon-br"></div>
 
-            {{-- Inner Thin Navy Hairline --}}
-            <div class="absolute inset-2.5 border border-[#1b2299]/15 pointer-events-none"></div>
+        {{-- Logo Watermark --}}
+        <img src="{{ asset('logo-only.png') }}" alt="" class="cert-watermark" aria-hidden="true">
 
-            {{-- HEADER SECTION --}}
-            <div class="text-center relative z-10 pt-1">
-                <div class="inline-flex items-center justify-center gap-2 mb-1.5">
-                    <span class="w-10 h-0.5 bg-gradient-to-r from-transparent to-[#e4306d]"></span>
-                    <h2 class="text-[11px] sm:text-xs font-extrabold uppercase tracking-[0.4em] text-[#e4306d]">
-                        LEARNERIUM ACADEMY
-                    </h2>
-                    <span class="w-10 h-0.5 bg-gradient-to-l from-transparent to-[#e4306d]"></span>
+        {{-- Security Guilloche Background --}}
+        <div class="cert-security-pattern"></div>
+
+        {{-- Inner Gold Frame --}}
+        <div class="cert-inner-border"></div>
+
+        {{-- Certificate Body --}}
+        <div class="cert-content">
+
+            {{-- HEADER --}}
+            <div class="cert-header">
+                <div class="cert-academy-label">
+                    <div class="line"></div>
+                    <span>Learnerium Academy</span>
+                    <div class="line r"></div>
                 </div>
-                
-                <h1 class="text-3xl sm:text-4xl md:text-5xl font-cinzel font-black text-[#1b2299] tracking-wider uppercase leading-none drop-shadow-xs">
-                    Certificate of Completion
-                </h1>
-                
-                <p class="text-[10px] sm:text-xs font-cinzel uppercase tracking-[0.25em] text-slate-500 font-bold mt-2">
-                    This is to formally certify that
-                </p>
-            </div>
-
-            {{-- RECIPIENT NAME SECTION --}}
-            <div class="text-center my-auto py-2 relative z-10">
-                <div class="inline-block relative">
-                    <h2 class="text-3xl sm:text-4xl md:text-5xl font-cormorant font-bold text-slate-900 px-8 pb-1.5 tracking-tight border-b-2 border-amber-500/80">
-                        {{ $user->name }}
-                    </h2>
+                <h1 class="cert-title-main">Certificate of Achievement</h1>
+                <div class="cert-diamond-row">
+                    <div class="cert-diamond sm"></div>
+                    <div class="cert-diamond"></div>
+                    <div class="cert-diamond sm"></div>
                 </div>
-                
-                <p class="text-xs sm:text-sm text-slate-600 max-w-2xl mx-auto mt-3 leading-relaxed font-cormorant text-base sm:text-lg">
-                    has successfully fulfilled all curriculum requirements, continuous assessments, task gates, and examinations for the accredited course:
-                </p>
-
-                {{-- COURSE TITLE --}}
-                <h3 class="text-xl sm:text-2xl md:text-3xl font-cinzel font-extrabold text-[#1b2299] mt-2 tracking-wide max-w-3xl mx-auto leading-snug">
-                    “{{ $course->title }}”
-                </h3>
+                <p class="cert-presented-to">This certificate is proudly presented to</p>
             </div>
 
-            {{-- FOOTER / SIGNATURES & OFFICIAL EMBLEM --}}
-            <div class="relative z-10 pt-2 border-t border-slate-200/80">
-                <div class="grid grid-cols-3 items-end gap-4">
-                    
-                    {{-- 1. Instructor Signature --}}
-                    <div class="text-center">
-                        <div class="font-signature text-2xl sm:text-3xl text-slate-800 h-10 flex items-center justify-center leading-none">
-                            {{ $course->instructor->name ?? 'Course Instructor' }}
-                        </div>
-                        <div class="border-t border-slate-400/80 pt-1.5 font-cinzel font-bold text-slate-800 text-[11px] sm:text-xs tracking-wider">
-                            {{ $course->instructor->name ?? 'Instructor' }}
-                        </div>
-                        <div class="text-[9px] sm:text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
-                            Lead Instructor
+            {{-- RECIPIENT --}}
+            <div class="cert-recipient-wrap">
+                <h2 class="cert-recipient-name">{{ $user->name }}</h2>
+                <p class="cert-body-text">
+                    for successfully fulfilling all curriculum requirements, continuous assessments,
+                    task gates, and examinations for the accredited course:
+                </p>
+                <h3 class="cert-course-title">"{{ $course->title }}"</h3>
+            </div>
+
+            {{-- FOOTER --}}
+            <div class="cert-footer">
+                <div class="cert-footer-grid">
+
+                    {{-- Instructor Signature --}}
+                    <div class="cert-sig-block">
+                        <div class="cert-sig-name">{{ $course->instructor?->name ?? 'Course Instructor' }}</div>
+                        <div class="cert-sig-line">
+                            <div class="cert-sig-label">{{ $course->instructor?->name ?? 'Instructor' }}</div>
+                            <div class="cert-sig-role">Lead Instructor</div>
                         </div>
                     </div>
 
-                    {{-- 2. Official Gold Medal Seal --}}
-                    <div class="flex flex-col items-center justify-center -mb-2">
-                        <div class="relative">
-                            {{-- Ribbon Tails --}}
-                            <div class="absolute -bottom-3 left-2 w-4 h-8 bg-[#1b2299] transform -rotate-12 rounded-b-sm shadow-md"></div>
-                            <div class="absolute -bottom-3 right-2 w-4 h-8 bg-[#e4306d] transform rotate-12 rounded-b-sm shadow-md"></div>
-
-                            {{-- Seal Body --}}
-                            <div class="relative w-20 h-20 sm:w-24 sm:h-24 gold-foil-bg rounded-full border-4 border-amber-600/90 shadow-xl flex flex-col items-center justify-center text-amber-950 p-2 text-center">
-                                <div class="w-full h-full border border-dashed border-amber-900/40 rounded-full flex flex-col items-center justify-center">
-                                    <i class="fas fa-award text-xl sm:text-2xl text-amber-950 mb-0.5"></i>
-                                    <span class="text-[8px] sm:text-[9px] font-cinzel font-black uppercase tracking-widest leading-none">OFFICIAL</span>
-                                    <span class="text-[7px] font-bold tracking-tight text-amber-900 uppercase">SEAL</span>
+                    {{-- Center Gold Medallion --}}
+                    <div class="cert-medallion-wrap">
+                        <div class="cert-medallion">
+                            <div class="cert-medal-ribbon-l"></div>
+                            <div class="cert-medal-ribbon-r"></div>
+                            <div class="cert-medal-body">
+                                <div class="cert-medal-inner">
+                                    <i class="fas fa-award cert-medal-icon"></i>
+                                    <div class="cert-medal-text-top">Official</div>
+                                    <div class="cert-medal-text-bot">Seal</div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {{-- 3. Verification & Date Details --}}
-                    <div class="text-center">
-                        <div class="font-mono-code text-xs sm:text-sm font-bold text-slate-800 h-10 flex items-center justify-center">
-                            {{ $enrollment->updated_at ? $enrollment->updated_at->format('d F Y') : date('d F Y') }}
+                    {{-- Date + QR + Serial --}}
+                    <div class="cert-right-block">
+                        @php
+                            $composite = $enrollment->id . $enrollment->course_id . $enrollment->user_id;
+                            $serial    = 'LNR-CERT-' . $composite;
+                            $verifyUrl = url('/verify/certificate/LNR-CERT-' . $composite);
+                            $qrApiUrl  = 'https://api.qrserver.com/v1/create-qr-code/?data=' . urlencode($verifyUrl) . '&size=120x120&ecc=H&margin=3&color=1b2299';
+                            $issueDate = $enrollment->updated_at ? $enrollment->updated_at->format('d F Y') : date('d F Y');
+                        @endphp
+                        <div class="cert-qr-wrap" title="Scan to verify this certificate">
+                            <img src="{{ $qrApiUrl }}" alt="Verification QR Code">
                         </div>
-                        <div class="border-t border-slate-400/80 pt-1.5 font-cinzel font-bold text-slate-800 text-[11px] sm:text-xs tracking-wider">
-                            Date of Issue
+                        <div class="cert-sig-line">
+                            <div class="cert-sig-label">{{ $issueDate }}</div>
+                            <div class="cert-sig-role">Date of Issue</div>
                         </div>
-                        <div class="text-[9px] sm:text-[10px] text-slate-400 font-mono-code font-bold uppercase tracking-wider mt-0.5">
-                            Certificate ID: <span class="text-[#1b2299]">LNR-{{ strtoupper(substr(md5($enrollment->id . $course->id . $user->id), 0, 8)) }}</span>
-                        </div>
+                        <div class="cert-serial">{{ $serial }}</div>
                     </div>
 
                 </div>
 
-                {{-- Bottom Micro Verification Line --}}
-                <div class="mt-4 pt-2 border-t border-dashed border-slate-200 flex items-center justify-between text-[8px] text-slate-400 uppercase tracking-widest font-mono-code">
+                {{-- Micro Verification Strip --}}
+                <div class="cert-verify-strip">
                     <span>Verified Academic Credential</span>
-                    <span>learnerium.com.ng &bull; Verification Serial #{{ $enrollment->id }}{{ $course->id }}{{ $user->id }}</span>
+                    <span>learnerium.jlm.com.ng &bull; {{ $serial }}</span>
                     <span>Accredited E-Learning Platform</span>
                 </div>
             </div>
 
-        </div>
+        </div>{{-- /cert-content --}}
+    </div>{{-- /cert-shell --}}
 
+    <div class="verify-link-bar no-print">
+        <i class="fas fa-qrcode" style="color:#475569"></i>
+        <span>Scan QR or visit:</span>
+        <a href="{{ $verifyUrl }}" target="_blank">{{ $verifyUrl }}</a>
     </div>
 
 </body>

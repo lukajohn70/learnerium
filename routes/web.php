@@ -27,6 +27,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\BankVerificationController;
 use App\Http\Controllers\AiCourseAssistantController;
 use App\Http\Controllers\InstructorCouponController;
+use App\Http\Controllers\CertificateVerificationController;
 use App\Http\Middleware\IsInstructor;
 
 /*
@@ -54,6 +55,11 @@ Route::get('/about', function () { return view('about'); })->name('about');
 Route::get('/contact', function () { return view('contact'); })->name('contact');
 Route::get('/privacy-policy', function () { return view('privacy'); })->name('privacy');
 Route::get('/terms-of-service', function () { return view('eua'); })->name('eua');
+
+// Public Certificate Verification Routes
+Route::get('/verify/certificate/{code?}', [CertificateVerificationController::class, 'verify'])->name('certificate.verify');
+Route::get('/certificate/verify/{code?}', [CertificateVerificationController::class, 'verify']);
+Route::post('/verify/certificate', [CertificateVerificationController::class, 'search'])->name('certificate.verify.search');
 
 // SEO: Dynamic XML Sitemap
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
