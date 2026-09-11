@@ -1,5 +1,0 @@
----
-deployment:
-  tasks:
-    - export DEPLOYPATH=/home/gwylvxeo/learnerium.jlm.com.ng
-    - /bin/cp -R * $DEPLOYPATH
