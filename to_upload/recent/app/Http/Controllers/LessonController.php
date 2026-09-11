@@ -29,6 +29,16 @@ class LessonController extends Controller
         $isAdmin = $user->role === 'admin';
 
         if (!$isInstructor && !$isAdmin && !$user->enrolledIn($course->id)) {
+            // Check if user preordered or course is in preorder mode
+            if ($user->hasPreordered($course->id)) {
+                return redirect()->route('course.detail', $course->slug)
+                    ->with('info', 'This course is currently in pre-order mode. You will receive full access to all lessons as soon as the course launches!');
+            }
+            if ($course->isPreorder()) {
+                return redirect()->route('courses.checkout', $course)
+                    ->with('info', 'This course is available for pre-order. Pre-order now to secure early-bird access!');
+            }
+
             // If paid course, redirect to checkout
             if ((float) $course->price > 0) {
                 return redirect()->route('courses.checkout', $course)

@@ -78,6 +78,10 @@ class CourseController extends Controller
             'requirements.*'     => ['nullable', 'string', 'max:300'],
             'what_you_will_learn'   => ['nullable', 'array'],
             'what_you_will_learn.*' => ['nullable', 'string', 'max:300'],
+            // Preorder fields
+            'is_preorder'        => ['nullable', 'boolean'],
+            'preorder_price'     => ['nullable', 'numeric', 'min:0'],
+            'preorder_ends_at'   => ['nullable', 'date'],
         ]);
 
         // Filter out blank items
@@ -97,6 +101,9 @@ class CourseController extends Controller
 
         $data['slug'] = \Illuminate\Support\Str::slug($data['title']);
         $data['price'] = $data['price'] ?? 0;
+        $data['is_preorder']    = (bool) $request->input('is_preorder', false);
+        $data['preorder_price'] = $data['is_preorder'] ? ($data['preorder_price'] ?? 0) : null;
+        $data['preorder_ends_at'] = $data['is_preorder'] ? ($data['preorder_ends_at'] ?? null) : null;
 
         $course->update($data);
 
@@ -112,7 +119,30 @@ class CourseController extends Controller
         $wasPublished = (bool) $course->published_at;
 
         if (!$course->published_at) {
-            $course->update(['published_at' => now()]);
+            $course->update([
+                'published_at' => now(),
+                'is_preorder'  => false, // Preorder ends when course goes live
+            ]);
+
+            // Auto-promote all preorder enrollees → paid and notify them
+            $preorderEnrollments = \App\Models\Enrollment::where('course_id', $course->id)
+                ->where('payment_status', 'preorder')
+                ->get();
+
+            foreach ($preorderEnrollments as $enrollment) {
+                $enrollment->update(['payment_status' => 'paid']);
+                try {
+                    \App\Models\AppNotification::notify(
+                        $enrollment->user_id,
+                        'enrollment',
+                        'Your Pre-Order is Now Live!',
+                        "Great news! The course \"" . $course->title . "\" you pre-ordered is now live. You have full access — start learning now!",
+                        route('lesson.show', [$course, $course->lessons()->first()]),
+                        'fa-rocket',
+                        'green'
+                    );
+                } catch (\Throwable $e) {}
+            }
         }
 
         if (!$wasPublished) {
@@ -161,6 +191,10 @@ class CourseController extends Controller
             'requirements.*'     => ['nullable', 'string', 'max:300'],
             'what_you_will_learn'   => ['nullable', 'array'],
             'what_you_will_learn.*' => ['nullable', 'string', 'max:300'],
+            // Preorder fields
+            'is_preorder'        => ['nullable', 'boolean'],
+            'preorder_price'     => ['nullable', 'numeric', 'min:0'],
+            'preorder_ends_at'   => ['nullable', 'date'],
         ]);
 
         // Filter out blank items
@@ -181,7 +215,11 @@ class CourseController extends Controller
         $data['instructor_id'] = Auth::id();
         $data['slug'] = Str::slug($data['title']);
         $data['price'] = $data['price'] ?? 0;
-        $data['published_at'] = now();
+        $data['is_preorder']    = (bool) $request->input('is_preorder', false);
+        $data['preorder_price'] = $data['is_preorder'] ? ($data['preorder_price'] ?? 0) : null;
+        $data['preorder_ends_at'] = $data['is_preorder'] ? ($data['preorder_ends_at'] ?? null) : null;
+        // Don't auto-publish if course is in preorder mode
+        $data['published_at']   = $data['is_preorder'] ? null : now();
 
         $course = Course::create($data);
 

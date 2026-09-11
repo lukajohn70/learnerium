@@ -24,10 +24,11 @@
         <div class="bg-white rounded-2xl shadow-md overflow-hidden mb-5 hover:shadow-lg transition">
             <div class="p-5 flex flex-col sm:flex-row gap-5">
                 <!-- Thumbnail -->
-                <div class="w-full sm:w-32 h-32 rounded-xl overflow-hidden flex-shrink-0">
-                    <img src="{{ $course->thumbnail ?? 'https://placehold.co/128x128/1b2299/f7de7a?text=C' }}"
+                <div class="w-full sm:w-32 h-32 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100">
+                    <img src="{{ $course->thumbnailUrl() }}"
                          alt="{{ $course->title }}" class="w-full h-full object-cover">
                 </div>
+
 
                 <!-- Info -->
                 <div class="flex-grow">
@@ -39,6 +40,8 @@
                                 <span class="text-xs font-semibold bg-purple-100 text-purple-700 px-2.5 py-1 rounded-full"><i class="fas fa-list-ul mr-1"></i>{{ $course->lessons->count() }} Lessons</span>
                                 @if($course->published_at)
                                     <span class="text-xs font-semibold bg-green-100 text-green-700 px-2.5 py-1 rounded-full"><i class="fas fa-check mr-1"></i>Published</span>
+                                @elseif($course->isPreorder())
+                                    <span class="text-xs font-semibold bg-purple-100 text-purple-700 px-2.5 py-1 rounded-full"><i class="fas fa-bookmark mr-1"></i>Pre-order (₦{{ number_format($course->preorder_price, 2) }})</span>
                                 @else
                                     <span class="text-xs font-semibold bg-yellow-100 text-yellow-700 px-2.5 py-1 rounded-full"><i class="fas fa-clock mr-1"></i>Draft</span>
                                 @endif
@@ -76,7 +79,7 @@
                             <form action="{{ route('instructor.courses.publish', $course->id) }}" method="POST">
                                 @csrf
                                 <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-xl font-semibold text-xs hover:bg-green-600 transition">
-                                    <i class="fas fa-rocket mr-1"></i>Publish
+                                    <i class="fas fa-rocket mr-1"></i>{{ $course->isPreorder() ? 'Launch / End Preorder' : 'Publish' }}
                                 </button>
                             </form>
                         @else

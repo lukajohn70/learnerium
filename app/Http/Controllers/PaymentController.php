@@ -28,9 +28,15 @@ class PaymentController extends Controller
 
         // Check if already paid
         $enrollment = $user->enrollments()->where('course_id', $course->id)->first();
-        if ($enrollment && ($course->price == 0 || $enrollment->payment_status === 'paid')) {
+        if ($enrollment && in_array($enrollment->payment_status, ['paid'])) {
             return redirect()->route('course.detail', $course->slug)
                 ->with('info', 'You are already enrolled and have full access to this course.');
+        }
+
+        // Block enrolling in already-preordered course
+        if ($enrollment && $enrollment->payment_status === 'preorder' && $course->isPreorder()) {
+            return redirect()->route('course.detail', $course->slug)
+                ->with('info', 'You have already pre-ordered this course. You will get access once it launches.');
         }
 
         $publicKey = config('services.paystack.public_key')
@@ -38,7 +44,9 @@ class PaymentController extends Controller
             ?: (env('JLM_PAYSTACK_PUBLIC_KEY')
             ?: 'pk_live_' . '163e689646002d8a87effbe182de242c5649e586'));
 
-        return view('student.checkout', compact('course', 'publicKey'));
+        $isPreorder = $course->isPreorder();
+
+        return view('student.checkout', compact('course', 'publicKey', 'isPreorder'));
     }
 
     /**
@@ -60,13 +68,15 @@ class PaymentController extends Controller
             ], 422);
         }
 
-        $discount = $coupon->discountAmount($course->price);
-        $finalPrice = max(0, $course->price - $discount);
+        // Apply against effective price (preorder or regular)
+        $basePrice  = $course->effectivePrice();
+        $discount   = $coupon->discountAmount($basePrice);
+        $finalPrice = max(0, $basePrice - $discount);
 
         return response()->json([
-            'success' => true,
-            'message' => 'Coupon code applied successfully!',
-            'discount' => $discount,
+            'success'     => true,
+            'message'     => 'Coupon code applied successfully!',
+            'discount'    => $discount,
             'final_price' => $finalPrice,
         ]);
     }
@@ -77,9 +87,10 @@ class PaymentController extends Controller
     public function initialize(Request $request, Course $course)
     {
         $user = Auth::user();
-        $originalPrice = (float) $course->price;
-        $finalPrice = $originalPrice;
-        $couponCode = null;
+        $isPreorder    = $course->isPreorder();
+        $originalPrice = $course->effectivePrice(); // Uses preorder_price when in preorder mode
+        $finalPrice    = $originalPrice;
+        $couponCode    = null;
 
         // Apply coupon code if provided
         if ($request->filled('coupon_code')) {
@@ -87,7 +98,7 @@ class PaymentController extends Controller
             $coupon = Coupon::where('code', $code)->first();
 
             if ($coupon && $coupon->isValidFor($course)) {
-                $discount = $coupon->discountAmount($originalPrice);
+                $discount   = $coupon->discountAmount($originalPrice);
                 $finalPrice = max(0, $originalPrice - $discount);
                 $couponCode = $code;
             }
@@ -102,39 +113,55 @@ class PaymentController extends Controller
                 }
             }
 
+            // For preorder at price 0 — enroll as preorder if course not published yet, else as paid
+            $enrollStatus = ($isPreorder && !$course->published_at) ? 'preorder' : 'paid';
+
             Enrollment::updateOrCreate(
                 [
-                    'user_id' => $user->id,
+                    'user_id'   => $user->id,
                     'course_id' => $course->id,
                 ],
                 [
-                    'payment_status' => 'paid',
-                    'amount_paid' => 0.00,
-                    'coupon_code' => $couponCode,
+                    'payment_status'      => $enrollStatus,
+                    'amount_paid'         => 0.00,
+                    'coupon_code'         => $couponCode,
                     'progress_percentage' => 0,
                 ]
             );
 
             // Send in-app and email notifications
             try {
-                // 1. Notify Student
-                \App\Models\AppNotification::notify(
-                    $user->id,
-                    'enrollment',
-                    'Enrolled in Course! 🎓',
-                    "You have successfully enrolled in \"{$course->title}\". Start learning now!",
-                    route('course.detail', $course->slug),
-                    'fa-graduation-cap',
-                    'blue'
-                );
+                if ($enrollStatus === 'preorder') {
+                    // Student pre-ordered a free preorder course
+                    \App\Models\AppNotification::notify(
+                        $user->id,
+                        'enrollment',
+                        'Pre-Order Confirmed!',
+                        "You have successfully pre-ordered \"{$course->title}\". You will receive full access as soon as the course launches!",
+                        route('course.detail', $course->slug),
+                        'fa-bookmark',
+                        'purple'
+                    );
+                } else {
+                    // Normal free enrollment
+                    \App\Models\AppNotification::notify(
+                        $user->id,
+                        'enrollment',
+                        'Enrolled in Course!',
+                        "You have successfully enrolled in \"{$course->title}\". Start learning now!",
+                        route('course.detail', $course->slug),
+                        'fa-graduation-cap',
+                        'blue'
+                    );
+                }
 
-                // 2. Notify Instructor
+                // Notify Instructor
                 if ($course->instructor_id) {
                     \App\Models\AppNotification::notify(
                         $course->instructor_id,
                         'enrollment',
-                        'New Student Enrolled 👤',
-                        "{$user->name} has just enrolled in your course \"{$course->title}\"" . ($couponCode ? " using coupon {$couponCode}." : "."),
+                        $enrollStatus === 'preorder' ? 'New Pre-Order Received' : 'New Student Enrolled',
+                        "{$user->name} has just " . ($enrollStatus === 'preorder' ? 'pre-ordered' : 'enrolled in') . " your course \"{$course->title}\"" . ($couponCode ? " using coupon {$couponCode}." : "."),
                         route('instructor.courses.students', $course->id),
                         'fa-user-plus',
                         'green'
@@ -142,8 +169,12 @@ class PaymentController extends Controller
                 }
             } catch (\Throwable $e) {}
 
+            $successMsg = $enrollStatus === 'preorder'
+                ? 'Pre-order confirmed! You will get full access when the course launches.'
+                : 'Successfully enrolled in course!';
+
             return redirect()->route('course.detail', $course->slug)
-                ->with('status', 'Successfully enrolled in course!');
+                ->with('status', $successMsg);
         }
 
 
@@ -161,17 +192,17 @@ class PaymentController extends Controller
         // Generate unique reference
         $reference = 'PSK-C' . $course->id . '-U' . $user->id . '-' . strtoupper(Str::random(8));
 
-        // Create or update pending enrollment
+        // Create or update pending enrollment — preorder flag is stored in metadata
         Enrollment::updateOrCreate(
             [
-                'user_id' => $user->id,
+                'user_id'   => $user->id,
                 'course_id' => $course->id,
             ],
             [
-                'payment_status' => 'pending',
-                'amount_paid' => $finalPrice,
-                'coupon_code' => $couponCode,
-                'payment_reference' => $reference,
+                'payment_status'      => 'pending',
+                'amount_paid'         => $finalPrice,
+                'coupon_code'         => $couponCode,
+                'payment_reference'   => $reference,
             ]
         );
 
@@ -179,17 +210,18 @@ class PaymentController extends Controller
 
         // Paystack Payload with Multi-Currency support
         $payload = [
-            'email' => $user->email,
-            'amount' => (int) round($finalPrice * 100), // in minor currency unit (kobo/cents/pesewas)
-            'currency' => $currency,
-            'reference' => $reference,
+            'email'        => $user->email,
+            'amount'       => (int) round($finalPrice * 100), // in minor currency unit (kobo/cents/pesewas)
+            'currency'     => $currency,
+            'reference'    => $reference,
             'callback_url' => route('payment.callback'),
-            'metadata' => [
-                'course_id' => $course->id,
-                'user_id' => $user->id,
-                'coupon_code' => $couponCode,
-                'currency' => $currency,
-            ]
+            'metadata'     => [
+                'course_id'    => $course->id,
+                'user_id'      => $user->id,
+                'coupon_code'  => $couponCode,
+                'currency'     => $currency,
+                'is_preorder'  => $isPreorder, // Passed so callback can set correct enrollment status
+            ],
         ];
 
         try {
@@ -271,6 +303,11 @@ class PaymentController extends Controller
 
                 if ($enrollment) {
                     $amountPaid = ((float) ($result['data']['amount'] ?? 0)) / 100;
+                    $course = Course::find($enrollment->course_id);
+
+                    // Determine correct post-payment status
+                    $wasPreorder    = !empty($metadata['is_preorder']) && $course && !$course->published_at;
+                    $enrollStatus   = $wasPreorder ? 'preorder' : 'paid';
 
                     // Calculate revenue split from live platform settings
                     $instructorSharePct = (float) \App\Models\PlatformSetting::get('instructor_revenue_share', 70);
@@ -279,27 +316,37 @@ class PaymentController extends Controller
                     $platformShare      = round($amountPaid * ($platformSharePct / 100), 2);
 
                     $enrollment->update([
-                        'payment_status'   => 'paid',
+                        'payment_status'   => $enrollStatus,
                         'amount_paid'      => $amountPaid,
                         'instructor_share' => $instructorShare,
                         'platform_share'   => $platformShare,
                         'payout_status'    => 'pending',
                     ]);
 
-                    $course = Course::find($enrollment->course_id);
-
                     // Fire in-app and email notifications
                     try {
                         // 1. Notify the student
-                        \App\Models\AppNotification::notify(
-                            $enrollment->user_id,
-                            'payment',
-                            'Payment Confirmed! 🎉',
-                            "You're now enrolled in \"{$course->title}\". Start learning now!",
-                            $course ? route('course.detail', $course->slug) : null,
-                            'fa-check-circle',
-                            'green'
-                        );
+                        if ($wasPreorder) {
+                            \App\Models\AppNotification::notify(
+                                $enrollment->user_id,
+                                'payment',
+                                'Pre-Order Payment Confirmed!',
+                                "Your pre-order payment for \"{$course->title}\" was successful! You'll get full access as soon as the course launches.",
+                                $course ? route('course.detail', $course->slug) : null,
+                                'fa-bookmark',
+                                'purple'
+                            );
+                        } else {
+                            \App\Models\AppNotification::notify(
+                                $enrollment->user_id,
+                                'payment',
+                                'Payment Confirmed! You are Enrolled!',
+                                "You're now enrolled in \"{$course->title}\". Start learning now!",
+                                $course ? route('course.detail', $course->slug) : null,
+                                'fa-check-circle',
+                                'green'
+                            );
+                        }
 
                         // 2. Notify the instructor
                         if ($course && $course->instructor_id) {
