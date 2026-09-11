@@ -86,7 +86,7 @@
                             {{ $course->title }}
                         </h2>
                         <p class="text-xs text-gray-400 mb-3">
-                            Instructed by <span class="font-semibold text-gray-600">{{ $course->instructor?->name ?? 'Learnerium Faculty' }}</span>
+                            Facilitated by <span class="font-semibold text-gray-600">{{ $course->instructor?->name ?? 'Learnerium Faculty' }}</span>
                         </p>
 
                         {{-- Meta badges --}}

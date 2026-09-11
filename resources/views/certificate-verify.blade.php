@@ -109,10 +109,10 @@
 
                         <div class="bg-slate-50/80 p-4 rounded-2xl border border-gray-100">
                             <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
-                                Instructed By
+                                Facilitated By
                             </span>
                             <p class="font-extrabold text-gray-900 text-base leading-snug">
-                                {{ $course->instructor?->name ?? 'Learnerium Instructor' }}
+                                {{ $course->instructor?->name ?? 'Learnerium Facilitator' }}
                             </p>
                             <span class="text-xs text-gray-500 mt-1 block">
                                 Lead Academic Faculty
