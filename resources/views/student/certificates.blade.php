@@ -56,31 +56,28 @@
                 @endphp
                 <div class="group bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition duration-300">
 
-                    {{-- Certificate Thumbnail Preview --}}
-                    <div class="relative h-40 overflow-hidden" style="background: linear-gradient(135deg, #1b2299 0%, #141a73 50%, #0f1454 100%);">
+                    {{-- Certificate Thumbnail Preview (Authentic 100% Visual Match) --}}
+                    <div class="relative h-44 overflow-hidden border-b border-gray-100 bg-white">
+                        <picture>
+                            <source srcset="{{ asset('images/certificate-frame.webp') }}" type="image/webp">
+                            <img src="{{ asset('images/certificate-frame.png') }}" alt="Certificate" 
+                                 class="absolute inset-0 w-full h-full object-cover">
+                        </picture>
 
-                        {{-- Geometric corner accents --}}
-                        <div class="absolute top-0 left-0 w-0 h-0" style="border-style:solid;border-width:56px 0 0 56px;border-color:transparent transparent transparent #e4306d;opacity:.8"></div>
-                        <div class="absolute top-0 right-0 w-0 h-0" style="border-style:solid;border-width:56px 56px 0 0;border-color:transparent #d97706 transparent transparent;opacity:.8"></div>
-                        <div class="absolute bottom-0 left-0 w-0 h-0" style="border-style:solid;border-width:0 0 40px 40px;border-color:transparent transparent #d97706 transparent;opacity:.6"></div>
-                        <div class="absolute bottom-0 right-0 w-0 h-0" style="border-style:solid;border-width:0 40px 40px 0;border-color:transparent transparent #e4306d transparent;opacity:.6"></div>
-
-                        {{-- Logo watermark on preview --}}
-                        <img src="{{ asset('logo-only.png') }}" alt="" aria-hidden="true"
-                             class="absolute inset-0 w-full h-full object-contain opacity-[0.06] pointer-events-none"
-                             style="padding: 16px; filter: grayscale(100%) brightness(200%);">
-
-                        {{-- Preview text --}}
-                        <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-4 gap-1.5">
-                            <div class="text-[9px] font-black uppercase tracking-[.3em] text-amber-400 mb-0.5">Learnerium Academy</div>
-                            <div class="font-bold text-white text-xs uppercase tracking-widest opacity-70">Certificate of</div>
-                            <div class="font-black text-white text-lg leading-tight px-6" style="font-family:'Georgia',serif">Achievement</div>
-                            <div class="mt-2 h-px w-16 bg-amber-400/60"></div>
-                            <div class="text-[10px] text-white/60 font-semibold max-w-[180px] leading-snug line-clamp-2">{{ $course->title }}</div>
+                        {{-- Preview Text Overlay --}}
+                        <div class="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
+                            <div class="text-[8px] font-extrabold uppercase tracking-[.25em] text-[#0b2546] font-serif">CERTIFICATE</div>
+                            <div class="text-[7px] font-bold uppercase tracking-[.18em] text-[#0b2546] font-serif mb-1">OF ACHIEVEMENT</div>
+                            <div class="text-xs font-serif italic text-gray-800 line-clamp-1 max-w-[200px]">{{ Auth::user()->name }}</div>
+                            <div class="text-[8px] font-bold text-[#0b2546] max-w-[220px] line-clamp-1 mt-0.5">{{ $course->title }}</div>
                         </div>
 
                         {{-- Hover overlay --}}
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition duration-300"></div>
+                        <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center">
+                            <span class="bg-white/90 text-[#0b2546] text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm">
+                                <i class="fas fa-expand mr-1"></i> Preview
+                            </span>
+                        </div>
                     </div>
 
                     {{-- Card Body --}}
