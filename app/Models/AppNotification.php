@@ -70,11 +70,13 @@ class AppNotification extends Model
                 }
 
                 if ($shouldSendEmail) {
-                    $cleanTitle = preg_replace('/[\x{10000}-\x{10FFFF}]/u', '', $title); // Strip 4-byte emojis from subject for strict mail filters
+                    // Thoroughly strip emojis and exclamation marks from subject to bypass SpamAssassin and Gmail filters
+                    $cleanTitle = preg_replace('/[\x{1F600}-\x{1F64F}\x{1F300}-\x{1F5FF}\x{1F680}-\x{1F6FF}\x{1F1E0}-\x{1F1FF}\x{2600}-\x{26FF}\x{2700}-\x{27BF}\x{1F900}-\x{1F9FF}\x{1FA70}-\x{1FAFF}\x{10000}-\x{10FFFF}]/u', '', $title);
+                    $cleanTitle = str_replace(['!', '  '], ['', ' '], $cleanTitle);
                     $cleanTitle = trim($cleanTitle) ?: 'Notification';
 
                     \Illuminate\Support\Facades\Mail::send(
-                        'emails.notification',
+                        ['html' => 'emails.notification', 'text' => 'emails.notification_plain'],
                         [
                             'title'       => $title,
                             'bodyMessage' => $message,
@@ -88,6 +90,12 @@ class AppNotification extends Model
                                  ->replyTo($fromAddress, 'Learnerium Support')
                                  ->to($user->email, $user->name)
                                  ->subject("Learnerium: {$cleanTitle}");
+
+                            // RFC & anti-spam deliverability headers for Gmail, Yahoo & Outlook
+                            $headers = $mail->getHeaders();
+                            $headers->addTextHeader('Auto-Submitted', 'auto-generated');
+                            $headers->addTextHeader('X-Auto-Response-Suppress', 'OOF, AutoReply');
+                            $headers->addTextHeader('List-Unsubscribe', '<mailto:learnerium@jlm.com.ng?subject=unsubscribe>');
                         }
                     );
                 }
