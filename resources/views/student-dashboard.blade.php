@@ -110,17 +110,17 @@
                     </div>
                     <div>
                         <p class="font-semibold text-gray-800">{{ $course->title }}</p>
-                        <p class="text-sm text-gray-400">by {{ $course->instructor?->name ?? 'Instructor' }}</p>
+                        <p class="text-sm text-gray-400">by {{ optional($course->instructor)->name ?? 'Instructor' }}</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-4">
                     <div class="hidden sm:block w-24">
                         <div class="flex justify-between mb-1">
                             <span class="text-xs text-gray-400">Progress</span>
-                            <span class="text-xs font-bold text-primary-jlm">{{ $course->pivot?->progress_percentage ?? 0 }}%</span>
+                            <span class="text-xs font-bold text-primary-jlm">{{ optional($course->pivot)->progress_percentage ?? 0 }}%</span>
                         </div>
                         <div class="w-full bg-gray-100 rounded-full h-2">
-                            <div class="bg-primary-jlm h-2 rounded-full transition-all" style="width: {{ $course->pivot?->progress_percentage ?? 0 }}%"></div>
+                            <div class="bg-primary-jlm h-2 rounded-full transition-all" style="width: {{ optional($course->pivot)->progress_percentage ?? 0 }}%"></div>
                         </div>
                     </div>
                     <a href="{{ route('course.detail', $course->slug) }}" class="bg-secondary-jlm text-white px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-secondary-jlm/90 transition">Continue</a>

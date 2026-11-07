@@ -78,11 +78,11 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
                             <label for="name" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Your Name <span class="text-secondary-jlm">*</span></label>
-                            <input id="name" name="name" type="text" value="{{ old('name', auth()->user()?->name) }}" required placeholder="Enter your full name" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-primary-jlm text-sm">
+                            <input id="name" name="name" type="text" value="{{ old('name', optional(auth()->user())->name) }}" required placeholder="Enter your full name" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-primary-jlm text-sm">
                         </div>
                         <div>
                             <label for="email" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Your Email <span class="text-secondary-jlm">*</span></label>
-                            <input id="email" name="email" type="email" value="{{ old('email', auth()->user()?->email) }}" required placeholder="Enter your email address" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-primary-jlm text-sm">
+                            <input id="email" name="email" type="email" value="{{ old('email', optional(auth()->user())->email) }}" required placeholder="Enter your email address" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-primary-jlm text-sm">
                         </div>
                     </div>
 

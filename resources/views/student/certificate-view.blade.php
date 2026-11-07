@@ -517,7 +517,7 @@
         $verifyUrl = url('/verify/certificate/' . $serial);
         $qrApiUrl  = 'https://api.qrserver.com/v1/create-qr-code/?data=' . urlencode($verifyUrl) . '&size=140x140&ecc=H&margin=1&color=1b2299';
         $issueDate = $enrollment->updated_at ? $enrollment->updated_at->format('d F Y') : date('d F Y');
-        $facilitatorName = $course->instructor?->name ?? 'Course Facilitator';
+        $facilitatorName = optional($course->instructor)->name ?? 'Course Facilitator';
     @endphp
 
     {{-- ── Action Toolbar ─────────────────────────────── --}}

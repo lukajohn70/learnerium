@@ -1,12 +1,61 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  Learnerium LMS — Root Apache Server Configuration & Security Hardening
+#  John Luka Media (JLM) Digital Ecosystem
+# ─────────────────────────────────────────────────────────────────────────────
+
+Options -Indexes
+Options +FollowSymLinks
+
+# ── 1. Protect Sensitive Files & Dotfiles ─────────────────────────────────────
+<FilesMatch "(\.(env.*|sqlite|sqlite3|db|sql|log|bak|sh|md)|composer\.(json|lock)|package(-lock)?\.json|\.git.*)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order Deny,Allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# ── 2. Block direct HTTP access to core application folders ──────────────────
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Serve existing files/folders directly if they exist
-    RewriteCond %{REQUEST_FILENAME} -f [OR]
-    RewriteCond %{REQUEST_FILENAME} -d
+    # Deny access to private Laravel source directories
+    RewriteRule ^(app|bootstrap|config|database|resources|routes|storage|tests|vendor)/.*$ - [F,L]
+
+    # Block direct access to hidden/sensitive files
+    RewriteRule ^(\.git|\.env|composer\.|package(-lock)?\.json|artisan) - [F,L]
+
+    # Handle Authorization header passing for API tokens / JWT
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # ── 3. Routing to /public ────────────────────────────────────────────────
+    # If the request is already pointing to /public, don't rewrite
+    RewriteCond %{REQUEST_URI} ^/public/ [OR]
+    RewriteCond %{REQUEST_URI} ^.*/public/
     RewriteRule ^ - [L]
 
-    # Direct all requests to public directory
-    RewriteCond %{REQUEST_URI} !^/public/
+    # Rewrite all valid incoming requests to the public directory
     RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# ── 4. Security Headers ──────────────────────────────────────────────────────
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# ── 5. Gzip / Deflate Compression ───────────────────────────────────────────
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/json
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE image/svg+xml
 </IfModule>

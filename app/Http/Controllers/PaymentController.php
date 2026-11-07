@@ -180,10 +180,7 @@ class PaymentController extends Controller
 
         // Check if Paystack is configured (supports PAYSTACK_SECRET_KEY, JLM_PAYSTACK_SECRET_KEY, and config)
         $secretKey = config('services.paystack.secret_key')
-            ?: (env('PAYSTACK_SECRET_KEY')
-            ?: (env('JLM_PAYSTACK_SECRET_KEY')
-            ?: (env('PAYSTACK_SECRET')
-            ?: 'sk_live_' . '6c3a6c6c3a68677c02bcbd71a51d0ca384263df1')));
+            ?: env('PAYSTACK_SECRET_KEY', env('JLM_PAYSTACK_SECRET_KEY', env('PAYSTACK_SECRET')));
 
         if (empty($secretKey)) {
             return back()->with('error', 'Payment gateway is currently not configured.');
@@ -363,10 +360,12 @@ class PaymentController extends Controller
 
                         // 3. Notify all registered Admins of platform revenue
                         $studentUser = $enrollment->user;
+                        $studentName = $studentUser ? $studentUser->name : 'A student';
+                        $courseTitle = $course ? $course->title : 'Course';
                         \App\Models\AppNotification::notifyAdmins(
                             'payment',
                             "💰 New Course Enrollment: ₦" . number_format($amountPaid, 2),
-                            "Student {$studentUser?->name} enrolled in \"{$course?->title}\". Platform share: ₦" . number_format($platformShare, 2),
+                            "Student {$studentName} enrolled in \"{$courseTitle}\". Platform share: ₦" . number_format($platformShare, 2),
                             route('admin.dashboard'),
                             'fa-receipt',
                             'purple'

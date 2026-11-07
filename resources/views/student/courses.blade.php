@@ -39,7 +39,7 @@
                         <div class="p-5 flex-grow flex flex-col justify-between">
                             <div>
                                 <h2 class="text-lg font-bold text-gray-900 mb-1 line-clamp-2">{{ $course->title }}</h2>
-                                <p class="text-sm text-gray-500 mb-3">by {{ $course->instructor?->name ?? 'Instructor' }}</p>
+                                <p class="text-sm text-gray-500 mb-3">by {{ optional($course->instructor)->name ?? 'Instructor' }}</p>
                                 <div class="bg-purple-50 border border-purple-100 rounded-xl p-3 text-xs text-purple-700 mb-4">
                                     <i class="fas fa-rocket mr-1 text-purple-500"></i>
                                     You have secured pre-order access. Full content unlocks automatically upon official launch!
@@ -88,24 +88,24 @@
                     </div>
                     <div class="p-5 flex-grow flex flex-col">
                         <h2 class="text-lg font-bold text-gray-900 mb-1 line-clamp-2">{{ $course->title }}</h2>
-                        <p class="text-sm text-gray-500 mb-4">by {{ $course->instructor?->name ?? 'Instructor' }}</p>
+                        <p class="text-sm text-gray-500 mb-4">by {{ optional($course->instructor)->name ?? 'Instructor' }}</p>
 
                         <!-- Progress Bar -->
                         <div class="mb-4 mt-auto">
                             <div class="flex justify-between items-center mb-1.5">
                                 <span class="text-xs text-gray-500 font-medium">Progress</span>
-                                <span class="text-xs font-bold text-primary-jlm">{{ $course->pivot?->progress_percentage ?? 0 }}%</span>
+                                <span class="text-xs font-bold text-primary-jlm">{{ optional($course->pivot)->progress_percentage ?? 0 }}%</span>
                             </div>
                             <div class="w-full bg-gray-100 rounded-full h-2.5">
                                 <div class="bg-gradient-to-r from-primary-jlm to-secondary-jlm h-2.5 rounded-full transition-all duration-500"
-                                     style="width: {{ $course->pivot?->progress_percentage ?? 0 }}%"></div>
+                                     style="width: {{ optional($course->pivot)->progress_percentage ?? 0 }}%"></div>
                             </div>
                         </div>
 
                         <a href="{{ route('course.detail', $course->slug) }}" 
                            class="w-full text-center bg-primary-jlm text-white py-2.5 rounded-xl font-semibold hover:bg-primary-jlm-dark transition text-sm">
                             <i class="fas fa-play mr-2"></i>
-                            {{ ($course->pivot?->progress_percentage ?? 0) > 0 ? 'Continue Learning' : 'Start Course' }}
+                            {{ (optional($course->pivot)->progress_percentage ?? 0) > 0 ? 'Continue Learning' : 'Start Course' }}
                         </a>
                     </div>
                 </div>

@@ -112,7 +112,7 @@
                                 Facilitated By
                             </span>
                             <p class="font-extrabold text-gray-900 text-base leading-snug">
-                                {{ $course->instructor?->name ?? 'Learnerium Facilitator' }}
+                                {{ optional($course->instructor)->name ?? 'Learnerium Facilitator' }}
                             </p>
                             <span class="text-xs text-gray-500 mt-1 block">
                                 Lead Academic Faculty

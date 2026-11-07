@@ -16,10 +16,7 @@ class BankVerificationController extends Controller
     {
         $banks = Cache::remember('paystack_banks_nigeria', 86400, function () {
             $secretKey = config('services.paystack.secret_key')
-                ?: (env('PAYSTACK_SECRET_KEY')
-                ?: (env('JLM_PAYSTACK_SECRET_KEY')
-                ?: (env('PAYSTACK_SECRET')
-                ?: 'sk_live_' . '6c3a6c6c3a68677c02bcbd71a51d0ca384263df1')));
+                ?: env('PAYSTACK_SECRET_KEY', env('JLM_PAYSTACK_SECRET_KEY', env('PAYSTACK_SECRET')));
 
             try {
                 $response = Http::withToken($secretKey)
@@ -89,10 +86,7 @@ class BankVerificationController extends Controller
         $bankCode      = trim($request->bank_code);
 
         $secretKey = config('services.paystack.secret_key')
-            ?: (env('PAYSTACK_SECRET_KEY')
-            ?: (env('JLM_PAYSTACK_SECRET_KEY')
-            ?: (env('PAYSTACK_SECRET')
-            ?: 'sk_live_' . '6c3a6c6c3a68677c02bcbd71a51d0ca384263df1')));
+            ?: env('PAYSTACK_SECRET_KEY', env('JLM_PAYSTACK_SECRET_KEY', env('PAYSTACK_SECRET')));
 
         if (empty($secretKey)) {
             return response()->json([

@@ -37,8 +37,10 @@ class NotificationPreference extends Model
 
     /**
      * Get or create preferences for a user with sensible defaults.
+     *
+     * @return static
      */
-    public static function forUser(int $userId): static
+    public static function forUser(int $userId)
     {
         return static::firstOrCreate(['user_id' => $userId]);
     }

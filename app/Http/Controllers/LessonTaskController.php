@@ -124,7 +124,7 @@ class LessonTaskController extends Controller
 
         try {
             $task = $submission->task;
-            $course = $task?->lesson?->course;
+            $course = ($task && $task->lesson) ? $task->lesson->course : null;
             \App\Models\AppNotification::notify(
                 $submission->user_id,
                 'grading',
@@ -149,7 +149,7 @@ class LessonTaskController extends Controller
 
         try {
             $task = $submission->task;
-            $course = $task?->lesson?->course;
+            $course = ($task && $task->lesson) ? $task->lesson->course : null;
 
             // Revoke completion for this lesson until student corrects and resubmits
             \App\Models\LessonProgress::where('user_id', $submission->user_id)

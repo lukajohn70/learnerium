@@ -44,7 +44,7 @@
             </div>
             <div class="divide-y divide-gray-50">
                 @foreach ($courses as $course)
-                    @php $prog = $course->pivot?->progress_percentage ?? 0; @endphp
+                    @php $prog = optional($course->pivot)->progress_percentage ?? 0; @endphp
                     <div class="px-6 py-5 hover:bg-gray-50 transition">
                         <div class="flex items-center justify-between mb-3">
                             <div class="flex items-center gap-4">
@@ -53,7 +53,7 @@
                                 </div>
                                 <div>
                                     <p class="font-semibold text-gray-800">{{ $course->title }}</p>
-                                    <p class="text-sm text-gray-400">by {{ $course->instructor?->name ?? 'Instructor' }}</p>
+                                    <p class="text-sm text-gray-400">by {{ optional($course->instructor)->name ?? 'Instructor' }}</p>
                                 </div>
                             </div>
                             <div class="text-right ml-4">

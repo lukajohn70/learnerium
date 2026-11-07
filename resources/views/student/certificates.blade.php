@@ -52,7 +52,7 @@
                     $enrollment = Auth::user()->enrollments()->where('course_id', $course->id)->first();
                     $composite = $enrollment ? ($enrollment->id . $course->id . Auth::id()) : '---';
                     $serial = 'LNR-CERT-' . $composite;
-                    $issueDate = $enrollment?->updated_at?->format('d M Y') ?? date('d M Y');
+                    $issueDate = ($enrollment && $enrollment->updated_at ? $enrollment->updated_at->format('d M Y') : null) ?? date('d M Y');
                 @endphp
                 <div class="group bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition duration-300">
 
@@ -83,7 +83,7 @@
                             {{ $course->title }}
                         </h2>
                         <p class="text-xs text-gray-400 mb-3">
-                            Facilitated by <span class="font-semibold text-gray-600">{{ $course->instructor?->name ?? 'Learnerium Faculty' }}</span>
+                            Facilitated by <span class="font-semibold text-gray-600">{{ optional($course->instructor)->name ?? 'Learnerium Faculty' }}</span>
                         </p>
 
                         {{-- Meta badges --}}

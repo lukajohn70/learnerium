@@ -74,7 +74,7 @@ class StudentTaskController extends Controller
 
         // Send notifications to instructor and student
         try {
-            $course = $task->lesson?->course;
+            $course = ($task->lesson) ? $task->lesson->course : null;
             if ($course && $course->instructor_id) {
                 // Alert Instructor
                 \App\Models\AppNotification::notify(

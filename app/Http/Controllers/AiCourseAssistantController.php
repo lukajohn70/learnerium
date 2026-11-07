@@ -41,21 +41,31 @@ class AiCourseAssistantController extends Controller
         $description = $request->input('description', '');
         $lessonTitle = $request->input('lesson_title', '');
 
-        $prompt = match ($action) {
-            'description' => "You are an expert e-learning curriculum designer and copywriter. Write a compelling, high-converting, professional course overview/description (3 concise paragraphs, ~150-180 words) for an online course titled: \"{$title}\". Level: {$level}. Category: {$category}. Make it engaging, benefit-driven, and clear. Return ONLY the plain description text with no Markdown headings, no asterisks, no quotes.",
-
-            'outcomes' => "You are an expert instructional designer. List 6-8 specific, actionable learning outcomes for an online course titled: \"{$title}\". Level: {$level}. Category: {$category}." . ($description ? " Overview: {$description}" : "") . " Format: Return ONLY a valid JSON array of strings. Example: [\"Understand core concepts of {$title}\", \"Build real-world projects\", \"Apply best practices\"]. Do not wrap in markdown code blocks.",
-
-            'requirements' => "You are an expert course designer. List 4-6 realistic prerequisites and requirements for students enrolling in: \"{$title}\". Level: {$level}. Category: {$category}. Format: Return ONLY a valid JSON array of strings. Example: [\"Basic computer skills\", \"A stable internet connection\"]. Do not wrap in markdown code blocks.",
-
-            'outline' => "You are an expert instructional designer. Create a structured curriculum outline for: \"{$title}\". Level: {$level}. Category: {$category}." . ($description ? " Overview: {$description}" : "") . " Generate 4-6 modules, each with 3-5 lesson titles. Format: Return ONLY a valid JSON array of module objects. Example: [{\"module\": \"Module 1: Getting Started\", \"lessons\": [\"Lesson 1: Introduction\", \"Lesson 2: Development Setup\"]}]. Do not wrap in markdown code blocks.",
-
-            'lesson_notes' => "You are an expert educator. Write comprehensive, well-structured lesson study notes and summary for a lesson titled: \"" . ($lessonTitle ?: $title) . "\" in the course \"{$title}\". Include an overview, 3-4 key concepts explained clearly with bullet points, and practical takeaways. Format cleanly in HTML (<p>, <h3>, <ul>, <li>, <strong>). Return only clean HTML markup.",
-
-            'transcript' => "You are an expert video lecture presenter. Write an engaging, conversational, word-for-word spoken transcript and lecture script for a lesson titled: \"" . ($lessonTitle ?: $title) . "\" in the course \"{$title}\". Make it instructional, enthusiastic, and paced for high student retention.",
-
-            'task_prompt' => "You are an instructional designer. Create a practical, engaging student assignment for the lesson \"" . ($lessonTitle ?: $title) . "\" in the course \"{$title}\". Include: 1. Objective, 2. Step-by-Step Instructions, 3. Submission Deliverable, 4. Success Criteria.",
-        };
+        $prompt = '';
+        switch ($action) {
+            case 'description':
+                $prompt = "You are an expert e-learning curriculum designer and copywriter. Write a compelling, high-converting, professional course overview/description (3 concise paragraphs, ~150-180 words) for an online course titled: \"{$title}\". Level: {$level}. Category: {$category}. Make it engaging, benefit-driven, and clear. Return ONLY the plain description text with no Markdown headings, no asterisks, no quotes.";
+                break;
+            case 'outcomes':
+                $prompt = "You are an expert instructional designer. List 6-8 specific, actionable learning outcomes for an online course titled: \"{$title}\". Level: {$level}. Category: {$category}." . ($description ? " Overview: {$description}" : "") . " Format: Return ONLY a valid JSON array of strings. Example: [\"Understand core concepts of {$title}\", \"Build real-world projects\", \"Apply best practices\"]. Do not wrap in markdown code blocks.";
+                break;
+            case 'requirements':
+                $prompt = "You are an expert course designer. List 4-6 realistic prerequisites and requirements for students enrolling in: \"{$title}\". Level: {$level}. Category: {$category}. Format: Return ONLY a valid JSON array of strings. Example: [\"Basic computer skills\", \"A stable internet connection\"]. Do not wrap in markdown code blocks.";
+                break;
+            case 'outline':
+                $prompt = "You are an expert instructional designer. Create a structured curriculum outline for: \"{$title}\". Level: {$level}. Category: {$category}." . ($description ? " Overview: {$description}" : "") . " Generate 4-6 modules, each with 3-5 lesson titles. Format: Return ONLY a valid JSON array of module objects. Example: [{\"module\": \"Module 1: Getting Started\", \"lessons\": [\"Lesson 1: Introduction\", \"Lesson 2: Development Setup\"]}]. Do not wrap in markdown code blocks.";
+                break;
+            case 'lesson_notes':
+                $prompt = "You are an expert educator. Write comprehensive, well-structured lesson study notes and summary for a lesson titled: \"" . ($lessonTitle ?: $title) . "\" in the course \"{$title}\". Include an overview, 3-4 key concepts explained clearly with bullet points, and practical takeaways. Format cleanly in HTML (<p>, <h3>, <ul>, <li>, <strong>). Return only clean HTML markup.";
+                break;
+            case 'transcript':
+                $prompt = "You are an expert video lecture presenter. Write an engaging, conversational, word-for-word spoken transcript and lecture script for a lesson titled: \"" . ($lessonTitle ?: $title) . "\" in the course \"{$title}\". Make it instructional, enthusiastic, and paced for high student retention.";
+                break;
+            case 'task_prompt':
+            default:
+                $prompt = "You are an instructional designer. Create a practical, engaging student assignment for the lesson \"" . ($lessonTitle ?: $title) . "\" in the course \"{$title}\". Include: 1. Objective, 2. Step-by-Step Instructions, 3. Submission Deliverable, 4. Success Criteria.";
+                break;
+        }
 
         // Active, ultra-fast Google Gemini models (benchmarked < 1.5s response time)
         $modelsToTry = [

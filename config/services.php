@@ -40,5 +40,16 @@ return [
         'model'   => env('GEMINI_MODEL', 'gemini-1.5-flash'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | JLM Ecosystem Integration (ZAVORA / Corporate)
+    |--------------------------------------------------------------------------
+    */
+    'ecosystem' => [
+        'api_secret'    => env('ECOSYSTEM_API_SECRET', env('ZAVORA_INTEGRATION_KEY')),
+        'zavora_url'    => env('ZAVORA_URL', 'https://zavora.jlm.com.ng'),
+        'corporate_url' => env('JLM_CORPORATE_URL', 'https://jlm.com.ng'),
+    ],
+
 ];
 

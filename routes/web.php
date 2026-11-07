@@ -451,18 +451,22 @@ Route::get('/uploads/{folder}/{filename}', function ($folder, $filename) {
     }
 
     $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-    $mime = match($ext) {
-        'mp4' => 'video/mp4',
-        'webm' => 'video/webm',
-        'mov', 'quicktime' => 'video/quicktime',
-        'avi' => 'video/x-msvideo',
-        'png' => 'image/png',
-        'jpg', 'jpeg' => 'image/jpeg',
-        'svg' => 'image/svg+xml',
-        'webp' => 'image/webp',
-        'pdf' => 'application/pdf',
-        default => mime_content_type($path) ?: 'application/octet-stream',
-    };
+    $mimeTypes = [
+        'mp4'       => 'video/mp4',
+        'webm'      => 'video/webm',
+        'mov'       => 'video/quicktime',
+        'quicktime' => 'video/quicktime',
+        'avi'       => 'video/x-msvideo',
+        'png'       => 'image/png',
+        'jpg'       => 'image/jpeg',
+        'jpeg'      => 'image/jpeg',
+        'svg'       => 'image/svg+xml',
+        'webp'      => 'image/webp',
+        'pdf'       => 'application/pdf',
+    ];
+    $mime = isset($mimeTypes[$ext])
+        ? $mimeTypes[$ext]
+        : (function_exists('mime_content_type') && file_exists($path) ? mime_content_type($path) : 'application/octet-stream');
 
     $cacheControl = $folder === 'videos' ? 'private, no-transform' : 'public, max-age=604800';
 
@@ -495,6 +499,9 @@ Route::get('/favicon.png', function () {
 
 // Authentication Routes (Email Verification Enabled)
 Auth::routes(['verify' => true]);
+
+// Ecosystem Single Sign-On (SSO) from ZAVORA Marketplace
+Route::get('/auth/ecosystem/sso', [\App\Http\Controllers\Auth\EcosystemSsoController::class, 'ssoLogin'])->name('ecosystem.sso');
 
 // Dedicated Student Login Routes
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');

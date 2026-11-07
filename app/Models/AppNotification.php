@@ -25,6 +25,8 @@ class AppNotification extends Model
 
     /**
      * Create a notification for a user and send an email if opted in.
+     *
+     * @return static
      */
     public static function notify(
         int $userId,
@@ -34,7 +36,7 @@ class AppNotification extends Model
         ?string $actionUrl = null,
         string $icon = 'fa-bell',
         string $color = 'blue'
-    ): static {
+    ) {
         // 1. Create in-app notification
         $notification = static::create([
             'user_id'    => $userId,
@@ -57,15 +59,27 @@ class AppNotification extends Model
                 if (!$user->isAdmin()) {
                     $prefs = NotificationPreference::forUser($userId);
                     if ($prefs) {
-                        $shouldSendEmail = match($type) {
-                            'enrollment' => $user->isInstructor() ? ($prefs->email_new_student ?? true) : ($prefs->email_enrollment ?? true),
-                            'payment'    => $prefs->email_payment ?? true,
-                            'payout'     => $prefs->email_payout ?? true,
-                            'submission' => $prefs->email_course_updates ?? true,
-                            'grading'    => $prefs->email_course_updates ?? true,
-                            'marketing'  => $prefs->email_marketing ?? true,
-                            default      => true,
-                        };
+                        switch ($type) {
+                            case 'enrollment':
+                                $shouldSendEmail = $user->isInstructor() ? ($prefs->email_new_student ?? true) : ($prefs->email_enrollment ?? true);
+                                break;
+                            case 'payment':
+                                $shouldSendEmail = $prefs->email_payment ?? true;
+                                break;
+                            case 'payout':
+                                $shouldSendEmail = $prefs->email_payout ?? true;
+                                break;
+                            case 'submission':
+                            case 'grading':
+                                $shouldSendEmail = $prefs->email_course_updates ?? true;
+                                break;
+                            case 'marketing':
+                                $shouldSendEmail = $prefs->email_marketing ?? true;
+                                break;
+                            default:
+                                $shouldSendEmail = true;
+                                break;
+                        }
                     }
                 }
 
