@@ -80,6 +80,16 @@ Route::get('/payment/callback', [PaymentController::class, 'callback'])->name('p
 
 // Database Schema Migration Web Route (Smart Synchronizer)
 Route::any('/updatedb.php', function () {
+    // Enforce Administrator Session or Ecosystem Secret Key Verification
+    $providedKey = request()->bearerToken() ?: (request()->header('X-Ecosystem-Key') ?: request('token'));
+    $expectedSecret = config('services.ecosystem.api_secret') ?: env('ECOSYSTEM_API_SECRET');
+    $isAdmin = auth()->check() && (auth()->user()->role === 'admin');
+    $isKeyValid = !empty($expectedSecret) && !empty($providedKey) && hash_equals((string)$expectedSecret, (string)$providedKey);
+
+    if (!$isAdmin && !$isKeyValid) {
+        abort(403, 'Unauthorized. Administrator session or valid ecosystem token required.');
+    }
+
     $log = [];
     $status = 'success';
 
@@ -398,6 +408,14 @@ Route::any('/updatedb', function () {
     return redirect('/updatedb.php');
 });
 Route::any('/migrate_db.php', function () {
+    $providedKey = request()->bearerToken() ?: (request()->header('X-Ecosystem-Key') ?: request('token'));
+    $expectedSecret = config('services.ecosystem.api_secret') ?: env('ECOSYSTEM_API_SECRET');
+    $isAdmin = auth()->check() && (auth()->user()->role === 'admin');
+    $isKeyValid = !empty($expectedSecret) && !empty($providedKey) && hash_equals((string)$expectedSecret, (string)$providedKey);
+    if (!$isAdmin && !$isKeyValid) {
+        abort(403, 'Unauthorized. Administrator session or valid ecosystem token required.');
+    }
+
     if (file_exists(public_path('migrate_db.php'))) {
         require public_path('migrate_db.php');
         exit;
@@ -414,6 +432,14 @@ Route::any('/migrate_db', function () {
 
 // Dynamic Module Generator Route (Guaranteed online execution)
 Route::any('/insert_module.php', function () {
+    $providedKey = request()->bearerToken() ?: (request()->header('X-Ecosystem-Key') ?: request('token'));
+    $expectedSecret = config('services.ecosystem.api_secret') ?: env('ECOSYSTEM_API_SECRET');
+    $isAdmin = auth()->check() && (auth()->user()->role === 'admin');
+    $isKeyValid = !empty($expectedSecret) && !empty($providedKey) && hash_equals((string)$expectedSecret, (string)$providedKey);
+    if (!$isAdmin && !$isKeyValid) {
+        abort(403, 'Unauthorized. Administrator session or valid ecosystem token required.');
+    }
+
     ob_start();
     require public_path('insert_module.php');
     return response(ob_get_clean());
